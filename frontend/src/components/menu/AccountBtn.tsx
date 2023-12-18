@@ -1,26 +1,25 @@
 import React from "react";
-import {Avatar, Divider, Group, Modal, Paper, rem, Text, UnstyledButton} from "@mantine/core";
+import {Avatar, Divider, Group, Paper, rem, Text, UnstyledButton} from "@mantine/core";
 import {IconChevronRight} from "@tabler/icons-react";
-import {useDisclosure} from "@mantine/hooks";
 import {useAppStore} from "../../state/store";
-import {AccountMain} from "../account/AccountMain";
+import {useNavigate} from "react-router-dom";
 
 interface AccountBtnProps{
     toggleNav: () => void
 }
 
 function AccountBtn({toggleNav}: AccountBtnProps) {
-    const [opened, {open, close}] = useDisclosure(false);
     const user = useAppStore((state) => state.user)
+    const navigate = useNavigate()
     return (
         <>
-            <Modal opened={opened} onClose={close} overlayProps={{backgroundOpacity: 0.5, blur: 4}} title="Account Info">
-                <AccountMain/>
-            </Modal>
             <Paper w={"100%"}>
                 <UnstyledButton
+                    onClick={() => {
+                        navigate('/account')
+                        toggleNav();
+                    }}
                     p={"md"}
-                    onClick={open}
                     style={{
                         display: "block",
                         width: "100%"

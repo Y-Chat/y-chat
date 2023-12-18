@@ -1,19 +1,16 @@
 import React from "react";
 import {useAppStore} from "../../state/store";
-import ChatMain from "../chat/ChatMain";
+import {Outlet} from "react-router-dom";
 
 
 function Shell() {
-
-    const selectedChat = useAppStore((state) => state.selectedChat);
-
     return (
         <div
             style={{
                 height: `100vh`,
                 width: "100vw"
             }}>
-            <ChatMain/>
+            <Outlet/>
         </div>
     );
 }

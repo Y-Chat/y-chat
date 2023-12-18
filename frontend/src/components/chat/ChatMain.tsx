@@ -1,5 +1,5 @@
 import React from "react";
-import {ActionIcon, Avatar, Divider, Group, Paper, Text} from "@mantine/core";
+import {ActionIcon, Avatar, Divider, Group, Text} from "@mantine/core";
 import MenuDrawer from "../menu/MenuDrawer";
 import MessageList from "./MessageList";
 import ChatTextArea from "../text/ChatTextArea";
@@ -16,31 +16,29 @@ function ChatMain() {
                 <div style={{
                     position: "fixed",
                     top: 0,
-                    height: `${sizeHeader}%`,
+                    height: `${sizeHeader}vh`,
                     width: "100%",
                     zIndex: 1,
                 }}>
-                    <Paper h={"100%"}>
-                        <Group h={"100%"} align="center" justify="space-between" pl={10} pr={10}>
-                            <MenuDrawer/>
-                            <Group>
-                                <Group gap="xs">
-                                    <Avatar size={40} src={null} radius={40}/>
-                                    <div style={{marginLeft: 5}}>
-                                        <Text fz="sm" fw={500}>
-                                            {`Ben Strobel`}
-                                        </Text>
-                                        <Text c="dimmed" fz="xs">
-                                            {`@strobel123`}
-                                        </Text>
-                                    </div>
-                                </Group>
+                    <Group h={"100%"} align="center" justify="space-between" pl={10} pr={10}>
+                        <MenuDrawer/>
+                        <Group>
+                            <Group gap="xs">
+                                <Avatar size={40} src={null} radius={40}/>
+                                <div style={{marginLeft: 5}}>
+                                    <Text fz="sm" fw={500}>
+                                        {`Ben Strobel`}
+                                    </Text>
+                                    <Text c="dimmed" fz="xs">
+                                        {`@strobel123`}
+                                    </Text>
+                                </div>
                             </Group>
-                            <ActionIcon variant="transparent" c="lightgray">
-                                <IconVideo/>
-                            </ActionIcon>
                         </Group>
-                    </Paper>
+                        <ActionIcon variant="transparent" c="lightgray">
+                            <IconVideo/>
+                        </ActionIcon>
+                    </Group>
                     <Divider/>
                 </div>
             </header>

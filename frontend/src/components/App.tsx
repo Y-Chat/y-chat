@@ -1,11 +1,13 @@
 import React from 'react';
-import {MemoryRouter as Router, Route, Routes} from "react-router-dom";
+import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
 import '@mantine/core/styles.css';
 import {MantineProvider} from "@mantine/core";
 import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
-import {useAppStore} from "./state/store";
-import AuthMain from "./components/auth/AuthMain";
-import Shell from "./components/shell/Shell";
+import {useAppStore} from "../state/store";
+import AuthMain from "./auth/AuthMain";
+import Shell from "./shell/Shell";
+import ChatMain from "./chat/ChatMain";
+import {AccountMain} from "./account/AccountMain";
 
 function App() {
 
@@ -44,11 +46,16 @@ function App() {
                 <Router>
                     {user ?
                         <Routes>
-                            <Route path="/" element={<Shell/>}/>
+                            <Route path="/" element={<Shell/>}>
+                                <Route path="/" element={<ChatMain/>}/>
+                                <Route path="/account" element={<AccountMain/>}/>
+                            </Route>
+                            <Route path="/*" element={<p>This should not happen</p>}/>
                         </Routes>
                         :
                         <Routes>
                             <Route path="/" element={<AuthMain/>}/>
+                            <Route path="/*" element={<Navigate to={"/"} replace/>}/>
                         </Routes>
                     }
                 </Router>
