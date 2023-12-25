@@ -1,6 +1,5 @@
 import React from 'react';
 import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
-import '@mantine/core/styles.css';
 import {MantineProvider} from "@mantine/core";
 import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
 import {useAppStore} from "../state/store";
@@ -8,6 +7,7 @@ import AuthMain from "./auth/AuthMain";
 import Shell from "./shell/Shell";
 import ChatMain from "./chat/ChatMain";
 import {AccountMain} from "./account/AccountMain";
+import '@mantine/core/styles.css';
 
 function App() {
 

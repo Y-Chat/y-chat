@@ -5,8 +5,8 @@ import {
     ScrollArea,
 } from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
-import ContactList from "../contacts/ContactList";
 import AccountBtn from "./AccountBtn";
+import {ContactList} from "../contacts/ContactList";
 
 function MenuDrawer() {
     const [opened, {open, close}] = useDisclosure(false);
