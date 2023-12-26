@@ -7,8 +7,9 @@ import {
     rem,
     keys, Indicator, Avatar, ActionIcon, Stack, Center,
 } from '@mantine/core';
-import {IconSearch, IconX} from '@tabler/icons-react';
+import {IconMessageOff, IconSearch, IconX} from '@tabler/icons-react';
 import {useAppStore} from "../../state/store";
+import {useNavigate} from "react-router-dom";
 
 interface Chat {
     id: number
@@ -221,7 +222,7 @@ interface ContactListProps {
 export function ContactList({toggleNav}: ContactListProps) {
     const [search, setSearch] = useState('');
     const [sortedData, setSortedData] = useState(data);
-    const selectChat = useAppStore((state) => state.selectChat);
+    const navigate = useNavigate()
 
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,7 +233,7 @@ export function ContactList({toggleNav}: ContactListProps) {
 
     const rows = sortedData.map((row) => (
         <UnstyledButton key={row.id} onClick={() => {
-            selectChat("TODOchatId");
+            navigate('/')
             toggleNav();
         }}>
             <Group justify="space-between">
@@ -285,7 +286,16 @@ export function ContactList({toggleNav}: ContactListProps) {
                 value={search}
                 onChange={handleSearchChange}
             />
-            {rows}
+            {rows.length <= 0 ?
+                <Center>
+                    <Stack justify="start" align="center" gap={5}>
+                        <IconMessageOff/>
+                        <Text>No Chats</Text>
+                    </Stack>
+                </Center>
+                :
+                rows
+            }
         </Stack>
     );
 }

@@ -20,10 +20,10 @@ function ChatMain() {
                     width: "100%",
                     zIndex: 1,
                 }}>
-                    <Group h={"100%"} align="center" justify="space-between" pl={10} pr={10}>
+                    <Group w={"100%"} h={"100%"} align="center" justify="space-between" pl={10} pr={10}>
                         <MenuDrawer/>
-                        <Group>
-                            <Group gap="xs">
+                        <Group h={"100%"}>
+                            <Group h={"100%"} gap="xs">
                                 <Avatar size={40} src={null} radius={40}/>
                                 <div style={{marginLeft: 5}}>
                                     <Text fz="sm" fw={500}>

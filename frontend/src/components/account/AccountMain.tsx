@@ -9,13 +9,14 @@ import {
     SimpleGrid,
     Card,
     Input,
-    Container, Button
+    Container, Button, rem
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {TextInput} from "@mantine/core";
 import {useAppStore} from "../../state/store";
 import MenuDrawer from "../menu/MenuDrawer";
-import {IconLogout} from "@tabler/icons-react";
+import {IconLogout, IconUpload, IconX} from "@tabler/icons-react";
+import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 
 export function AccountMain() {
     const sizeHeader = 10;
@@ -41,9 +42,11 @@ export function AccountMain() {
                     width: "100%",
                     zIndex: 1,
                 }}>
-                        <Group>
-                            <MenuDrawer/>
-                        </Group>
+                    <Group justify="space-between" pl={10} h={"100%"} pr={10}>
+                        <MenuDrawer/>
+                        <Text fz="sm" fw={500}>Account Settings</Text>
+                        <span/>
+                    </Group>
                     <Divider/>
                 </div>
             </header>
@@ -53,7 +56,42 @@ export function AccountMain() {
                 })}>
                     <Stack justify="flex-start" align="stretch">
                         <Center mb={10}>
-                            <Avatar size={120}/>
+                            <Dropzone
+                                onDrop={(files) => console.log('accepted files', files)}
+                                onReject={(files) => console.log('rejected files', files)}
+                                accept={IMAGE_MIME_TYPE}
+                            >
+                                <Group justify="center" gap="xl" style={{pointerEvents: 'none'}}>
+                                    <Dropzone.Accept>
+                                        <Avatar size={120}>
+                                            <IconUpload
+                                                style={{
+                                                    width: rem(52),
+                                                    height: rem(52),
+                                                    color: 'var(--mantine-color-blue-6)'
+                                                }}
+                                                stroke={1.5}
+                                            />
+                                        </Avatar>
+                                    </Dropzone.Accept>
+                                    <Dropzone.Reject>
+                                        <Avatar size={120}>
+                                            <IconX
+                                                style={{
+                                                    width: rem(52),
+                                                    height: rem(52),
+                                                    color: 'var(--mantine-color-red-6)'
+                                                }}
+                                                stroke={1.5}
+                                            />
+                                        </Avatar>
+                                    </Dropzone.Reject>
+                                    <Dropzone.Idle>
+                                        <Avatar size={120}/>
+                                    </Dropzone.Idle>
+                                </Group>
+                            </Dropzone>
+
                         </Center>
                         <Group grow>
                             <TextInput
@@ -101,7 +139,7 @@ export function AccountMain() {
                             variant="default"
                             onClick={() => setUser(null)}
                         >
-                            Logout
+                            <Text>Logout</Text>
                         </Button>
 
                     </Stack>
