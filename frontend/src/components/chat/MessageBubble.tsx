@@ -1,13 +1,30 @@
 import React from "react";
 import {Group, Paper, Text} from "@mantine/core";
-import {IconHourglassEmpty, IconPackage, IconPackageImport} from "@tabler/icons-react";
+import {IconPackageImport} from "@tabler/icons-react";
+import {Message} from "../../model/Message";
+import {MediaMessage} from "./MediaMessage";
 
 interface MessageBubbleProps {
-    message: string,
-    fromMe: boolean
+    message: Message,
 }
 
-function MessageBubble({message, fromMe}: MessageBubbleProps) {
+function MessageBubble({message}: MessageBubbleProps) {
+
+    function messageContent(){
+        if (message.type === "text"){
+            return(
+                <Text>{message.message}</Text>
+            );
+        } else if (message.type === "media"){
+            return(
+                <MediaMessage message={message}/>
+            );
+        } else if (message.type === "payment"){
+            return(
+                <p>Not supported in your version</p>
+            );
+        }
+    }
 
     var today = new Date();
 
@@ -17,14 +34,14 @@ function MessageBubble({message, fromMe}: MessageBubbleProps) {
             radius="md"
             shadow="md"
             p={10}
-            bg={fromMe ? "dark" : "mainColors"}
+            bg={message.fromMe ? "dark" : "mainColors"}
             style={{
                 maxWidth: 300,
                 height: "100%",
-                placeSelf: fromMe ? "start" : "end",
+                placeSelf: message.fromMe ? "start" : "end",
             }}
         >
-            <Text>{message}</Text>
+            {messageContent()}
             <Group justify="flex-end" gap={5} c="dimmed">
                 <Text size="xs">{today.getHours() + ":" + today.getMinutes()}</Text>
                 {/*<IconHourglassEmpty size={10}/>*/}
