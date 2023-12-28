@@ -34,7 +34,6 @@ function AuthMain() {
     });
     const theme = useMantineTheme();
     return (
-
         <Flex
             pt={"10vh"}
             w={"100vw"}
@@ -42,7 +41,8 @@ function AuthMain() {
             gap="md"
             justify="flex-start"
             align="center"
-            direction="column">
+            direction="column"
+        >
             <Logo size={100}/>
             <Paper radius="md" p="xl" withBorder>
                 <form onSubmit={form.onSubmit(() => {
@@ -57,7 +57,7 @@ function AuthMain() {
                 })}>
                     <Stack>
                         {type === 'register' && (
-                            <Group>
+                            <>
                                 <TextInput
                                     withAsterisk
                                     size="md"
@@ -76,8 +76,7 @@ function AuthMain() {
                                     onChange={(event) => form.setFieldValue('lastName', event.currentTarget.value)}
                                     radius="md"
                                 />
-                            </Group>
-
+                            </>
                         )}
 
                         <TextInput

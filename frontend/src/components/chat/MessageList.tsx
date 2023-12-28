@@ -53,7 +53,7 @@ function MessageList() {
         {
             type: "media",
             mediaUrl: "https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg?size=626&ext=jpg&ga=GA1.1.1546980028.1703635200&semt=sph",
-            message: "Look at this. Wow.",
+            message: "Look at this view. Wow!",
             fromMe: true,
             status: "read"
         },

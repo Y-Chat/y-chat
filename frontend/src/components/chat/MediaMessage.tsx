@@ -10,13 +10,21 @@ interface MediaMessageProps {
 // TODO: support videos in the future?
 export function MediaMessage({message}: MediaMessageProps) {
     const [opened, {toggle}] = useDisclosure(false);
+    const imageElement = <Image src={message.mediaUrl}/>
 
     return (
         <>
-            <Modal centered lockScroll opened={opened} onClose={toggle}>
-                <Image src={message.mediaUrl}/>
+            <Modal
+                centered
+                lockScroll
+                opened={opened}
+                onClose={toggle}
+                overlayProps={{backgroundOpacity: 0.5, blur: 4}}>
+                {imageElement}
             </Modal>
-            <Image src={message.mediaUrl} onClick={toggle}/>
+            <div onClick={toggle}>
+                {imageElement}
+            </div>
             <Text>{message.message}</Text>
         </>
     );

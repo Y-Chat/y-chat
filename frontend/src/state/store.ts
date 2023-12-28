@@ -1,13 +1,5 @@
 import {create} from 'zustand'
-
-interface User{
-    firstName: string,
-    lastName: string
-    email: string,
-    username: string,
-    avatar: string | null,
-    balance: number
-}
+import {User} from "../model/User";
 
 interface AppState {
     sideBarOpen: boolean
@@ -16,7 +8,6 @@ interface AppState {
     user: User | null,
     setUser: (user: User | null) => void
 }
-
 
 export const useAppStore = create<AppState>((set) => ({
     sideBarOpen: false,

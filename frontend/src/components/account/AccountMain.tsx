@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {
     Avatar,
     Center,
@@ -9,7 +9,10 @@ import {
     SimpleGrid,
     Card,
     Input,
-    Container, Button, rem
+    Container,
+    Button,
+    rem,
+    ColorPicker
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {TextInput} from "@mantine/core";
@@ -19,6 +22,7 @@ import {IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 
 export function AccountMain() {
+    const [accentColor, setAccentColor] = useState('#fff');
     const sizeHeader = 10;
     const user = useAppStore((state) => state.user);
     const setUser = useAppStore((state) => state.setUser);
@@ -30,6 +34,7 @@ export function AccountMain() {
         },
 
         validate: {
+            // TODO
             //email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
             //password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
         },
@@ -87,7 +92,7 @@ export function AccountMain() {
                                         </Avatar>
                                     </Dropzone.Reject>
                                     <Dropzone.Idle>
-                                        <Avatar size={120}/>
+                                        <Avatar size={120} color={accentColor}/>
                                     </Dropzone.Idle>
                                 </Group>
                             </Dropzone>
@@ -114,7 +119,7 @@ export function AccountMain() {
                         <TextInput
                             size="md"
                             label="Email"
-                            placeholder="Max@mustermann.de"
+                            placeholder="max@mustermann.de"
                             value={form.values.lastName}
                             onChange={(event) => form.setFieldValue('lastName', event.currentTarget.value)}
                             radius="md"
@@ -128,11 +133,29 @@ export function AccountMain() {
                         </Input.Wrapper>
                         <SimpleGrid cols={3} verticalSpacing="sm">
                             {["+5€", "+10€", "+50€"].map(e =>
-                                <Card withBorder>
+                                <Card key={e} withBorder>
                                     <Center>{e}</Center>
                                 </Card>
                             )}
                         </SimpleGrid>
+                        <Divider m='xs'/>
+                        <Input.Wrapper
+                            size="md"
+                            label="Pick your accent color"
+                        >
+                            <Center pt={"md"}>
+                                <ColorPicker
+                                    format="hex"
+                                    value={accentColor}
+                                    onChange={setAccentColor}
+                                    withPicker={false}
+                                    fullWidth
+                                    swatches={[
+                                       "white", "#6BD731", "#0969FF", "#4C5897","#8931B2", "#F01879", "#C91A25"
+                                    ]}
+                                />
+                            </Center>
+                        </Input.Wrapper>
                         <Divider m='xs'/>
                         <Button
                             rightSection={<IconLogout size={14}/>}
@@ -141,7 +164,6 @@ export function AccountMain() {
                         >
                             <Text>Logout</Text>
                         </Button>
-
                     </Stack>
                 </form>
             </Container>
