@@ -8,12 +8,14 @@ import {
     Paper,
     PasswordInput,
     Stack,
-    TextInput, useMantineTheme
+    TextInput
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
 import Logo from "../shell/Logo";
 import {useAppStore} from "../../state/store";
+import {auth} from "../../firebase/init";
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth"
 
 function AuthMain() {
     const setUser = useAppStore((state) => state.setUser)
@@ -32,7 +34,6 @@ function AuthMain() {
             //password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
         },
     });
-    const theme = useMantineTheme();
     return (
         <Flex
             pt={"10vh"}
@@ -46,14 +47,40 @@ function AuthMain() {
             <Logo size={100}/>
             <Paper radius="md" p="xl" withBorder>
                 <form onSubmit={form.onSubmit(() => {
-                    setUser({
+                    debugger
+                    const email = form.values.email
+                    const password = form.values.password
+                    if (type === "register") {
+                        // TODO
+                        createUserWithEmailAndPassword(auth, email, password)
+                            .then((userCredentials) => {
+                                const user = userCredentials.user
+                                console.log(user)
+                            }).catch((error) => {
+                            console.log("Error registering user: ", error)
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                        });
+                    } else if (type === "login") {
+                        // TODO
+                        signInWithEmailAndPassword(auth, email, password).then((userCredentials) => {
+                            const user = userCredentials.user
+                            console.log(user)
+                        }).catch((error) => {
+                            console.log("Error logging in user: ", error)
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                        });
+                    }
+
+/*                    setUser({
                         username: "strobel123",
                         firstName: "Ben",
                         lastName: "Strobel",
                         email: "ben@strobel.de",
                         avatar: null,
                         balance: 101
-                    });
+                    });*/
                 })}>
                     <Stack>
                         {type === 'register' && (
