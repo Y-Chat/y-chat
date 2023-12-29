@@ -26,11 +26,12 @@ export function AccountMain() {
     const sizeHeader = 10;
     const user = useAppStore((state) => state.user);
     const setUser = useAppStore((state) => state.setUser);
+    const setUserLoading = useAppStore((state) => state.setUserLoading);
     const form = useForm({
         initialValues: {
-            email: '',
-            firstName: '',
-            lastName: '',
+            email: user?.email,
+            firstName: user?.firstName,
+            lastName: user?.lastName,
         },
 
         validate: {
@@ -92,7 +93,7 @@ export function AccountMain() {
                                         </Avatar>
                                     </Dropzone.Reject>
                                     <Dropzone.Idle>
-                                        <Avatar size={120} color={accentColor}/>
+                                        <Avatar src={user?.avatar} size={120} color={accentColor}/>
                                     </Dropzone.Idle>
                                 </Group>
                             </Dropzone>
@@ -119,9 +120,9 @@ export function AccountMain() {
                         <TextInput
                             size="md"
                             label="Email"
-                            placeholder="max@mustermann.de"
-                            value={form.values.lastName}
-                            onChange={(event) => form.setFieldValue('lastName', event.currentTarget.value)}
+                            placeholder="max@mustermann.com"
+                            value={form.values.email}
+                            onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
                             radius="md"
                         />
                         <Divider m='xs'/>
@@ -160,7 +161,9 @@ export function AccountMain() {
                         <Button
                             rightSection={<IconLogout size={14}/>}
                             variant="default"
-                            onClick={() => setUser(null)}
+                            onClick={() => {
+                                setUser(null)
+                            }}
                         >
                             <Text>Logout</Text>
                         </Button>
