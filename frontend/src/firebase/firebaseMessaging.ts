@@ -1,21 +1,7 @@
-import {initializeApp} from "firebase/app";
 import {getMessaging, getToken, onMessage} from "firebase/messaging";
-import {getAuth} from "firebase/auth";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAQJb9j6HjvwapIo9OT_fNTGAxuIfNcGW8",
-    authDomain: "y-chat-e5132.firebaseapp.com",
-    projectId: "y-chat-e5132",
-    storageBucket: "y-chat-e5132.appspot.com",
-    messagingSenderId: "416841181268",
-    appId: "1:416841181268:web:025b56230f33ed5f3ce5c1",
-    measurementId: "G-TV16QZK2KS"
-};
-
-const app = initializeApp(firebaseConfig);
+import app from "./firebaseConfig";
 
 const messaging = getMessaging(app);
-const auth = getAuth(app);
 
 Notification.requestPermission().then((permissions) => {
     if (permissions === "granted") {
@@ -41,8 +27,4 @@ onMessage(messaging, (payload) => {
     console.log("message received ", payload)
 })
 
-export {
-    app,
-    messaging,
-    auth
-}
+export default messaging;

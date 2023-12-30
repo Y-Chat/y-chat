@@ -1,4 +1,4 @@
-import React, {useRef, useState} from "react";
+import React, {useRef} from "react";
 import {ActionIcon, Flex, ScrollArea} from "@mantine/core";
 import MessageBubble from "./MessageBubble";
 import {IconCircleChevronDown} from "@tabler/icons-react";
@@ -74,7 +74,7 @@ function MessageList() {
         <ScrollArea type="scroll" scrollbarSize={2} scrollHideDelay={500} h={"80vh"} viewportRef={viewport}>
             <ActionIcon
                 color={"dark"}
-                c={"mainColors"}
+                c={"mainColors.6"}
                 onClick={scrollToBottom}
                 size={50}
                 variant="filled"

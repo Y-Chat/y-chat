@@ -8,6 +8,8 @@ import Shell from "./shell/Shell";
 import ChatMain from "./chat/ChatMain";
 import {AccountMain} from "./account/AccountMain";
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
+import {Notifications} from "@mantine/notifications";
 
 function App() {
 
@@ -43,6 +45,7 @@ function App() {
             {/*</BrowserView>*/}
             {/*<MobileView>*/}
             <MantineProvider theme={theme} defaultColorScheme="dark">
+                <Notifications position="top-right"/>
                 <Router>
                     {user ?
                         <Routes>

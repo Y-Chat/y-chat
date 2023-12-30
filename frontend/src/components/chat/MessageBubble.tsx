@@ -34,7 +34,7 @@ function MessageBubble({message}: MessageBubbleProps) {
             radius="md"
             shadow="md"
             p={10}
-            bg={message.fromMe ? "dark" : "mainColors"}
+            bg={message.fromMe ? "dark.6" : "mainColors.6"}
             style={{
                 maxWidth: 300,
                 height: "100%",
