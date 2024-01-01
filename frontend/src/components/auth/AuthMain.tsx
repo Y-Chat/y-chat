@@ -183,7 +183,7 @@ function AuthMain() {
                                 withAsterisk
                                 required
                                 label="Password"
-                                placeholder="Your password"
+                                placeholder="your password"
                                 value={form.values.password}
                                 onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
                                 error={form.errors.password}
@@ -196,7 +196,7 @@ function AuthMain() {
                                     withAsterisk
                                     required
                                     label="Repeat Password"
-                                    placeholder="Your password"
+                                    placeholder="your password again"
                                     value={form.values.passwordRepeat}
                                     onChange={(event) => form.setFieldValue('passwordRepeat', event.currentTarget.value)}
                                     error={form.errors.passwordRepeat}

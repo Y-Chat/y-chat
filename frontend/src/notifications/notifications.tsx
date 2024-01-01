@@ -13,17 +13,19 @@ function codeToError(errorCode: string): string{
 
 }
 
-export function showErrorNotification(errorCode: string) {
+export function showErrorNotification(errorCode: string, title: string = "Error") {
     Notifications.show({
-        title: "Error",
+        withBorder: true,
+        title: title,
         message: codeToError(errorCode),
         icon: <IconExclamationCircle style={{width: rem(18), height: rem(18)}}/>,
     });
 }
 
-export function showNotification(message: string) {
+export function showNotification(message: string, title: string = "Notification") {
     Notifications.show({
-        title: "Error",
+        withBorder: true,
+        title: title,
         message: message,
     });
 }
