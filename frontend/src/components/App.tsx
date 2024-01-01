@@ -45,7 +45,7 @@ function App() {
             {/*</BrowserView>*/}
             {/*<MobileView>*/}
             <MantineProvider theme={theme} defaultColorScheme="dark">
-                <Notifications position="top-right"/>
+                <Notifications autoClose={5000} position="top-right"/>
                 <Router>
                     {user ?
                         <Routes>
