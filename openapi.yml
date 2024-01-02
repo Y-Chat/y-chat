@@ -8,22 +8,6 @@ servers:
 security:
   - bearerAuth: []
 paths:
-  /auth/user:
-    post:
-      summary: Create a new user
-      operationId: createUser
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-      responses:
-        '200':
-          $ref: '#/components/responses/UserResponse'
-        '400':
-            $ref: '#/components/responses/BadRequestResponse'
-        '403':
-          $ref: '#/components/responses/ForbiddenResponse'
   /auth/validateToken:
     get:
       summary: Validate the jwt token
@@ -46,7 +30,33 @@ paths:
             $ref: '#/components/responses/BadRequestResponse'
         '403':
           $ref: '#/components/responses/ForbiddenResponse'
+  /auth-internal/validateToken:
+    get:
+      summary: Validate the jwt token
+      operationId: validateTokenInternal
+      responses:
+        '200':
+          $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
   /social/user:
+    post:
+      summary: Create a new user
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          $ref: '#/components/responses/UserResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
     get:
       summary: Get a user
       operationId: getUser
@@ -200,6 +210,21 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/EmptyResponse'
+        '400':
+            $ref: '#/components/responses/BadRequestResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenResponse'
+  /social-internal/isMemberOfChat:
+    get:
+      summary: Get if a user is a member of a chat
+      operationId: isMemeberOfChat
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/chatId'
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          $ref: '#/components/responses/IsMemberOfChatResponse'
         '400':
             $ref: '#/components/responses/BadRequestResponse'
         '403':
@@ -554,6 +579,25 @@ components:
         message:
           type: string
   responses:
+    IsMemberOfChatResponse:
+      description: Is member of chat response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - userId
+              - chatId
+              - isMember
+            properties:
+              userId:
+                type: string
+                format: ObjectId
+              chatId:
+                type: string
+                format: ObjectId
+              isMember:
+                type: boolean
     ChatsResponse:
       description: Chats response
       content:

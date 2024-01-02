@@ -1,57 +1,52 @@
-asyncapi: 3.0.0
+asyncapi: 2.5.0
 info:
   title: Y-Chat API
   version: 1.0.0
-  description: >
+  description: |
     Y-Chat API
 defaultContentType: application/json
 servers:
     mtls-connections:
-      host: localhost:28092
-      protocol: kafka-secure
-      description: Broker secured with X509
+      url: localhost:28092
+      protocol: kafka
       security:
-        - $ref: '#/components/securitySchemes/certs'
+        - certs: []
 channels:
-  sendMessageRequest:
-    address: ychat/messaging/sendMessageRequest
-  sendMessageResponse:
-    address: ychat/messaging/{requestId}/sendMessageResponse
-    parameters:
-        requestId:
-          description: Id of the user.
-    
+  notification/notification:
+    publish:
+      summary: Create new notification
+      operationId: createNotification
+      message:
+        $ref: '#/components/messages/NotificationMessage'
+    subscribe:
+      summary: Received a new notification
+      operationId: onNotification
+      message:
+        $ref: '#/components/messages/NotificationMessage'
+  payment/transaction:
+    publish:
+      summary: Create transaction
+      operationId: createTransaction
+      message:
+        $ref: '#/components/messages/TransactionMessage'
+    subscribe:
+      summary: New transaction received
+      operationId: onTransaction
+      message:
+        $ref: '#/components/messages/TransactionMessage'
 components:
-  messageTraits:
-    withRequestId:
-      headers:
-        type: object
-        properties:
-          requestId:
-            type: string
   securitySchemes:
     certs:
       type: X509
-      description: Download the certificate files from service provider
   messages:
-    MessageResponse:
-      name: messageResponse
+    NotificationMessage:
+      name: transactionMessage
       payload:
-        $ref: '#/components/schemas/Message'
-    ChatsResponse:
-      name: chatsResponse
+        $ref: '#/components/schemas/Notification'
+    TransactionMessage:
+      name: transactionMessage
       payload:
-        type: object
-        required:
-          - chats
-          - pageInfo
-        properties: 
-          chats:
-            type: array
-            items:
-              $ref: '#/components/schemas/Chat'
-          pageInfo:
-            $ref: '#/components/schemas/PageInfo'
+        $ref: '#/components/schemas/Transaction'
   schemas:
     Chat:
       type: object
@@ -133,6 +128,55 @@ components:
           format: ObjectId
         amount:
           type: number
+    Notification:
+      type: object
+      properties:
+        newMessage:
+          type:  object
+          required:
+            - chatId
+          properties:
+            chatId:
+              type: string
+              format: ObjectId
+        updatedMessage:
+          type:  object
+          required:
+            - chatId
+            - messageId
+          properties:
+            chatId:
+              type: string
+              format: ObjectId
+            messageId:
+              type: string
+              format: ObjectId
+        mediaUploaded:
+          type:  object
+          required:
+            - chatId
+            - messageId
+            - mediaId
+          properties:
+            chatId:
+              type: string
+              format: ObjectId
+            messageId:
+              type: string
+              format: ObjectId
+            mediaId:
+              type: string
+              format: ObjectId
+        transactionComplete:
+          chatId:
+              type: string
+              format: ObjectId
+          messageId:
+            type: string
+            format: ObjectId
+          transactionId:
+            type: string
+            format: ObjectId
     Transaction:
       type: object
       required:
