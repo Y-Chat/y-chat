@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {
     Anchor,
     Button,
@@ -11,7 +11,6 @@ import {
     Text,
     Container,
     Center,
-    LoadingOverlay
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
@@ -25,9 +24,8 @@ import {showErrorNotification} from "../../notifications/notifications";
 
 function AuthMain() {
     const setUser = useAppStore((state) => state.setUser)
-    const userLoading = useAppStore((state) => state.userLoading)
-    const setUserLoading = useAppStore((state) => state.setUserLoading)
     const [type, toggle] = useToggle(['login', 'register']);
+    const [userLoading, setUserLoading] = useState<boolean>(false)
 
     const form = useForm({
             initialValues: {
@@ -104,10 +102,7 @@ function AuthMain() {
                 <Center mb={"md"}>
                     <Logo size={100}/>
                 </Center>
-                <Paper pos="relative" radius="md" p="xl" withBorder>
-                    <LoadingOverlay pos="absolute" visible={userLoading} zIndex={1000}
-                                    overlayProps={{backgroundOpacity: 0.5, blur: 4}}/>
-
+                <Paper radius="md" p="xl" withBorder>
                     <Group grow mb="md" mt="md">
                         <GoogleButton radius="xl">Google</GoogleButton>
                         <AppleButton radius="xl">Apple</AppleButton>
@@ -115,7 +110,8 @@ function AuthMain() {
 
                     <Divider label="Or continue with email" labelPosition="center" my="lg"/>
 
-                    <form onSubmit={form.onSubmit(() => {
+                    <form
+                        onSubmit={form.onSubmit(() => {
                         setUserLoading(true);
                         const email = form.values.email
                         const password = form.values.password
@@ -129,6 +125,7 @@ function AuthMain() {
                             {type === 'register' && (
                                 <>
                                     <TextInput
+                                        disabled={userLoading}
                                         withAsterisk
                                         required
                                         size="md"
@@ -139,6 +136,7 @@ function AuthMain() {
                                         radius="md"
                                     />
                                     <TextInput
+                                        disabled={userLoading}
                                         withAsterisk
                                         required
                                         size="md"
@@ -152,6 +150,7 @@ function AuthMain() {
                             )}
 
                             <TextInput
+                                disabled={userLoading}
                                 size="md"
                                 withAsterisk
                                 required
@@ -165,6 +164,7 @@ function AuthMain() {
 
                             {type === 'register' && (
                                 <TextInput
+                                    disabled={userLoading}
                                     size="md"
                                     withAsterisk
                                     required
@@ -179,6 +179,7 @@ function AuthMain() {
                             )}
 
                             <PasswordInput
+                                disabled={userLoading}
                                 size="md"
                                 withAsterisk
                                 required
@@ -192,6 +193,7 @@ function AuthMain() {
 
                             {type === 'register' && (
                                 <PasswordInput
+                                    disabled={userLoading}
                                     size="md"
                                     withAsterisk
                                     required
@@ -211,7 +213,7 @@ function AuthMain() {
                                     ? 'Already have an account? Login'
                                     : "Don't have an account? Register"}
                             </Anchor>
-                            <Button type="submit" radius="xl">
+                            <Button type="submit" radius="xl" loading={userLoading}>
                                 {upperFirst(type)}
                             </Button>
                         </Group>

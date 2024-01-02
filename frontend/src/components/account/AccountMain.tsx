@@ -26,7 +26,6 @@ export function AccountMain() {
     const sizeHeader = 10;
     const user = useAppStore((state) => state.user);
     const setUser = useAppStore((state) => state.setUser);
-    const setUserLoading = useAppStore((state) => state.setUserLoading);
     const form = useForm({
         initialValues: {
             email: user?.email,
