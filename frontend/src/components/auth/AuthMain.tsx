@@ -17,7 +17,7 @@ import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
 import Logo from "../shell/Logo";
 import {useAppStore} from "../../state/store";
-import {auth} from "../../firebase";
+import auth from "../../firebase/firebaseAuth"
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth"
 import {GoogleButton} from "./GoogleButton";
 import {AppleButton} from "./AppleButton";
@@ -156,7 +156,7 @@ function AuthMain() {
                                 withAsterisk
                                 required
                                 label="Email"
-                                placeholder="Email@example.com"
+                                placeholder="email@example.com"
                                 value={form.values.email}
                                 onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
                                 error={form.errors.email && 'Invalid email'}

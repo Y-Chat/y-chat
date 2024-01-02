@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
-import {MantineProvider} from "@mantine/core";
+import {Button, Center, MantineProvider, Modal} from "@mantine/core";
 import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
 import {useAppStore} from "../state/store";
 import AuthMain from "./auth/AuthMain";
@@ -10,13 +10,12 @@ import {AccountMain} from "./account/AccountMain";
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import {Notifications} from "@mantine/notifications";
+import {hasPermission, requestNotificationPermissions} from "../firebase/firebaseMessaging";
 
 function App() {
+    const [showPermissions, setShowPermissions] = useState<boolean>(!hasPermission)
 
     const user = useAppStore((state) => state.user);
-
-    // TODO dev mode to disable auth and stuff
-    const devMode: boolean = process.env.DEV_MODE == "true"
 
     const theme: MantineThemeOverride = {
         primaryColor: "mainColors",
@@ -45,6 +44,26 @@ function App() {
             {/*</BrowserView>*/}
             {/*<MobileView>*/}
             <MantineProvider theme={theme} defaultColorScheme="dark">
+                <Modal
+                    centered
+                    closeOnEscape={false}
+                    closeOnClickOutside={false}
+                    withCloseButton={false}
+                    title={"Notification Permissions"}
+                    opened={showPermissions}
+                    onClose={() => {
+                    }}>
+                    <Center>
+                        <Button
+                            onClick={async () => {
+                                const success = await requestNotificationPermissions();
+                                setShowPermissions(!success);
+                            }}
+                        >
+                            Request Permission
+                        </Button>
+                    </Center>
+                </Modal>
                 <Notifications autoClose={5000} position="top-right"/>
                 <Router>
                     {user ?
