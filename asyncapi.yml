@@ -1,0 +1,256 @@
+asyncapi: 3.0.0
+info:
+  title: Y-Chat API
+  version: 1.0.0
+  description: >
+    Y-Chat API
+defaultContentType: application/json
+servers:
+    mtls-connections:
+      host: localhost:28092
+      protocol: kafka-secure
+      description: Broker secured with X509
+      security:
+        - $ref: '#/components/securitySchemes/certs'
+channels:
+  sendMessageRequest:
+    address: ychat/messaging/sendMessageRequest
+  sendMessageResponse:
+    address: ychat/messaging/{requestId}/sendMessageResponse
+    parameters:
+        requestId:
+          description: Id of the user.
+    
+components:
+  messageTraits:
+    withRequestId:
+      headers:
+        type: object
+        properties:
+          requestId:
+            type: string
+  securitySchemes:
+    certs:
+      type: X509
+      description: Download the certificate files from service provider
+  messages:
+    MessageResponse:
+      name: messageResponse
+      payload:
+        $ref: '#/components/schemas/Message'
+    ChatsResponse:
+      name: chatsResponse
+      payload:
+        type: object
+        required:
+          - chats
+          - pageInfo
+        properties: 
+          chats:
+            type: array
+            items:
+              $ref: '#/components/schemas/Chat'
+          pageInfo:
+            $ref: '#/components/schemas/PageInfo'
+  schemas:
+    Chat:
+      type: object
+      required:
+        - id
+        - archived
+        - deleted
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        archived:
+          type: boolean
+        deleted:
+          type: boolean
+        user:
+          $ref: '#/components/schemas/User'
+        group:
+          $ref: '#/components/schemas/Group'
+    Group:
+      type: object
+      required:
+        - id
+        - chatId
+        - name
+        - pictureId
+        - description
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        chatId:
+          type: string
+          format: ObjectId
+        pictureId:
+          type: string
+          format: ObjectId
+        name:
+          type: string
+        description:
+          type: string
+    User:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - pictureId
+        - description
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+        pictureId:
+          type: string
+          format: ObjectId
+        description:
+          type: string
+    AccountBalance:
+      type: object
+      required:
+        - id
+        - userId
+        - amount
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        userId:
+          type: string
+          format: ObjectId
+        amount:
+          type: number
+    Transaction:
+      type: object
+      required:
+        - id
+        - fromUserId
+        - toUserId
+        - amount
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        fromUserId:
+          type: string
+          format: ObjectId
+        toUserId:
+          type: string
+          format: ObjectId
+        amount:
+          type: number
+          minimum: 0
+        timestamp:
+          type: string
+          format: date-time  
+          readOnly: true
+    MediaData:
+      type: object
+      required:
+        - id
+        - uploaderId
+        - fileName
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        uploaderId:
+          type: string
+          format: ObjectId
+          readOnly: true
+        fileName:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+    NewMessage:
+      type: object
+      required:
+        - chatId
+        - message
+      properties:
+        chatId:
+          type: string
+          format: ObjectId
+        moneyAmount:
+          type: number
+          minimum: 0
+        mediaId:
+          type: string
+          format: ObjectId
+        message:
+          type: string
+    Message:
+      type: object
+      required:
+        - id
+        - senderId
+        - chatId
+        - sentTimestamp
+        - message
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          readOnly: true
+        senderId:
+          type: string
+          format: ObjectId
+          readOnly: true
+        chatId:
+          type: string
+          format: ObjectId
+        transactionId:
+          type: string
+          format: ObjectId
+          readOnly: true
+        mediaId:
+          type: string
+          format: ObjectId
+        sentTimestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        message:
+          type: string
+    PageInfo:
+      type: object
+      required:
+        - page
+        - pageSize
+      properties:
+        page:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
