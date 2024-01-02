@@ -1,11 +1,15 @@
 package com.ychat.ychat.controllers;
 
-import com.openapi.gen.springboot.api.MessagingApi;
-import com.openapi.gen.springboot.api.MessagingApiDelegate;
+import org.openapitools.api.MessagingApi;
+import org.openapitools.api.MessagingApiDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Optional;
 
+@Controller
+@RequestMapping("${openapi.yChat.base-path:/api/v1}")
 public class MessagingController implements MessagingApi {
     private final MessagingApiDelegate delegate;
 
