@@ -29,6 +29,7 @@ dependencies {
 	implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
 	implementation 'io.swagger:swagger-annotations:1.6.8'
 	implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: '3.0.2'
+	implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '8.0.1.Final'
 
 	implementation('org.springframework.kafka:spring-kafka')
 
