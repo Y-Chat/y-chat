@@ -1,11 +1,22 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button, Center, Container, Group, Modal, Text} from "@mantine/core";
 import {IconExclamationCircle} from "@tabler/icons-react";
-import {hasPermission, requestNotificationPermissions} from "./firebaseMessaging";
+import {requestNotificationPermissions} from "./firebaseMessaging";
 
 export function PermissionsModal() {
-    const [showPermissions, setShowPermissions] = useState<boolean>(!hasPermission)
+    const [showPermissions, setShowPermissions] = useState<boolean>(false)
     const [loadingPermissions, setLoadingPermissions] = useState<boolean>(false)
+
+    useEffect(() => {
+        navigator.permissions
+            .query({ name: "notifications" })
+            .then((permissionStatus) => {
+                setShowPermissions(permissionStatus.state != "granted");
+                permissionStatus.onchange = () => {
+                    setShowPermissions(permissionStatus.state != "granted");
+                };
+            });
+    }, []);
 
     return (
         <Modal

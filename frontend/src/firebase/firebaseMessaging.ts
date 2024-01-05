@@ -1,10 +1,9 @@
 import {getMessaging, getToken, onMessage, isSupported} from "firebase/messaging";
 import app from "./firebaseConfig";
 import {showErrorNotification, showNotification} from "../notifications/notifications";
-import exp from "node:constants";
 
 const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
-export const hasPermission = 'Notification' in window && Notification.permission == "granted"
+const hasPermission = 'Notification' in window && Notification.permission == "granted"
 
 // if permission already granted -> generate token
 if (hasPermission) {
@@ -21,7 +20,7 @@ export async function requestNotificationPermissions() {
 
     const permissions = await Notification.requestPermission();
     if (permissions !== "granted") {
-        showNotification("You will not receive notifications, if the app is closed.", "Background Notifications Disabled")
+        showNotification("Please give us permission to send notifications to your browser. This is necessary for the app to work properly.", "Notifications Blocked")
         return false;
     }
 

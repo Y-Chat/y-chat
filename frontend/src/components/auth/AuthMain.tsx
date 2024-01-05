@@ -104,23 +104,23 @@ function AuthMain() {
                 </Center>
                 <Paper radius="md" p="xl" withBorder>
                     <Group grow mb="md" mt="md">
-                        <GoogleButton radius="xl">Google</GoogleButton>
-                        <AppleButton radius="xl">Apple</AppleButton>
+                        <GoogleButton disabled={userLoading} radius="xl">Google</GoogleButton>
+                        <AppleButton disabled={userLoading} radius="xl">Apple</AppleButton>
                     </Group>
 
                     <Divider label="Or continue with email" labelPosition="center" my="lg"/>
 
                     <form
                         onSubmit={form.onSubmit(() => {
-                        setUserLoading(true);
-                        const email = form.values.email
-                        const password = form.values.password
-                        if (type === "register") {
-                            register(email, password)
-                        } else if (type === "login") {
-                            login(email, password)
-                        }
-                    })}>
+                            setUserLoading(true);
+                            const email = form.values.email
+                            const password = form.values.password
+                            if (type === "register") {
+                                register(email, password)
+                            } else if (type === "login") {
+                                login(email, password)
+                            }
+                        })}>
                         <Stack>
                             {type === 'register' && (
                                 <>

@@ -49,7 +49,7 @@ export function AccountMain() {
                 }}>
                     <Group justify="space-between" pl={10} h={"100%"} pr={10}>
                         <MenuDrawer/>
-                        <Text fz="sm" fw={500}>Account Settings</Text>
+                        <Text fz="xl" fw={500}>Account Settings</Text>
                         <span/>
                     </Group>
                     <Divider/>
