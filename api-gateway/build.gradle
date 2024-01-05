@@ -22,8 +22,10 @@ ext {
 dependencies {
 	// TODO BST Set up SSL/HTTPS implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+
 	// testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.1.5'
 }
 
 dependencyManagement {
