@@ -1,0 +1,13 @@
+{
+  "name": "api-gateway",
+  "version": "1.0.0",
+  "scripts": {
+    "generate": "npm run generate-openapi",
+    "generate-openapi": "npx openapi-generator-cli generate -i ../openapi.yml -g spring -o generated-openapi --type-mappings=string+date-time=LocalDateTime --additional-properties=delegatePattern=true,serializableModel=true,useJakartaEe=true,useSpringBoot3=true,useSwaggerUI=false,interfaceOnly=false,documentationProvider=none,performBeanValidation=true,useBeanValidation=true,dateLibrary=java8-localdatetime",
+    "dockerbuild": "gradlew build && docker build --build-arg JAR_FILE=build/libs/*.jar -t ychat/api-gateway ."
+  },
+  "dependencies": {
+    "@asyncapi/cli": "^1.2.29",
+    "@openapitools/openapi-generator-cli": "^2.7.0"
+  }
+}
