@@ -26,7 +26,6 @@ export function AccountMain() {
     const sizeHeader = 10;
     const user = useAppStore((state) => state.user);
     const setUser = useAppStore((state) => state.setUser);
-    const setUserLoading = useAppStore((state) => state.setUserLoading);
     const form = useForm({
         initialValues: {
             email: user?.email,
@@ -50,7 +49,7 @@ export function AccountMain() {
                 }}>
                     <Group justify="space-between" pl={10} h={"100%"} pr={10}>
                         <MenuDrawer/>
-                        <Text fz="sm" fw={500}>Account Settings</Text>
+                        <Text fz="xl" fw={500}>Account Settings</Text>
                         <span/>
                     </Group>
                     <Divider/>
