@@ -291,7 +291,7 @@ paths:
         - $ref: '#/components/parameters/fromDate'
       responses:
         '200':
-          $ref: '#/components/responses/MessageResponse'
+          $ref: '#/components/responses/MessagesResponse'
         '400':
             $ref: '#/components/responses/BadRequestResponse'
         '403':
@@ -302,10 +302,13 @@ paths:
       operationId: postMedia
       requestBody:
         content:
-          application/octet-stream:
+          multipart/form-data:
             schema:
-              type: string
-              format: binary
+              type: object
+              properties:
+                fileName:
+                  type: string
+                  format: binary
       responses:
         '200':
           $ref: '#/components/responses/MediaDataResponse'
@@ -725,7 +728,9 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Message'
+            type: array
+            items:
+              $ref: '#/components/schemas/Message'
     MessageResponse:
       description: Message response
       content:

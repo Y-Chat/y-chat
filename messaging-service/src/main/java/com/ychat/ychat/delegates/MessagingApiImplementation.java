@@ -5,12 +5,13 @@ import org.openapitools.model.Message;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 public class MessagingApiImplementation implements MessagingApiDelegate {
 
     @Override
-    public ResponseEntity<Message> getMessages(String chatId, LocalDateTime fromDate) {
-        // TODO BST
+    public ResponseEntity<List<Message>> getMessages(UUID chatId, LocalDateTime fromDate) {
         return MessagingApiDelegate.super.getMessages(chatId, fromDate);
     }
 
