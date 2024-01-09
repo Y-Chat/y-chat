@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-deployment
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: test-service
+          image: mrsarius/yc-test-service:latest
+          ports:
+            - containerPort: 8080 # port of spring boot inside the container
+          env:
+            - name: MONGODB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: mongo-config
+                  key: mongo-url
+            - name: MONGODB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-user
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-password
+            - name: MONGODB_DB
+              value: "test-db"
+---
+# this service exposes the test-service to your localhost:8080. Of course, later the only exposed service will be the api-gateway
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: kafka
+  ports:
+    - protocol: TCP
+      port: 8080 # port to expose to the outside
+      targetPort: 8080 # port of spring boot inside the container
