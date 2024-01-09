@@ -19,6 +19,17 @@ spec:
           image: mrsarius/yc-api-gateway:latest
           ports:
             - containerPort: 27017
+          env:
+            - name: ychat.gateway.redirect.target.auth
+              value: "https://www.google.de"
+            - name: ychat.gateway.redirect.target.social
+              value: "https://www.google.de"
+            - name: ychat.gateway.redirect.target.messaging
+              value: "https://www.google.de"
+            - name: ychat.gateway.redirect.target.notification
+              value: "https://www.google.de"
+            - name: ychat.gateway.redirect.target.payment
+              value: "https://www.google.de"
 ---
 apiVersion: v1
 kind: Service
