@@ -7,3 +7,11 @@ The objective of this project is to plan, develop, and implement the architectur
 - Benedikt Strobel: Message Service/DB, API Gateway, Notification Service
 - Niklas Mamtschur: Social Service/DB, Media Service, Auth Service
 - Everyone: Docker/Kubernetes
+
+## Local Dev Setup
+Install Docker Desktop and enable Kubernetes in the settings.
+
+kubectl apply -f mongo-config.yaml
+kubectl apply -f mongo-secret.yaml
+kubectl apply -f mongo.yaml
+kubectl apply -f webapp.yaml

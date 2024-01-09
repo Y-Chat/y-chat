@@ -1,0 +1,130 @@
+############## test service database ##############
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongo-secret
+type: Opaque
+data:
+  # test and test (Base64 encoded) for now
+  mongo-user: dGVzdA==
+  mongo-password: dGVzdA==
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-config
+data:
+  mongo-url: "mongo-service"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels:
+    app: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:5.0
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-user
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-password
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service # also change in mongo-config if you change the name here
+spec:
+  type: ClusterIP
+  selector:
+    app: mongo
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+
+---
+
+############## test service ##############
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-service-deployment
+  labels:
+    app: test-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-service
+  template:
+    metadata:
+      labels:
+        app: test-service
+    spec:
+      containers:
+        - name: test-service
+          image: mrsarius/yc-test-service:latest
+          ports:
+            - containerPort: 8080 # port of spring boot inside the container
+          env:
+            - name: MONGODB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: mongo-config
+                  key: mongo-url
+            - name: MONGODB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-user
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-password
+            - name: MONGODB_DB
+              value: "test-db"
+            - name: KAFKA_BOOTSTRAP
+              value: "my-cluster-kafka-bootstrap.kafka:9092"
+---
+# this service exposes the test-service to your localhost:8080. Of course, later the only exposed service will be the api-gateway
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: test-service
+  ports:
+    - protocol: TCP
+      port: 8080 # port to expose to the outside
+      targetPort: 8080 # port of spring boot inside the container
