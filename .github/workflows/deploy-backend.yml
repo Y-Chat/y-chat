@@ -1,0 +1,25 @@
+name: Deploy Backend
+on: workflow_dispatch
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Images
+        run: |
+          docker buildx create --use
+          docker buildx inspect --bootstrap
+          docker buildx build --push --platform linux/amd64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-api-gateway:latest ./api-gateway
+          docker buildx build --push --platform linux/amd64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-test-service:latest ./test-service
+
+      - name: Deploy Docker Images to GCP
+        run: echo "TODO. Setup GCP!"

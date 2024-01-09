@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-deployment
+  labels:
+    app: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: mrsarius/yc-api-gateway:latest
+          ports:
+            - containerPort: 27017
+          env:
+            - name: ychat.gateway.redirect.target.auth
+              value: "https://www.google.de"
+            - name: ychat.gateway.redirect.target.social
+              value: "https://www.google.de"
+            - name: ychat.gateway.redirect.target.messaging
+              value: "https://www.google.de"
+            - name: ychat.gateway.redirect.target.notification
+              value: "https://www.google.de"
+            - name: ychat.gateway.redirect.target.payment
+              value: "https://www.google.de"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: api-gateway
+  ports:
+    - protocol: TCP
+      port: 80 # port to expose to the outside
+      targetPort: 8080 # port of spring boot inside the container
