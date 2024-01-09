@@ -1,4 +1,4 @@
-name: Deploy Backend
+name: Build and Deploy Backend
 on: workflow_dispatch
 jobs:
   build-and-push:
