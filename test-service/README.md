@@ -12,3 +12,6 @@ The service connects expects a mongo DB instance to be running. The following en
 - MONGODB_USERNAME
 - MONGODB_PASSWORD
 
+
+- KAFKA_BOOTSTRAP
+
