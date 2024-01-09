@@ -8,6 +8,15 @@ import java.util.UUID;
 @Entity
 @Table(name = "MESSAGES")
 public class Message {
+    public Message(UUID senderId, UUID chatId, LocalDateTime sentTimestamp, String message, UUID mediaId, UUID transactionId) {
+        this.senderId = senderId;
+        this.chatId = chatId;
+        this.sentTimestamp = sentTimestamp;
+        this.message = message;
+        this.mediaId = mediaId;
+        this.transactionId = transactionId;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -29,4 +38,53 @@ public class Message {
 
     @Column(name = "transactionId")
     private UUID transactionId;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public UUID getSenderId() {
+        return senderId;
+    }
+
+    public UUID getChatId() {
+        return chatId;
+    }
+
+    public LocalDateTime getSentTimestamp() {
+        return sentTimestamp;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public UUID getMediaId() {
+        return mediaId;
+    }
+
+    public UUID getTransactionId() {
+        return transactionId;
+    }
+
+    public org.openapitools.model.Message toOpenAPI() {
+        return new org.openapitools.model.Message(
+                this.id,
+                this.senderId,
+                this.chatId,
+                this.sentTimestamp,
+                this.message
+        );
+    }
+
+    public static Message fromOpenAPI(org.openapitools.model.Message message) {
+        return new Message(
+                message.getSenderId(),
+                message.getChatId(),
+                message.getSentTimestamp(),
+                message.getMessage(),
+                message.getMediaId(),
+                message.getTransactionId()
+        );
+    }
 }

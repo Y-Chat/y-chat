@@ -17,10 +17,23 @@ public class MessagingService {
     private MessageRepository messageRepository;
 
     public Optional<List<Message>> getMessages(UUID chatId, LocalDateTime fromDate) {
+
         return Optional.empty();
     }
 
-    public Optional<Message> sendMessage(Message message) {
-        return Optional.empty();
+    public Optional<Message> sendMessage(Message message, UUID senderId) {
+        // TODO Check if senderId is part of chat
+        // TODO Check if mediaId is valid
+        // TODO Check if transactionId is valid
+        com.ychat.ychat.models.Message newMessage = new com.ychat.ychat.models.Message(
+                senderId,
+                message.getChatId(),
+                LocalDateTime.now(),
+                message.getMessage(),
+                message.getMediaId(),
+                message.getTransactionId()
+        );
+        newMessage = messageRepository.save(newMessage);
+        return Optional.of(newMessage.toOpenAPI());
     }
 }
