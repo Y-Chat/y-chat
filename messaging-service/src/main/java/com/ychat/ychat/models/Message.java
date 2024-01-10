@@ -1,12 +1,12 @@
 package com.ychat.ychat.models;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "MESSAGES")
+@Document()
 public class Message {
     public Message(UUID senderId, UUID chatId, LocalDateTime sentTimestamp, String message, UUID mediaId, UUID transactionId) {
         this.senderId = senderId;
@@ -18,26 +18,23 @@ public class Message {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, name = "senderId")
     private UUID senderId;
 
-    @Column(nullable = false, name = "chatId")
     private UUID chatId;
 
-    @Column(nullable = false, name = "sentTimestamp")
     private LocalDateTime sentTimestamp;
 
-    @Column(nullable = false, name = "message")
     private String message;
 
-    @Column(name = "mediaId")
     private UUID mediaId;
 
-    @Column(name = "transactionId")
     private UUID transactionId;
+
+    public Message() {
+
+    }
 
     public UUID getId() {
         return id;

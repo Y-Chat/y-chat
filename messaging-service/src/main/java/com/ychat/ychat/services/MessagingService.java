@@ -1,6 +1,6 @@
 package com.ychat.ychat.services;
 
-import com.ychat.ychat.repositories.MessageRepository;
+import com.ychat.ychat.repositories.ChatMessageRepository;
 import com.openapi.gen.messaging.dto.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import java.util.UUID;
 public class MessagingService {
 
     @Autowired
-    private MessageRepository messageRepository;
+    private ChatMessageRepository messageRepository;
 
     public Optional<List<Message>> getMessages(UUID chatId, LocalDateTime fromDate) {
 

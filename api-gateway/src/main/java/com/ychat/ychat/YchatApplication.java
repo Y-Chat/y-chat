@@ -29,6 +29,9 @@ public class YchatApplication {
 	@Value("${ychat.gateway.redirect.target.payment}")
 	private String paymentServiceURL;
 
+	@Value("${ychat.gateway.redirect.target.media}")
+	private String mediaServiceURL;
+
 	@Bean
 	public RouteLocator myRoutes(RouteLocatorBuilder builder) {
 		return builder.routes()
@@ -47,6 +50,9 @@ public class YchatApplication {
 				.route(p -> p
 						.path("/payment/*")
 						.uri(paymentServiceURL))
+				.route(p -> p
+						.path("/media/*")
+						.uri(mediaServiceURL))
 				.build();
 	}
 }
