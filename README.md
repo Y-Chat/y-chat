@@ -9,6 +9,16 @@ The objective of this project is to plan, develop, and implement the architectur
 - Everyone: Docker/Kubernetes
 
 ## Local Dev Setup
+### Prerequisites
+- Make sure you are **running on linux or macOS**
+- Install docker and docker compose and make sure the services are running.
+### Usage
+- Run ```docker compose up```
+- To develop a service locally
+    - Comment out the service in the docker-compose.yml
+    - Make sure to edit the redirect target for the service in the api-gateway environment of the docker-compose.yml
+
+## Local Kubernetes Setup
 Install Docker Desktop and enable Kubernetes in the settings.
 
 kubectl apply -f mongo-config.yaml
