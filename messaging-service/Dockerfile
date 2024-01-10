@@ -16,10 +16,8 @@ RUN npm --version
 # Done installing
 COPY ./package.json ./
 COPY ./package-lock.json ./
-WORKDIR /parent
-COPY ../openapi.yml ./
-COPY ../asyncapi.yml ./
-WORKDIR /parent/build
+COPY ./openapi.yml ./
+COPY ./asyncapi.yml ./
 RUN npm install
 RUN npm run generate
 # All layers above this should be cached and only be redone when the package.json/package-lock.json/openapi.yml/asyncapi.yml change

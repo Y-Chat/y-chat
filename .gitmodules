@@ -1,0 +1,12 @@
+[submodule "api-gateway/api-specs"]
+	path = api-gateway/api-specs
+	url = ../y-chat-api.git
+	branch = main
+[submodule "frontend/api-specs"]
+	path = frontend/api-specs
+	url = ../y-chat-api.git
+	branch = main
+[submodule "messaging-service/api-specs"]
+	path = messaging-service/api-specs
+	url = ../y-chat-api.git
+	branch = main

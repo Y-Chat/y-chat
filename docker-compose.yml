@@ -21,6 +21,7 @@ services:
           - ychat.gateway.redirect.target.messaging=http://localhost:7503
           - ychat.gateway.redirect.target.notification=http://localhost:7504
           - ychat.gateway.redirect.target.payment=http://localhost:7505
+          - ychat.gateway.redirect.target.media=http://localhost:7506
         # ports: 
         # - "7500:8080"
         network_mode: host
