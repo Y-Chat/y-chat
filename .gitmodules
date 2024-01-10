@@ -16,3 +16,6 @@
 [submodule "payment-service/api-specs"]
 	path = payment-service/api-specs
 	url = ../y-chat-api.git
+[submodule "media-service/api-specs"]
+	path = media-service/api-specs
+	url = ../y-chat-api.git
