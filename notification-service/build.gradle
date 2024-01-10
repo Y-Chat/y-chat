@@ -33,12 +33,12 @@ dependencies {
 
 }
 
-openApiGenerate {
+/*openApiGenerate {
 	generatorName.set("spring")
-	outputDir.set("$rootDir/generated/openapi/messaging")
-	inputSpec.set("$rootDir/api-specs/messaging/openapi.yml")
-	apiPackage.set("com.openapi.gen.messaging.api")
-	modelPackage.set("com.openapi.gen.messaging.dto")
+	outputDir.set("$rootDir/generated/openapi/notification")
+	inputSpec.set("$rootDir/api-specs/notification/openapi.yml")
+	apiPackage.set("com.openapi.gen.notification.api")
+	modelPackage.set("com.openapi.gen.notification.dto")
 	configOptions.set([
 			delegatePattern: "true",
 			serializableModel: "true",
@@ -55,7 +55,7 @@ openApiGenerate {
 			"string+date-time": "LocalDateTime",
 			"string+ObjectId": "UUID"
 	])
-}
+}*/
 
 compileJava {
 	dependsOn "openApiGenerate"

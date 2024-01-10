@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("${openapi.yChatMessaging.base-path:}")
 public class MessageController implements MessageApi {
 
     private final MessagingService messagingService;
