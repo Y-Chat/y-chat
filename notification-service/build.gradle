@@ -1,0 +1,76 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.1'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id "org.openapi.generator" version "6.6.0"
+}
+
+group = 'com.ychat'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	// implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	implementation 'junit:junit:4.13.1'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
+	implementation 'io.swagger:swagger-annotations:1.6.8'
+	implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: '3.0.2'
+	implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '8.0.1.Final'
+
+	implementation('org.springframework.kafka:spring-kafka')
+
+}
+
+openApiGenerate {
+	generatorName.set("spring")
+	outputDir.set("$rootDir/generated/openapi/messaging")
+	inputSpec.set("$rootDir/api-specs/messaging/openapi.yml")
+	apiPackage.set("com.openapi.gen.messaging.api")
+	modelPackage.set("com.openapi.gen.messaging.dto")
+	configOptions.set([
+			delegatePattern: "true",
+			serializableModel: "true",
+			useJakartaEe: "true",
+			useSpringBoot3: "true",
+			useSwaggerUI: "false",
+			interfaceOnly: "true",
+			documentationProvider: "none",
+			performBeanValidation: "true",
+			useBeanValidation: "true",
+			dateLibrary: "java8-localdatetime"
+	])
+	typeMappings.set([
+			"string+date-time": "LocalDateTime",
+			"string+ObjectId": "UUID"
+	])
+}
+
+compileJava {
+	dependsOn "openApiGenerate"
+}
+
+clean {
+	delete "generated"
+}
+
+
+sourceSets {
+	main {
+		java {
+			srcDirs "src/main/java"
+			srcDirs "generated/openapi/messaging/src/main/java"
+		}
+	}
+}
