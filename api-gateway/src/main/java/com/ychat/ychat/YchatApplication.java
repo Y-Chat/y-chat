@@ -36,22 +36,28 @@ public class YchatApplication {
 	public RouteLocator myRoutes(RouteLocatorBuilder builder) {
 		return builder.routes()
 				.route(p -> p
-						.path("/auth/*")
+						.path("/auth/**")
+						.filters(f -> f.rewritePath("/auth/(?<segment>.*)", "/${segment}"))
 						.uri(authServiceURL))
 				.route(p -> p
-						.path("/social/*")
+						.path("/social/**")
+						.filters(f -> f.rewritePath("/social/(?<segment>.*)", "/${segment}"))
 						.uri(socialServiceURL))
 				.route(p -> p
-						.path("/messaging/*")
+						.path("/messaging/**")
+						.filters(f -> f.rewritePath("/messaging/(?<segment>.*)", "/${segment}"))
 						.uri(messagingServiceURL))
 				.route(p -> p
-						.path("/notification/*")
+						.path("/notification/**")
+						.filters(f -> f.rewritePath("/notification/(?<segment>.*)", "/${segment}"))
 						.uri(notificationServiceURL))
 				.route(p -> p
-						.path("/payment/*")
+						.path("/payment/**")
+						.filters(f -> f.rewritePath("/payment/(?<segment>.*)", "/${segment}"))
 						.uri(paymentServiceURL))
 				.route(p -> p
-						.path("/media/*")
+						.path("/media/**")
+						.filters(f -> f.rewritePath("/media/(?<segment>.*)", "/${segment}"))
 						.uri(mediaServiceURL))
 				.build();
 	}

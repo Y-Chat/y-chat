@@ -41,6 +41,7 @@ public class MessagingService {
         // TODO Check if mediaId is valid
         // TODO Check if transactionId is valid
         com.ychat.ychat.models.Message newMessage = new com.ychat.ychat.models.Message(
+                UUID.randomUUID(),
                 senderId,
                 message.getChatId(),
                 LocalDateTime.now(),

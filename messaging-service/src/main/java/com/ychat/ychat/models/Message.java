@@ -8,7 +8,8 @@ import java.util.UUID;
 
 @Document()
 public class Message {
-    public Message(UUID senderId, UUID chatId, LocalDateTime sentTimestamp, String message, UUID mediaId, UUID transactionId) {
+    public Message(UUID id, UUID senderId, UUID chatId, LocalDateTime sentTimestamp, String message, UUID mediaId, UUID transactionId) {
+        this.id = id;
         this.senderId = senderId;
         this.chatId = chatId;
         this.sentTimestamp = sentTimestamp;
@@ -76,6 +77,7 @@ public class Message {
 
     public static Message fromOpenAPI(com.openapi.gen.messaging.dto.Message message) {
         return new Message(
+                message.getId(),
                 message.getSenderId(),
                 message.getChatId(),
                 message.getSentTimestamp(),
