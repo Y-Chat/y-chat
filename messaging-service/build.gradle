@@ -35,9 +35,36 @@ dependencies {
 
 }
 
+openApiGenerate {
+	generatorName.set("spring")
+	outputDir.set("$rootDir/generated/openapi/messaging")
+	inputSpec.set("$rootDir/api-specs/messaging/openapi.yml")
+	apiPackage.set("com.openapi.gen.messaging.api")
+	modelPackage.set("com.openapi.gen.messaging.dto")
+	configOptions.set([
+			delegatePattern: "true",
+			serializableModel: "true",
+			useJakartaEe: "true",
+			useSpringBoot3: "true",
+			useSwaggerUI: "false",
+			interfaceOnly: "false",
+			documentationProvider: "none",
+			performBeanValidation: "true",
+			useBeanValidation: "true",
+			dateLibrary: "java8-localdatetime"
+	])
+	typeMappings.set([
+			"string+date-time": "LocalDateTime",
+			"string+ObjectId": "UUID"
+	])
+}
+
+compileJava {
+	dependsOn "openApiGenerate"
+}
+
 clean {
-	delete "generated-asyncapi"
-	delete "generated-openapi"
+	delete "generated"
 }
 
 
@@ -45,8 +72,7 @@ sourceSets {
 	main {
 		java {
 			srcDirs "src/main/java"
-			srcDirs "generated-openapi/src/main/java"
-			srcDirs "generated-asyncapi/src/main/java"
+			srcDirs "generated/openapi/messaging/src/main/java"
 		}
 	}
 }

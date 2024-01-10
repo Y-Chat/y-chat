@@ -1,7 +1,7 @@
 package com.ychat.ychat.services;
 
 import com.ychat.ychat.repositories.MessageRepository;
-import org.openapitools.model.Message;
+import com.openapi.gen.messaging.dto.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

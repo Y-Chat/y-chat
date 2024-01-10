@@ -35,6 +35,4 @@ out/
 
 ### VS Code ###
 .vscode/
-/generated-openapi/
-/generated-asyncapi/
-/node_modules/
+/generated/

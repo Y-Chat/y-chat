@@ -67,8 +67,8 @@ public class Message {
         return transactionId;
     }
 
-    public org.openapitools.model.Message toOpenAPI() {
-        return new org.openapitools.model.Message(
+    public com.openapi.gen.messaging.dto.Message toOpenAPI() {
+        return new com.openapi.gen.messaging.dto.Message(
                 this.id,
                 this.senderId,
                 this.chatId,
@@ -77,7 +77,7 @@ public class Message {
         );
     }
 
-    public static Message fromOpenAPI(org.openapitools.model.Message message) {
+    public static Message fromOpenAPI(com.openapi.gen.messaging.dto.Message message) {
         return new Message(
                 message.getSenderId(),
                 message.getChatId(),
