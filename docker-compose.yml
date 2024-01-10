@@ -16,13 +16,13 @@ services:
             context: api-gateway
             dockerfile: Dockerfile
         environment:
-          - ychat.gateway.redirect.target.auth=http://ychat-auth:8080
-          - ychat.gateway.redirect.target.social=http://ychat-social:8080
-          - ychat.gateway.redirect.target.messaging=http://ychat-messaging:8080
-          - ychat.gateway.redirect.target.notification=http://ychat-notification:8080
-          - ychat.gateway.redirect.target.payment=http://ychat-payment:8080
+          - ychat.gateway.redirect.target.auth=http://ychat-auth:7501
+          - ychat.gateway.redirect.target.social=http://localhost:3001
+          - ychat.gateway.redirect.target.messaging=http://ychat-messaging:7503
+          - ychat.gateway.redirect.target.notification=http://ychat-notification:7504
+          - ychat.gateway.redirect.target.payment=http://ychat-payment:7505
         ports: 
-         - "8080:8080"
+         - "7500:8080"
     ychat-zookeeper:
         container_name: ychat-zookeeper
         image: 'confluentinc/cp-zookeeper:latest'
@@ -52,4 +52,3 @@ services:
         build:
             context: messaging-service
             dockerfile: Dockerfile
-          
