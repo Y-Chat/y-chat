@@ -17,12 +17,13 @@ services:
             dockerfile: Dockerfile
         environment:
           - ychat.gateway.redirect.target.auth=http://ychat-auth:7501
-          - ychat.gateway.redirect.target.social=http://localhost:3001
+          - ychat.gateway.redirect.target.social=http://ychat-social:7502
           - ychat.gateway.redirect.target.messaging=http://ychat-messaging:7503
           - ychat.gateway.redirect.target.notification=http://ychat-notification:7504
           - ychat.gateway.redirect.target.payment=http://ychat-payment:7505
-        ports: 
-         - "7500:8080"
+        # ports: 
+        # - "7500:8080"
+        network_mode: host
     ychat-zookeeper:
         container_name: ychat-zookeeper
         image: 'confluentinc/cp-zookeeper:latest'
@@ -45,10 +46,3 @@ services:
           - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
           - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
           - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-    ychat-messaging:
-        container_name: ychat-messaging
-        image: 'mrsarius/yc-messaging:latest'
-        restart: unless-stopped
-        build:
-            context: messaging-service
-            dockerfile: Dockerfile
