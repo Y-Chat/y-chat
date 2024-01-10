@@ -1,5 +1,6 @@
 services:
     ychat-frontend:
+        network_mode: host
         container_name: ychat-frontend
         image: 'mrsarius/yc-frontend:latest'
         restart: unless-stopped
@@ -9,6 +10,7 @@ services:
         # ports:
         #  - "3000:80"
     ychat-api-gateway:
+        network_mode: host
         container_name: ychat-api-gateway
         image: 'mrsarius/yc-api-gateway'
         restart: unless-stopped
@@ -22,32 +24,35 @@ services:
           - ychat.gateway.redirect.target.notification=http://localhost:7504
           - ychat.gateway.redirect.target.payment=http://localhost:7505
           - ychat.gateway.redirect.target.media=http://localhost:7506
+          - server.port=7500
         # ports: 
         # - "7500:8080"
-        network_mode: host
-    ychat-zookeeper:
-        container_name: ychat-zookeeper
-        image: 'confluentinc/cp-zookeeper:latest'
-        restart: unless-stopped
-        environment:
-          - ZOOKEEPER_CLIENT_PORT=2181
-          - ZOOKEEPER_TICK_TIME=2000
-        # ports:
-        #  - "22181:2181"
-    ychat-kafka:
-        container_name: ychat-kafka
-        image: 'confluentinc/cp-kafka:latest'
-        restart: unless-stopped
-        depends_on:
-          - ychat-zookeeper
-        environment:
-          - KAFKA_BROKER_ID=1
-          - KAFKA_ZOOKEEPER_CONNECT=ychat-zookeeper:2181
-          - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://ychat-kafka:9092,PLAINTEXT_HOST://localhost:29092
-          - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-          - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-          - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    #ychat-zookeeper:
+    #    network_mode: host
+    #    container_name: ychat-zookeeper
+    #    image: 'confluentinc/cp-zookeeper:latest'
+    #    restart: unless-stopped
+    #    environment:
+    #      - ZOOKEEPER_CLIENT_PORT=2181
+    #      - ZOOKEEPER_TICK_TIME=2000
+    #    # ports:
+    #    #  - "22181:2181"
+    #ychat-kafka:
+    #    network_mode: host
+    #    container_name: ychat-kafka
+    #    image: 'confluentinc/cp-kafka:latest'
+    #    restart: unless-stopped
+    #    depends_on:
+    #      - ychat-zookeeper
+    #    environment:
+    #      - KAFKA_BROKER_ID=1
+    #      - KAFKA_ZOOKEEPER_CONNECT=ychat-zookeeper:2181
+    #      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://ychat-kafka:9092,PLAINTEXT_HOST://localhost:29092
+    #      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+    #      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+    #      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
     ychat-dev-db: # Will be multiple db's in production, only one since we're running on host network to facilitate the local dev env
+        network_mode: host
         container_name: ychat-dev-db
         image: 'mongo'
         restart: unless-stopped
@@ -55,6 +60,7 @@ services:
           - MONGO_INITDB_ROOT_USERNAME=admin
           - MONGO_INITDB_ROOT_PASSWORD=devpw
     ychat-messaging:
+        network_mode: host
         container_name: ychat-messaging
         image: 'mrsarius/yc-messaging'
         restart: unless-stopped
@@ -64,7 +70,7 @@ services:
         environment:
           - spring.datasource.url=jdbc:mongodb://admin:devpw@localhost:27017
           - spring.data.mongodb.database=messaging
-        network_mode: host
+          - server.port=7503
         # ports:
         #  - "7503:7503"
     
