@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
 import {MantineProvider} from "@mantine/core";
 import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
@@ -11,6 +11,7 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import {Notifications} from "@mantine/notifications";
 import {PermissionsModal} from "../firebase/PermissionsModal";
+import {api} from "../api";
 
 function App() {
 
@@ -35,6 +36,12 @@ function App() {
         }
 
     }
+
+    useEffect(() => {
+        api.getMessages({chatId: 'b883492e-cb45-484e-895a-0703700deac7', fromDate: new Date(2000, 0, 1)})
+            .then(r  => {console.log(JSON.stringify(r))})
+            .catch(e => console.error(e))
+    }, [])
 
     return (
         <div>
