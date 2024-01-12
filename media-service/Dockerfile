@@ -1,6 +1,7 @@
 FROM gradle:latest AS build
 WORKDIR /build
 COPY . .
+RUN gradle wrapper
 RUN ./gradlew build -x test
 
 FROM openjdk:17-oracle
