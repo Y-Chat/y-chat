@@ -40,10 +40,12 @@
     "zustand": "^4.4.3"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "npm run generate && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "merge-openapi": "cd api-specs && npm install && npm run generate && cd..",
+    "generate": "npm run merge-openapi && openapi-generator-cli generate -i api-specs/openapi.yml -g typescript-fetch -o src/api-wrapper"
   },
   "eslintConfig": {
     "extends": [
@@ -64,6 +66,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@openapitools/openapi-generator-cli": "^2.7.0"
   }
 }
