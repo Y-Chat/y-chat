@@ -24,6 +24,7 @@ services:
           - ychat.gateway.redirect.target.notification=http://ychat-notification:8080
           - ychat.gateway.redirect.target.payment=http://ychat-payment:8080
           - ychat.gateway.redirect.target.media=http://ychat-media:8080
+          - ychat.cors.allowed.url=http://localhost:3000
         ports: 
           - "7500:8080"
     ychat-zookeeper:
