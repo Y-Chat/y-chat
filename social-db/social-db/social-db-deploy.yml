@@ -1,0 +1,34 @@
+# This would in reality be a StatefulSet with more replicas
+# TODO add init script
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-db-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-db
+  template:
+    metadata:
+      labels:
+        app: social-db
+    spec:
+      containers:
+        - name: social-db-container
+          image: postgres:latest
+          envFrom:
+          - configMapRef:
+              name: social-db-config
+          - secretRef:
+              name: social-db-secret
+          ports:
+            - containerPort: 5432
+              name: social-db-port
+          volumeMounts:
+            - name: social-db-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: social-db-storage
+          persistentVolumeClaim:
+            claimName: social-db-pvc

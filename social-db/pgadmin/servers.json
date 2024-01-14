@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "social-db",
+      "Group": "social-db-group",
+      "Host": "social-db",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "ychat",
+      "Password": "ychatformerlyknownas",
+      "SSLMode": "prefer"
+    }
+  }
+}

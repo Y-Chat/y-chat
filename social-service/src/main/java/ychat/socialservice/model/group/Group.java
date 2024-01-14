@@ -9,39 +9,43 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+// TODO persistence cascade and fetch
+
 @Entity
 @Table(name = "groups")
 public class GroupChat extends Chat {
-    @Id
-    @Column(name = "id")
-    private UUID id;
-
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "name", column = @Column(name = "group_name")),
-        @AttributeOverride(name = "profileDescription", column = @Column(name = "profile_description")),
+        @AttributeOverride(
+            name = "profileDescription",
+            column = @Column(name = "profile_description")
+        ),
     })
     private GroupProfile groupProfile;
 
+    // TODO be able to fetch groupMembers and check for membership and how to add etc
     @OneToMany(mappedBy = "groupChat")
     private Set<GroupMember> groupMembers;
 
+    public GroupChat(User initUser, GroupProfile groupProfile) {
+        super();
+        this.setGroupProfile(groupProfile);
+        GroupMember initGroupMember = new GroupMember(
+            initUser, this, GroupRole.GROUP_ADMIN
+        );
+        this.groupMembers = new HashSet<>();
+        this.groupMembers.add(initGroupMember);
+    }
+
     public GroupChat() {} // Required by JPA
 
-    public GroupChat(User initUser, GroupProfile groupProfile) {
-        this.id = UUID.randomUUID();
-        this.setGroupProfile(groupProfile);
-        GroupMember initGroupMember = null; // TODO
-        this.groupMembers = new HashSet<>(); //TODO add
-    }
-
     @Override
-    public Set<User> getMembers() {
-        return null; // TODO
-    }
-
-    public UUID getId() {
-        return id;
+    public Set<UUID> getMemberIds() {
+        HashSet<UUID> memberIds = new HashSet<>();
+        for (GroupMember groupMember : groupMembers)
+            memberIds.add(groupMember.getUser().getId());
+        return memberIds;
     }
 
     public GroupProfile getGroupProfile() {
@@ -75,6 +79,6 @@ public class GroupChat extends Chat {
 
     @Override
     public String toString() {
-        return "Group{" + "id=" + id + ", groupProfile=" + groupProfile + '}';
+        return "Group{" + "id=" + this.getId() + ", groupProfile=" + this.getGroupProfile() + '}';
     }
 }

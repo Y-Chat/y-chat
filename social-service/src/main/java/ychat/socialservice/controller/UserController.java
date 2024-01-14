@@ -1,90 +1,170 @@
 package ychat.socialservice.controller;
 
+import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ychat.socialservice.model.user.UserProfile;
+import ychat.socialservice.model.user.UserSettings;
 import ychat.socialservice.service.UserService;
 
 import java.util.Set;
 import java.util.UUID;
 
-/*
-- UserId is not managed by this service but by the Auth Service
-- TODO check error handling
-- TODO add access control
-- TODO have partial and full update
-- TODO deletion of user
+/**
+ * This endpoint manages the user as he exists in the Y-Chat domain, specifically their profiles,
+ * settings, and who they have blocked.
+ * <p>
+ * Importantly, the lifetime of a user is owned by the Auth service. The user email and phone number
+ * are transported via the JWT.
  */
-
 @RestController
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
-    public UserController(UserService userService) {
+    public UserController(@NonNull UserService userService) {
         this.userService = userService;
     }
 
+    // Lifecycle start -----------------------------------------------------------------------------
+    /**
+     * Create a user with an initial profile.
+     *
+     * @param userId the id associated with the user from the Auth service
+     * @param userProfile the public information of a user
+     * @return no content
+     */
     @PostMapping
     public ResponseEntity<Void> createUser(@RequestBody UUID userId,
-                                           @RequestBody UserInfo userInfo) {
-        userService.createUser(userId, userInfo);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+                                           @RequestBody UserProfile userProfile) {
+        userService.createUser(userId, userProfile);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @GetMapping("public-info")
-    public ResponseEntity<PublicUserInfo[]> getPublicInfo(@RequestBody UUID[] userIds) {
-        PublicUserInfo[] publicUserInfos = userService.getPublicUserInfo(userIds);
-        return ResponseEntity.ok(publicUserInfos);
+    /**
+     * Deletes the user from the Social service including all blocked relations and all group/chat
+     * memberships.
+     *
+     * @param userId the id of the user
+     * @return no content
+     */
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+        userService.deleteUser(userId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    // Lifecycle end -------------------------------------------------------------------------------
+
+    // Profiles start ------------------------------------------------------------------------------
+    /**
+     * Fetches the profile for a given user.
+     *
+     * @param userId the id of the user
+     * @return userProfile the public information of a user
+     */
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserProfile> getUserProfile(@PathVariable UUID userId) {
+        UserProfile userProfile = userService.getUserProfile(userId);
+        return ResponseEntity.ok(userProfile);
     }
 
-    // Info start ----------------------------------------------------------------------------------
-    @PatchMapping("/{userId}/info")
-    public ResponseEntity<Void> updateInfo(@PathVariable UUID userId,
-                                           @RequestBody UserInfo userInfo) {
-        userService.updateInfo(userId, userInfo);
-        return ResponseEntity.ok().build();
+    /**
+     * Updates the profile for a given user.
+     *
+     * @param userId the id of the user
+     * @param userProfile the public information of a user
+     * @return no content
+     */
+    @PutMapping("/{userId}")
+    public ResponseEntity<Void> updateUserProfile(@PathVariable UUID userId,
+                                                  @RequestBody UserProfile userProfile) {
+        userService.updateUserProfile(userId, userProfile);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    // Profiles end --------------------------------------------------------------------------------
+
+    // Settings start ------------------------------------------------------------------------------
+    /**
+     * Fetch the settings for a given user.
+     * @param userId the id of the user
+     * @return the settings for the user
+     */
+    @GetMapping("/{userId}/settings")
+    public ResponseEntity<UserSettings> getUserSettings(@PathVariable UUID userId) {
+        UserSettings userSettings = userService.getUserSettings(userId);
+        return ResponseEntity.ok(userSettings);
     }
 
-    @GetMapping("/{userId}/info")
-    public ResponseEntity<UserInfo> getInfo(@RequestBody UUID userId) {
-        UserInfo userInfos = userService.getInfo(userId);
-        return ResponseEntity.ok(userInfos);
+    /**
+     * Update the settings for a given user.
+     *
+     * @param userId the id of the user
+     * @param userSettings the new settings for the user
+     * @return no content
+     */
+    @PutMapping("/{userId}/settings")
+    public ResponseEntity<Void> updateUserSettings(@PathVariable UUID userId,
+                                                   @RequestBody UserSettings userSettings) {
+        userService.updateUserSettings(userId, userSettings);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
-    // Info end ------------------------------------------------------------------------------------
+    // Settings end --------------------------------------------------------------------------------
 
     // Blocking start ------------------------------------------------------------------------------
-    @PatchMapping("/{userId}/add-blocked")
-    public ResponseEntity<Void> addBlocked(@PathVariable UUID userId,
-                                           @RequestBody Set<UUID> blockedIds) {
-        userService.addBlocked(userId, blockedIds);
+    /**
+     * Get the blocklist for a user. Not paginated as there is a limit on the number of users you
+     * can block.
+     *
+     * @param userId the id of the blocker
+     * @return a list of ids belonging to the blocked users
+     */
+    @GetMapping("/{userId}/blockedUsers")
+    public ResponseEntity<Set<UUID>> getBlockedUsers(@PathVariable UUID userId) {
+        Set<UUID> blockedUserIds = userService.getBlockedUsers(userId);
+        return ResponseEntity.ok(blockedUserIds);
+    }
+
+    /**
+     * Check whether a given user has another user blocked.
+     *
+     * @param userId the id of the blocker
+     * @param checkUserId the id of the blockee
+     * @return a boolean indicating whether the user is blocked
+     */
+    @GetMapping("/{userId}/blockedUsers/{checkUserId}")
+    public ResponseEntity<Boolean> checkBlockedUser(@PathVariable UUID userId,
+                                                    @PathVariable UUID checkUserId) {
+        boolean blocked = userService.checkBlockedUser(userId, checkUserId);
+        return ResponseEntity.ok(blocked);
+    }
+    /**
+     * Add another user to the list of blocked users. A user cannot block themselves. There is a
+     * limit on the number of users a user can block.
+     *
+     * @param userId the id of the blocker
+     * @param blockUserId the id of the blockee
+     * @return no content
+     */
+    @PostMapping("/{userId}/blockedUsers")
+    public ResponseEntity<Void> addBlockedUser(
+        @PathVariable UUID userId, @RequestParam UUID blockUserId
+    ) {
+        userService.addBlockedUser(userId, blockUserId);
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/{userId}/remove-blocked")
-    public ResponseEntity<Void> removeBlocked(@PathVariable UUID userId,
-                                              @RequestBody Set<UUID> unblockedIds) {
-        userService.removeBlocked(userId, unblockedIds);
+    /**
+     * Removes another user from the blocklist.
+     *
+     * @param userId the id of the blocker
+     * @param unblockUserId the id of the blockee
+     * @return no content
+     */
+    @DeleteMapping("/{userId}/blockedUsers")
+    public ResponseEntity<Void> removeBlockedUser(@PathVariable UUID userId,
+                                                  @RequestParam UUID unblockUserId) {
+        userService.removeBlockedUser(userId, unblockUserId);
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/{userId}/blocked")
-    public ResponseEntity<Set<UUID>> getBlocked(@PathVariable UUID userId) {
-        Set<UUID> blockedIds = userService.getBlocked(userId);
-        return ResponseEntity.ok(blockedIds);
     }
     // Blocking end --------------------------------------------------------------------------------
-
-    // Chats and groups start ----------------------------------------------------------------------
-    @GetMapping("/{userId}/chats")
-    public ResponseEntity<Set<UUID>> getChats(@PathVariable UUID userId) {
-        Set<UUID> chatIds = userService.getChats(userId);
-        return ResponseEntity.ok(chatIds);
-    }
-
-    @GetMapping("/{userId}/groups")
-    public ResponseEntity<Set<UUID>> getGroups(@PathVariable UUID userId) {
-        Set<UUID> groupIds = userService.getGroups(userId);
-        return ResponseEntity.ok(groupIds);
-    }
-    // Chats and groups end ------------------------------------------------------------------------
 }
