@@ -44,7 +44,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "merge-openapi": "cd api-specs && npm install && npm run generate && cd..",
+    "merge-openapi": "cd api-specs && npm install && npm run generate && cd ..",
     "generate": "npm run merge-openapi && openapi-generator-cli generate -i api-specs/openapi.yml -g typescript-fetch -o src/api-wrapper"
   },
   "eslintConfig": {
