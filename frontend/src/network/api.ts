@@ -10,11 +10,15 @@ export let api = new DefaultApi(new Configuration({
 
 export function setApiAccessToken(token: any) {
     if (!token) {
-        api = new DefaultApi(new Configuration({basePath: process.env.REACT_APP_API ?? fallbackApiEndpoint}))
+        api = new DefaultApi(new Configuration({
+            basePath: process.env.REACT_APP_API ?? fallbackApiEndpoint,
+            middleware: [new AuthHeaderToken()]
+        }))
     } else {
         api = new DefaultApi(new Configuration({
             basePath: process.env.REACT_APP_API ?? fallbackApiEndpoint,
-            accessToken: token
+            accessToken: token,
+            middleware: [new AuthHeaderToken()]
         }))
     }
 }
