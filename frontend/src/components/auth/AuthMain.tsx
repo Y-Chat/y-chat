@@ -16,11 +16,11 @@ import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
 import Logo from "../shell/Logo";
 import {useAppStore} from "../../state/store";
-import auth from "../../firebase/firebaseAuth"
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth"
 import {GoogleButton} from "./GoogleButton";
 import {AppleButton} from "./AppleButton";
 import {showErrorNotification} from "../../notifications/notifications";
+import auth from "../../firebase/firebaseAuth";
 
 function AuthMain() {
     const setUser = useAppStore((state) => state.setUser)
@@ -51,18 +51,18 @@ function AuthMain() {
 
 
     function register(email: string, password: string) {
+        setUserLoading(true);
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredentials) => {
-                setUserLoading(false);
                 setUser({
                     firstName: "Example",
                     lastName: "Name",
                     username: "example_username",
                     email: "example@example.com",
                     avatar: "https://www.w3schools.com/howto/img_avatar2.png",
-                    balance: 69,
-                    firebaseUser: userCredentials.user
+                    balance: 69
                 })
+                setUserLoading(false);
             }).catch((error) => {
             showErrorNotification(error.code);
             setUserLoading(false);
@@ -70,22 +70,23 @@ function AuthMain() {
     }
 
     function login(email: string, password: string) {
+        setUserLoading(true);
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredentials) => {
-                setUserLoading(false);
                 setUser({
                     firstName: "Example",
                     lastName: "Name",
                     username: "example_username",
                     email: "example@example.com",
                     avatar: "https://www.w3schools.com/howto/img_avatar2.png",
-                    balance: 69,
-                    firebaseUser: userCredentials.user
+                    balance: 69
                 })
-            }).catch((error) => {
-            showErrorNotification(error.code);
-            setUserLoading(false);
-        });
+                setUserLoading(false);
+            })
+            .catch((error) => {
+                showErrorNotification(error.code);
+                setUserLoading(false);
+            });
 
     }
 
@@ -112,7 +113,6 @@ function AuthMain() {
 
                     <form
                         onSubmit={form.onSubmit(() => {
-                            setUserLoading(true);
                             const email = form.values.email
                             const password = form.values.password
                             if (type === "register") {
