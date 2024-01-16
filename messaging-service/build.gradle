@@ -18,7 +18,7 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-	// implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
@@ -28,6 +28,9 @@ dependencies {
 	implementation 'io.swagger:swagger-annotations:1.6.8'
 	implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: '3.0.2'
 	implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '8.0.1.Final'
+
+	implementation group: 'com.google.firebase', name: 'firebase-admin', version: '9.2.0'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
 	implementation('org.springframework.kafka:spring-kafka')
 

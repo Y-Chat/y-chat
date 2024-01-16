@@ -2,6 +2,7 @@ import {create} from 'zustand'
 import {User} from "../model/User";
 import {persist, createJSONStorage, StateStorage} from 'zustand/middleware'
 import { get, set, del } from 'idb-keyval';
+import firebase from "firebase/compat";
 
 const storage: StateStorage = {
     getItem: async (name: string): Promise<string | null> => {

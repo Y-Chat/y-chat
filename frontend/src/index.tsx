@@ -6,6 +6,7 @@ import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
 import "./firebase/firebaseAuth"
 import "./firebase/firebaseMessaging"
+import auth from "./firebase/firebaseAuth";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement

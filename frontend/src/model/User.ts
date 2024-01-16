@@ -6,6 +6,5 @@ export interface User {
     email: string,
     username: string,
     avatar: string | null,
-    balance: number,
-    firebaseUser: firebase.UserInfo
+    balance: number
 }

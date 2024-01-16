@@ -1,6 +1,6 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
-import {MantineProvider} from "@mantine/core";
+import {LoadingOverlay, MantineProvider} from "@mantine/core";
 import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
 import {useAppStore} from "../state/store";
 import AuthMain from "./auth/AuthMain";
@@ -11,10 +11,12 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import {Notifications} from "@mantine/notifications";
 import {PermissionsModal} from "../firebase/PermissionsModal";
-import {api} from "../api";
+import {useAuthState} from "react-firebase-hooks/auth";
+import auth from "../firebase/firebaseAuth";
 
 function App() {
 
+    const [firebaseUser, loading] = useAuthState(auth);
     const user = useAppStore((state) => state.user);
 
     const theme: MantineThemeOverride = {
@@ -37,12 +39,6 @@ function App() {
 
     }
 
-    useEffect(() => {
-        api.getMessages({chatId: 'b883492e-cb45-484e-895a-0703700deac7', fromDate: new Date(2000, 0, 1)})
-            .then(r  => {console.log(JSON.stringify(r))})
-            .catch(e => console.error(e))
-    }, [])
-
     return (
         <div>
             {/*<BrowserView>*/}
@@ -52,8 +48,9 @@ function App() {
             <MantineProvider theme={theme} defaultColorScheme="dark">
                 <PermissionsModal/>
                 <Notifications autoClose={5000} position="top-right"/>
+                <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
                 <Router>
-                    {user ?
+                    {user && firebaseUser ?
                         <Routes>
                             <Route path="/" element={<Shell/>}>
                                 <Route path="/" element={<ChatMain/>}/>

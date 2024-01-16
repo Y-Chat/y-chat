@@ -20,9 +20,12 @@ import {useAppStore} from "../../state/store";
 import MenuDrawer from "../menu/MenuDrawer";
 import {IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
+import {signOut} from "firebase/auth";
+import auth from "../../firebase/firebaseAuth";
 
 export function AccountMain() {
     const [accentColor, setAccentColor] = useState('#fff');
+    const [logoutLoading, setLogoutLoading] = useState(false);
     const sizeHeader = 10;
     const user = useAppStore((state) => state.user);
     const setUser = useAppStore((state) => state.setUser);
@@ -151,17 +154,25 @@ export function AccountMain() {
                                     withPicker={false}
                                     fullWidth
                                     swatches={[
-                                       "white", "#6BD731", "#0969FF", "#4C5897","#8931B2", "#F01879", "#C91A25"
+                                        "white", "#6BD731", "#0969FF", "#4C5897", "#8931B2", "#F01879", "#C91A25"
                                     ]}
                                 />
                             </Center>
                         </Input.Wrapper>
                         <Divider m='xs'/>
                         <Button
+                            loading={logoutLoading}
                             rightSection={<IconLogout size={14}/>}
                             variant="default"
                             onClick={() => {
-                                setUser(null)
+                                setLogoutLoading(true)
+                                signOut(auth).then(() => {
+                                    setLogoutLoading(false)
+                                    setUser(null)
+                                }).catch(() => {
+                                    setLogoutLoading(false)
+                                    // TODO maybe handle error
+                                })
                             }}
                         >
                             <Text>Logout</Text>

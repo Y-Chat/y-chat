@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {ActionIcon, Divider, Group, Paper, Textarea} from "@mantine/core";
 import {IconPhoto, IconSend} from "@tabler/icons-react";
 import {isMobile} from 'react-device-detect';
+import {api} from "../../network/api";
 
 function ChatTextArea() {
     const [message, setMessage] = useState("");
@@ -58,6 +59,17 @@ function ChatTextArea() {
                         aria-label="Send"
                         disabled={!message.length}
                         onClick={() => {
+                            api.sendMessage({
+                                message: {
+                                    id: "123",
+                                    senderId: "frontendTest",
+                                    chatId: "123",
+                                    sentTimestamp: new Date(),
+                                    message: message
+                                }
+                            }).catch(() => {
+                                // TODO handle error
+                            });
                             setMessage("");
                         }}
                     >
