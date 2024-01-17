@@ -56,7 +56,7 @@ public class SecurityConfig {
     }
 
     public static UUID getRequesterUUID() {
-        return UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        return UUID.nameUUIDFromBytes(SecurityContextHolder.getContext().getAuthentication().getName().getBytes());
     }
 
     /**
