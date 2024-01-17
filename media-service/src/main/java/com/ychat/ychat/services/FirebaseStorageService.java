@@ -42,7 +42,7 @@ public class FirebaseStorageService {
             // TODO if not authenticated for whatever reason (not part of chat etc.) throw 403
             // TODO add caching for frequently accessed objects?
 
-            return blob.signUrl(10, TimeUnit.SECONDS).toString();
+            return blob.signUrl(2, TimeUnit.HOURS).toString();
         } catch (StorageException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error retrieving object");
         }
