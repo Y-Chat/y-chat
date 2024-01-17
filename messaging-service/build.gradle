@@ -86,6 +86,7 @@ task asyncApiGenerate(type: NpxTask) {
 	String oldSpecFileHash = file(specFileHelperFileName).exists() ? new File(specFileHelperFileName).text : ''
 	if(!currentSpecFileHash.equals(oldSpecFileHash)) {
 		System.out.println("Async api spec file hashes differ, rerunning generation")
+		delete outputFolder
 		file(specFileHelperFolder).mkdirs()
 		file(specFileHelperFileName).createNewFile()
 		new File(specFileHelperFileName).text = currentSpecFileHash
