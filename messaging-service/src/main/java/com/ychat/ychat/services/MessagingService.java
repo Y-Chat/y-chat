@@ -2,7 +2,6 @@ package com.ychat.ychat.services;
 
 import com.asyncapi.gen.notification.model.AnonymousSchema1;
 import com.asyncapi.gen.notification.model.Notification;
-import com.ychat.ychat.controllers.MessagesController;
 import com.ychat.ychat.repositories.ChatMessageRepository;
 import com.openapi.gen.messaging.dto.Message;
 import org.slf4j.Logger;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,11 +23,16 @@ public class MessagingService {
 
     private static final Logger logger = LoggerFactory.getLogger(MessagingService.class);
 
-    @Autowired
-    private ChatMessageRepository messageRepository;
+    private final ChatMessageRepository messageRepository;
 
-    @Autowired
-    private NotificationServiceConnector notificationServiceConnector;
+    private final NotificationServiceConnector notificationServiceConnector;
+
+    private final Random random = new Random();
+
+    public MessagingService(@Autowired ChatMessageRepository messageRepository, @Autowired NotificationServiceConnector notificationServiceConnector){
+        this.messageRepository = messageRepository;
+        this.notificationServiceConnector = notificationServiceConnector;
+    }
 
     public Pair<Optional<List<Message>>, PageRequest> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize) {
         if(page == null) {
@@ -43,11 +48,6 @@ public class MessagingService {
                 .stream()
                 .map(com.ychat.ychat.models.Message::toOpenAPI)
                 .collect(Collectors.toList());
-        var notification = new Notification();
-        var schema1 = new AnonymousSchema1();
-        schema1.setChatId("70f3ca1e-8e50-4f5c-b9e1-8815e004d0ef");
-        notification.setNewMessage(schema1);
-        notificationServiceConnector.onNotification(1, notification);
         return Pair.of(Optional.of(res), pageRequest);
     }
 
@@ -65,6 +65,13 @@ public class MessagingService {
                 message.getTransactionId()
         );
         newMessage = messageRepository.save(newMessage);
+
+        var notification = new Notification();
+        var schema1 = new AnonymousSchema1();
+        schema1.setChatId(newMessage.getChatId());
+        notification.setNewMessage(schema1);
+        notificationServiceConnector.onNotification(random.nextInt(), notification);
+
         return Optional.of(newMessage.toOpenAPI());
     }
 }
