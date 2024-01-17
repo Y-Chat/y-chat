@@ -34,10 +34,10 @@ public class MessagesController implements MessagesApi {
     }
 
     @Override
-   public ResponseEntity<GetMessages200Response> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize) {
+    public ResponseEntity<GetMessages200Response> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize) {
         var requesterId = SecurityConfig.getRequesterUUID();
         // TODO Check with social service if user is allowed to access chat
         var res = messagingService.getMessages(chatId, fromDate, page, pageSize);
         return ResponseEntity.ok(new GetMessages200Response(res.getFirst().orElse(List.of()), new PageInfo(res.getSecond().getPageNumber(), res.getSecond().getPageSize())));
-   }
+    }
 }
