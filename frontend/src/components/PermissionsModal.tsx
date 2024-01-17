@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {Button, Center, Container, Group, Modal, Text} from "@mantine/core";
 import {IconExclamationCircle} from "@tabler/icons-react";
-import {requestNotificationPermissions} from "./firebaseMessaging";
+import {requestNotificationPermissions} from "../firebase/messaging";
 
 export function PermissionsModal() {
     const [showPermissions, setShowPermissions] = useState<boolean>(false)

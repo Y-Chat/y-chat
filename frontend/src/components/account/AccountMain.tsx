@@ -21,13 +21,16 @@ import MenuDrawer from "../menu/MenuDrawer";
 import {IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 import {signOut} from "firebase/auth";
-import auth from "../../firebase/firebaseAuth";
+import auth from "../../firebase/auth";
+import {ref, getDownloadURL, uploadBytes} from "firebase/storage";
+import {profilePicturesRef} from "../../firebase/storage";
 
 export function AccountMain() {
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [accentColor, setAccentColor] = useState('#fff');
     const [logoutLoading, setLogoutLoading] = useState(false);
     const sizeHeader = 10;
-    const user = useAppStore((state) => state.user);
+    const user = useAppStore((state) => state.user)!; // this view can only be rendered if user is not null!
     const setUser = useAppStore((state) => state.setUser);
     const form = useForm({
         initialValues: {
@@ -42,6 +45,11 @@ export function AccountMain() {
             //password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
         },
     });
+
+    function uploadPicture() {
+
+    }
+
     return (
         <>
             <header>
@@ -65,7 +73,32 @@ export function AccountMain() {
                     <Stack justify="flex-start" align="stretch">
                         <Center mb={10}>
                             <Dropzone
-                                onDrop={(files) => console.log('accepted files', files)}
+                                maxFiles={1}
+                                multiple={false}
+                                pos={"relative"}
+                                loading={uploadingAvatar}
+                                onDrop={(files) => {
+                                    setUploadingAvatar(true);
+                                    try {
+                                        const uid = auth.currentUser?.uid
+                                        if (!uid)
+                                            return;
+
+                                        files.forEach(async (file) => {
+                                            const fileRef = ref(profilePicturesRef, `${uid}/${file.name}`);
+                                            const upload = await uploadBytes(fileRef, file);
+                                            const url = await getDownloadURL(upload.ref);
+                                            setUser({
+                                                ...user,
+                                                avatar: url
+                                            })
+                                            setUploadingAvatar(false);
+                                        })
+                                    } catch (e) {
+                                        setUploadingAvatar(false);
+                                        // TODO handle error
+                                    }
+                                }}
                                 onReject={(files) => console.log('rejected files', files)}
                                 accept={IMAGE_MIME_TYPE}
                             >
@@ -95,7 +128,7 @@ export function AccountMain() {
                                         </Avatar>
                                     </Dropzone.Reject>
                                     <Dropzone.Idle>
-                                        <Avatar src={user?.avatar} size={120} color={accentColor}/>
+                                        <Avatar src={user.avatar} size={120} color={accentColor}/>
                                     </Dropzone.Idle>
                                 </Group>
                             </Dropzone>
@@ -182,5 +215,6 @@ export function AccountMain() {
             </Container>
         </>
 
-    );
+    )
+        ;
 }

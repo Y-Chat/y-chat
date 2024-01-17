@@ -1,6 +1,6 @@
 import {initializeApp} from "firebase/app";
 
-const firebaseConfig = {
+const config = {
     apiKey: "AIzaSyAQJb9j6HjvwapIo9OT_fNTGAxuIfNcGW8",
     authDomain: "y-chat-e5132.firebaseapp.com",
     projectId: "y-chat-e5132",
@@ -10,6 +10,6 @@ const firebaseConfig = {
     measurementId: "G-TV16QZK2KS"
 };
 
-const app = initializeApp(firebaseConfig);
+const firebaseApp = initializeApp(config);
 
-export default app;
+export default firebaseApp;

@@ -1,17 +1,23 @@
 package com.ychat.ychat.controllers;
 
-import com.openapi.gen.media.api.DataApi;
-import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
+import com.ychat.ychat.services.FirebaseStorageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.UUID;
+import java.net.URL;
 
 @Controller
-public class DataController implements DataApi {
-    @Override
-    public ResponseEntity<Resource> getMedia(UUID mediaDataId) {
-        // TODO
-        return DataApi.super.getMedia(mediaDataId);
+@RequestMapping("/")
+public class DataController {
+
+    @Autowired
+    private FirebaseStorageService firebaseStorageService;
+
+    @GetMapping("/{objectName}")
+    public String getMedia(@PathVariable String objectName) {
+        return firebaseStorageService.generateSignedUrl(objectName);
     }
 }

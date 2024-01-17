@@ -20,7 +20,7 @@ import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from "fireba
 import {GoogleButton} from "./GoogleButton";
 import {AppleButton} from "./AppleButton";
 import {showErrorNotification} from "../../notifications/notifications";
-import auth from "../../firebase/firebaseAuth";
+import auth from "../../firebase/auth";
 
 function AuthMain() {
     const setUser = useAppStore((state) => state.setUser)
@@ -59,7 +59,7 @@ function AuthMain() {
                     lastName: "Name",
                     username: "example_username",
                     email: "example@example.com",
-                    avatar: "https://www.w3schools.com/howto/img_avatar2.png",
+                    avatar: null,
                     balance: 69
                 })
                 setUserLoading(false);
@@ -78,7 +78,7 @@ function AuthMain() {
                     lastName: "Name",
                     username: "example_username",
                     email: "example@example.com",
-                    avatar: "https://www.w3schools.com/howto/img_avatar2.png",
+                    avatar: null,
                     balance: 69
                 })
                 setUserLoading(false);
