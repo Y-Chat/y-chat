@@ -61,9 +61,9 @@ function ChatTextArea() {
                         onClick={() => {
                             api.sendMessage({
                                 message: {
-                                    id: "123",
+                                    id: "c7d5906b-df61-45bd-b44e-b3b8d4c8946a", // Is ignored by server, will be fixed so we don't need to pass a random uuid here
                                     senderId: "frontendTest",
-                                    chatId: "123",
+                                    chatId: "8e400639-1a6b-44f6-adf6-d4fd7d463e93",
                                     sentTimestamp: new Date(),
                                     message: message
                                 }
