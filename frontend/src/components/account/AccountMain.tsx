@@ -92,6 +92,8 @@ export function AccountMain() {
                                                 ...user,
                                                 avatar: url
                                             })
+                                            console.log(upload.ref.name)
+                                            console.log(upload.ref)
                                             setUploadingAvatar(false);
                                         })
                                     } catch (e) {
