@@ -22,7 +22,7 @@ jobs:
           FIREBASE_SERVICE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS_JSON }}
         run: |
           touch ./notification-service/src/resources/firebase-service-credentials.json
-          echo "$FIREBASE_SERVICE_CREDENTIALS_JSON" >> ./notification-service/src/resources/firebase-service-credentials.json
+          echo "$FIREBASE_SERVICE_CREDENTIALS_JSON" >> ./notification-service/src/main/resources/firebase-service-credentials.json
           ls -a ./notification-service/src/resources
 
       - name: Build and Push Docker Images
