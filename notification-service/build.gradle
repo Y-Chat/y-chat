@@ -73,6 +73,7 @@ task asyncApiGenerate(type: NpxTask) {
 	// Checking spec file hashes and not running if same as last run
 	String specFilePath = './api-specs/notification/asyncapi.yml'
 	String outputFolder = 'generated/asyncapi/notification'
+	String packageName = 'javaPackage=com.asyncapi.gen.notification'
 
 	MessageDigest specFileNameDigest = MessageDigest.getInstance("SHA-256")
 	specFileNameDigest.update(specFilePath.getBytes())
@@ -93,7 +94,7 @@ task asyncApiGenerate(type: NpxTask) {
 		dependsOn nodeSetup
 		dependsOn npmSetup
 		command = '@asyncapi/cli'
-		args = ['generate', 'fromTemplate', specFilePath, '@asyncapi/java-spring-template', '-o', outputFolder]
+		args = ['generate', 'fromTemplate', specFilePath, '@asyncapi/java-spring-template', '-o', outputFolder, '--param', packageName]
 	} else {
 		System.out.println("Async api spec file hasn't changed, skipping generation")
 		command = "npxnoop" // Required because the npx task can't be aborted, it needs to execute something. Otherwise it considers itself failed and aborts the build
@@ -107,6 +108,7 @@ compileJava {
 
 clean {
 	delete "generated"
+	delete ".gradle/asyncapigen"
 }
 
 

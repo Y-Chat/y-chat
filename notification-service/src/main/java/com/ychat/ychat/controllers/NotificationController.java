@@ -1,7 +1,6 @@
 package com.ychat.ychat.controllers;
 
-import com.asyncapi.model.Notification;
-import com.asyncapi.service.MessageHandlerService;
+import com.asyncapi.gen.notification.model.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;

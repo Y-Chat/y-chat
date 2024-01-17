@@ -1,5 +1,7 @@
 package com.ychat.ychat.services;
 
+import com.asyncapi.gen.notification.model.AnonymousSchema1;
+import com.asyncapi.gen.notification.model.Notification;
 import com.ychat.ychat.repositories.ChatMessageRepository;
 import com.openapi.gen.messaging.dto.Message;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,9 @@ public class MessagingService {
     @Autowired
     private ChatMessageRepository messageRepository;
 
+    @Autowired
+    private NotificationServiceConnector notificationServiceConnector;
+
     public Pair<Optional<List<Message>>, PageRequest> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize) {
         if(page == null) {
             page = 0;
@@ -33,6 +38,11 @@ public class MessagingService {
                 .stream()
                 .map(com.ychat.ychat.models.Message::toOpenAPI)
                 .collect(Collectors.toList());
+        var notification = new Notification();
+        var schema1 = new AnonymousSchema1();
+        schema1.setChatId("70f3ca1e-8e50-4f5c-b9e1-8815e004d0ef");
+        notification.setNewMessage(schema1);
+        notificationServiceConnector.onNotification(1, notification);
         return Pair.of(Optional.of(res), pageRequest);
     }
 

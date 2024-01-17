@@ -78,6 +78,9 @@ services:
           - spring.data.mongodb.password=devpw
           - spring.data.mongodb.database=messaging
           - spring.data.mongodb.authentication-database=admin
+          - spring.kafka.bootstrap-servers=ychat-kafka:9092
+          - spring.kafka.consumer.group-id=messaging
+          - spring.kafka.consumer.auto-offset-reset=earliest
         ports:
           - "7503:8080"
     # Notification Service
@@ -107,6 +110,9 @@ services:
           - spring.data.mongodb.password=devpw
           - spring.data.mongodb.database=notification
           - spring.data.mongodb.authentication-database=admin
+          - spring.kafka.bootstrap-servers=ychat-kafka:9092
+          - spring.kafka.consumer.group-id=notification
+          - spring.kafka.consumer.auto-offset-reset=earliest
         ports:
           - "7504:8080"
     # Payment Service

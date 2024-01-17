@@ -1,8 +1,11 @@
+import java.security.MessageDigest
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.2.1'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id "org.openapi.generator" version "6.6.0"
+	id "com.github.node-gradle.node" version "7.0.1"
 }
 
 group = 'com.ychat'
@@ -62,10 +65,44 @@ openApiGenerate {
 
 compileJava {
 	dependsOn "openApiGenerate"
+	dependsOn "asyncApiGenerate"
+}
+
+task asyncApiGenerate(type: NpxTask) {
+	// Checking spec file hashes and not running if same as last run
+	String specFilePath = './api-specs/notification/asyncapi.yml'
+	String outputFolder = 'generated/asyncapi/notification'
+	String packageName = 'javaPackage=com.asyncapi.gen.notification'
+
+	MessageDigest specFileNameDigest = MessageDigest.getInstance("SHA-256")
+	specFileNameDigest.update(specFilePath.getBytes())
+
+	MessageDigest specFileContentDigest = MessageDigest.getInstance("SHA-256")
+	specFileContentDigest.update(new File(specFilePath).text.getBytes())
+	String currentSpecFileHash = new String(new BigInteger(1, specFileContentDigest.digest()).toString(16))
+
+	String specFileHelperFolder = './.gradle/asyncapigen/'
+	String specFileHelperFileName = specFileHelperFolder+new BigInteger(1,specFileNameDigest.digest()).toString(16)+".txt"
+	String oldSpecFileHash = file(specFileHelperFileName).exists() ? new File(specFileHelperFileName).text : ''
+	if(!currentSpecFileHash.equals(oldSpecFileHash)) {
+		System.out.println("Async api spec file hashes differ, rerunning generation")
+		file(specFileHelperFolder).mkdirs()
+		file(specFileHelperFileName).createNewFile()
+		new File(specFileHelperFileName).text = currentSpecFileHash
+		// Actually running async api gen
+		dependsOn nodeSetup
+		dependsOn npmSetup
+		command = '@asyncapi/cli'
+		args = ['generate', 'fromTemplate', specFilePath, '@asyncapi/java-spring-template', '-o', outputFolder, '--param', packageName]
+	} else {
+		System.out.println("Async api spec file hasn't changed, skipping generation")
+		command = "npxnoop" // Required because the npx task can't be aborted, it needs to execute something. Otherwise it considers itself failed and aborts the build
+	}
 }
 
 clean {
 	delete "generated"
+	delete ".gradle/asyncapigen"
 }
 
 
@@ -74,6 +111,7 @@ sourceSets {
 		java {
 			srcDirs "src/main/java"
 			srcDirs "generated/openapi/messaging/src/main/java"
+			srcDirs "generated/asyncapi/notification/src/main/java"
 		}
 	}
 }
