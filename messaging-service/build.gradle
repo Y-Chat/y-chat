@@ -2,6 +2,7 @@ import java.security.MessageDigest
 
 plugins {
 	id 'java'
+	id "application"
 	id 'org.springframework.boot' version '3.2.1'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id "org.openapi.generator" version "6.6.0"
@@ -68,7 +69,16 @@ compileJava {
 	dependsOn "asyncApiGenerate"
 }
 
+nodeSetup {
+	download = true
+}
+
+application {
+	mainClass = "com.ychat.ychat.YchatApplication"
+}
+
 task asyncApiGenerate(type: NpxTask) {
+	dependsOn npmInstall
 	// Checking spec file hashes and not running if same as last run
 	String specFilePath = './api-specs/notification/asyncapi.yml'
 	String outputFolder = 'generated/asyncapi/notification'
@@ -84,7 +94,7 @@ task asyncApiGenerate(type: NpxTask) {
 	String specFileHelperFolder = './.gradle/asyncapigen/'
 	String specFileHelperFileName = specFileHelperFolder+new BigInteger(1,specFileNameDigest.digest()).toString(16)+".txt"
 	String oldSpecFileHash = file(specFileHelperFileName).exists() ? new File(specFileHelperFileName).text : ''
-	if(!currentSpecFileHash.equals(oldSpecFileHash)) {
+	if(!currentSpecFileHash.equals(oldSpecFileHash) || !file(outputFolder).exists()) {
 		System.out.println("Async api spec file hashes differ, rerunning generation")
 		delete outputFolder
 		file(specFileHelperFolder).mkdirs()

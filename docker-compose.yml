@@ -90,7 +90,7 @@ services:
           - spring.data.mongodb.password=devpw
           - spring.data.mongodb.database=messaging
           - spring.data.mongodb.authentication-database=admin
-          - spring.kafka.bootstrap-servers=ychat-kafka:9092
+          - spring.kafka.bootstrap-servers=ychat-kafka:29092
           - spring.kafka.consumer.group-id=messaging
           - spring.kafka.consumer.auto-offset-reset=earliest
           - spring.kafka.listener.poll-timeout=3000
@@ -119,12 +119,12 @@ services:
           - ychat-notification-db
         environment:
           - spring.data.mongodb.host=ychat-notification-db
-          - spring.data.mongodb.port=27018
+          - spring.data.mongodb.port=27017
           - spring.data.mongodb.username=admin
           - spring.data.mongodb.password=devpw
           - spring.data.mongodb.database=notification
           - spring.data.mongodb.authentication-database=admin
-          - spring.kafka.bootstrap-servers=ychat-kafka:9092
+          - spring.kafka.bootstrap-servers=ychat-kafka:29092
           - spring.kafka.consumer.group-id=notification
           - spring.kafka.consumer.auto-offset-reset=earliest
           - spring.kafka.listener.poll-timeout=3000
@@ -153,7 +153,7 @@ services:
           - ychat-payment-db
         environment:
           - spring.data.mongodb.host=ychat-payment-db
-          - spring.data.mongodb.port=27019
+          - spring.data.mongodb.port=27017
           - spring.data.mongodb.username=admin
           - spring.data.mongodb.password=devpw
           - spring.data.mongodb.database=payment
@@ -182,7 +182,7 @@ services:
           - ychat-media-db
         environment:
           - spring.data.mongodb.host=ychat-media-db
-          - spring.data.mongodb.port=27020
+          - spring.data.mongodb.port=27017
           - spring.data.mongodb.username=admin
           - spring.data.mongodb.password=devpw
           - spring.data.mongodb.database=media
