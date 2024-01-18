@@ -1,5 +1,5 @@
 # ================================== BUILDER ===================================
-from openjdk:latest as build
+from --platform=$BUILDPLATFORM openjdk:latest as build
 WORKDIR /app
 COPY package*.json ./
 # Install node
