@@ -1,7 +1,7 @@
 import {getMessaging, getToken, onMessage, isSupported} from "firebase/messaging";
 import app from "./firebaseConfig";
 import {showErrorNotification, showNotification} from "../notifications/notifications";
-import {setApiAccessToken} from "../network/api";
+import {api, setApiAccessToken} from "../network/api";
 
 const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
 const hasPermission = 'Notification' in window && Notification.permission == "granted"

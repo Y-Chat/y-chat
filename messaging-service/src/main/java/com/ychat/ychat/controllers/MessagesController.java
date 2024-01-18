@@ -1,10 +1,13 @@
 package com.ychat.ychat.controllers;
 
+import com.asyncapi.gen.notification.model.AnonymousSchema1;
+import com.asyncapi.gen.notification.model.Notification;
 import com.openapi.gen.messaging.api.MessagesApi;
 import com.openapi.gen.messaging.dto.GetMessages200Response;
 import com.openapi.gen.messaging.dto.PageInfo;
 import com.ychat.ychat.SecurityConfig;
 import com.ychat.ychat.services.MessagingService;
+import com.ychat.ychat.services.NotificationServiceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,15 +29,15 @@ public class MessagesController implements MessagesApi {
 
     private final MessagingService messagingService;
 
-    public MessagesController(@Autowired(required = true) MessagingService messagingService) {
+    public MessagesController(@Autowired MessagingService messagingService) {
         this.messagingService = messagingService;
     }
 
     @Override
-   public ResponseEntity<GetMessages200Response> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize) {
+    public ResponseEntity<GetMessages200Response> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize) {
         var requesterId = SecurityConfig.getRequesterUUID();
         // TODO Check with social service if user is allowed to access chat
         var res = messagingService.getMessages(chatId, fromDate, page, pageSize);
         return ResponseEntity.ok(new GetMessages200Response(res.getFirst().orElse(List.of()), new PageInfo(res.getSecond().getPageNumber(), res.getSecond().getPageSize())));
-   }
+    }
 }

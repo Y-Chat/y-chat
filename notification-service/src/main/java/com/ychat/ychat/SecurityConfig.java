@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 @Configuration
 @EnableWebSecurity
+@EnableScheduling
 public class SecurityConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
@@ -56,7 +58,7 @@ public class SecurityConfig {
     }
 
     public static UUID getRequesterUUID() {
-        return UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        return UUID.nameUUIDFromBytes(SecurityContextHolder.getContext().getAuthentication().getName().getBytes());
     }
 
     /**

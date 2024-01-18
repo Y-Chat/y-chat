@@ -29,28 +29,40 @@ services:
           - "7500:8080"
     ychat-zookeeper:
         container_name: ychat-zookeeper
+        hostname: ychat-zookeeper
         image: 'confluentinc/cp-zookeeper:latest'
         restart: unless-stopped
+        ports:
+          - "2181:2181"
         environment:
           - ZOOKEEPER_CLIENT_PORT=2181
+          - ZOOKEEPER_SERVER_ID=1
           - ZOOKEEPER_TICK_TIME=2000
-        ports:
-          - "22181:2181"
     ychat-kafka:
         container_name: ychat-kafka
+        hostname: ychat-kafka
         image: 'confluentinc/cp-kafka:latest'
         restart: unless-stopped
         depends_on:
           - ychat-zookeeper
         environment:
-          - KAFKA_BROKER_ID=1
+          - KAFKA_ADVERTISED_LISTENERS=INTERNAL://ychat-kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
+          - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+          - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
           - KAFKA_ZOOKEEPER_CONNECT=ychat-zookeeper:2181
-          - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://ychat-kafka:9092,PLAINTEXT_HOST://localhost:29092
-          - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-          - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+          - KAFKA_BROKER_ID=1
+          - KAFKA_LOG4J_LOGGERS=kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO
           - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+          - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+          - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+          - KAFKA_JMX_PORT=9999
+          - KAFKA_JMX_HOSTNAME=${DOCKER_HOST_IP:-127.0.0.1}
+          - KAFKA_AUTHORIZER_CLASS_NAME=kafka.security.authorizer.AclAuthorizer
+          - KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND=true
         ports:
           - 29092:29092
+          - 9092:9092
+          - 9999:9999
     # Messaging Service
     ychat-messaging-db:
         container_name: ychat-messaging-db
@@ -78,6 +90,11 @@ services:
           - spring.data.mongodb.password=devpw
           - spring.data.mongodb.database=messaging
           - spring.data.mongodb.authentication-database=admin
+          - spring.kafka.bootstrap-servers=ychat-kafka:29092
+          - spring.kafka.consumer.group-id=messaging
+          - spring.kafka.consumer.auto-offset-reset=earliest
+          - spring.kafka.listener.poll-timeout=3000
+          - spring.kafka.listener.concurrency=3
         ports:
           - "7503:8080"
     # Notification Service
@@ -107,6 +124,11 @@ services:
           - spring.data.mongodb.password=devpw
           - spring.data.mongodb.database=notification
           - spring.data.mongodb.authentication-database=admin
+          - spring.kafka.bootstrap-servers=ychat-kafka:29092
+          - spring.kafka.consumer.group-id=notification
+          - spring.kafka.consumer.auto-offset-reset=earliest
+          - spring.kafka.listener.poll-timeout=3000
+          - spring.kafka.listener.concurrency=3
         ports:
           - "7504:8080"
     # Payment Service

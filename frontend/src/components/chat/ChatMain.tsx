@@ -4,7 +4,7 @@ import MenuDrawer from "../menu/MenuDrawer";
 import MessageList from "./MessageList";
 import ChatTextArea from "../text/ChatTextArea";
 import {IconVideo} from "@tabler/icons-react";
-import {api} from "../../network/api";
+import {accessToken, api} from "../../network/api";
 
 function ChatMain() {
     // size in percent of screen -> content is 100% - sizeHeader - sizeFooter
@@ -17,6 +17,9 @@ function ChatMain() {
                 console.log(JSON.stringify(r))
             })
             .catch(e => console.error(e))
+        if(!!accessToken) {
+            api.updateToken({notificationToken: accessToken}).catch((x) => console.error(x))
+        }
     }, [])
 
     return (
