@@ -11,6 +11,8 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: 'true'
       - run: npm ci
       - run: ls -a ./api-specs
       - run: ls -a
