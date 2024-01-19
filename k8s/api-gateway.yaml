@@ -5,10 +5,15 @@ metadata:
   labels:
     app: api-gateway
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: api-gateway
+  strategy:
+    type: RollingUpdate # if a new container is available in docker registry the update will gradually roll out
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -17,6 +22,7 @@ spec:
       containers:
         - name: api-gateway
           image: mrsarius/yc-api-gateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 27017
           env:

@@ -84,6 +84,11 @@ spec:
   selector:
     matchLabels:
       app: test-service
+  strategy:
+    type: RollingUpdate # if a new container is available in docker registry the update will gradually roll out
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
