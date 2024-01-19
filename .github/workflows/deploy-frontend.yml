@@ -8,7 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: cd frontend && npm ci && CI=false npm run build # TODO remove warnings from compilation and then CI=false
+      - run: cd frontend
+      - run: npm run generate
+      - run: npm ci
+      - run: CI=false npm run build # TODO remove warnings from compilation and then CI=false
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
