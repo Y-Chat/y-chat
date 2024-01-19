@@ -1,5 +1,5 @@
 import {getMessaging, getToken, onMessage, isSupported} from "firebase/messaging";
-import app from "./firebaseConfig";
+import firebaseApp from "./firebaseApp";
 import {showErrorNotification, showNotification} from "../notifications/notifications";
 import {api, setApiAccessToken} from "../network/api";
 
@@ -31,7 +31,7 @@ export async function requestNotificationPermissions() {
 
 async function generateToken() {
     try {
-        const messaging = getMessaging(app);
+        const messaging = getMessaging(firebaseApp);
 
         let currentToken = await getToken(messaging, {vapidKey: vapidKey})
 

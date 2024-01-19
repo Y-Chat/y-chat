@@ -4,9 +4,9 @@ import './index.css';
 import App from './components/App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
-import "./firebase/firebaseAuth"
-import "./firebase/firebaseMessaging"
-import auth from "./firebase/firebaseAuth";
+import "./firebase/auth"
+import "./firebase/messaging"
+import auth from "./firebase/auth";
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement

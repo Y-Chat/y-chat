@@ -1,17 +1,25 @@
 package com.ychat.ychat.controllers;
 
 import com.openapi.gen.media.api.DataApi;
-import org.springframework.core.io.Resource;
+import com.openapi.gen.media.dto.GetMedia200Response;
+import com.ychat.ychat.FirebaseInitializer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
-@Controller
+@RestController
 public class DataController implements DataApi {
+
+    @Autowired
+    private FirebaseInitializer firebaseInitializer;
+
     @Override
-    public ResponseEntity<Resource> getMedia(UUID mediaDataId) {
-        // TODO
-        return DataApi.super.getMedia(mediaDataId);
+    public ResponseEntity<GetMedia200Response> getMedia(String objectName) {
+        if (objectName.startsWith("/")) {
+            objectName = objectName.substring(1);
+        }
+
+        String url = firebaseInitializer.generateSignedUrl(objectName);
+        return ResponseEntity.ok(new GetMedia200Response(url));
     }
 }

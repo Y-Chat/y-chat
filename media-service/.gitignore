@@ -36,3 +36,8 @@ out/
 ### VS Code ###
 .vscode/
 /generated/
+
+### firebase admin sdk keys ###
+./firebase/*.json
+
+src/main/resources/firebase-service-credentials.json

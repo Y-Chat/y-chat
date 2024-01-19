@@ -1,11 +1,10 @@
 import {FetchParams, Middleware, ResponseContext} from "../../api-wrapper";
 import 'firebase/auth';
-import auth from "../../firebase/firebaseAuth";
+import auth from "../../firebase/auth";
 
 export class AuthHeaderToken implements Middleware {
     public async pre(context: ResponseContext): Promise<FetchParams | void> {
         const accessToken = await auth.currentUser?.getIdToken()
-        console.log(accessToken)
         return {
             url: context.url,
             init: {
