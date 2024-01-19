@@ -10,7 +10,7 @@ import {AccountMain} from "./account/AccountMain";
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import {Notifications} from "@mantine/notifications";
-import {PermissionsModal} from "./PermissionsModal";
+import {PermissionsModal} from "./common/PermissionsModal";
 import {useAuthState} from "react-firebase-hooks/auth";
 import auth from "../firebase/auth";
 

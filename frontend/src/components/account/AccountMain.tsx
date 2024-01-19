@@ -46,10 +46,6 @@ export function AccountMain() {
         },
     });
 
-    function uploadPicture() {
-
-    }
-
     return (
         <>
             <header>
@@ -92,8 +88,8 @@ export function AccountMain() {
                                                 ...user,
                                                 avatar: url
                                             })
-                                            console.log(upload.ref.name)
-                                            console.log(upload.ref)
+                                            console.log(upload.ref.name) // TODO remove
+                                            console.log(upload.ref) // TODO remove
                                             setUploadingAvatar(false);
                                         })
                                     } catch (e) {
