@@ -1,5 +1,4 @@
-# ================================== BUILDER ===================================
-from --platform=$BUILDPLATFORM openjdk:latest as build
+FROM --platform=$BUILDPLATFORM openjdk:latest as build
 WORKDIR /app
 COPY package*.json ./
 # Install node
@@ -15,7 +14,7 @@ RUN npm install
 COPY . .
 RUN npm run generate
 RUN npm run build
-# ================================= RUNNER =================================
+
 FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html
 EXPOSE 80
