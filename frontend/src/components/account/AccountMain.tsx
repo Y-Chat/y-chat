@@ -22,8 +22,7 @@ import {IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 import {signOut} from "firebase/auth";
 import auth from "../../firebase/auth";
-import {ref, getDownloadURL, uploadBytes} from "firebase/storage";
-import {profilePicturesRef} from "../../firebase/storage";
+import {getImageUrl, uploadImage} from "../../network/media";
 
 export function AccountMain() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -81,15 +80,12 @@ export function AccountMain() {
                                             return;
 
                                         files.forEach(async (file) => {
-                                            const fileRef = ref(profilePicturesRef, `${uid}/${file.name}`);
-                                            const upload = await uploadBytes(fileRef, file);
-                                            const url = await getDownloadURL(upload.ref);
+                                            const objectId = await uploadImage(file, `profilePictures/${uid}/${file.name}`);
+                                            const url = await getImageUrl(objectId);
                                             setUser({
                                                 ...user,
                                                 avatar: url
                                             })
-                                            console.log(upload.ref.name) // TODO remove
-                                            console.log(upload.ref) // TODO remove
                                             setUploadingAvatar(false);
                                         })
                                     } catch (e) {

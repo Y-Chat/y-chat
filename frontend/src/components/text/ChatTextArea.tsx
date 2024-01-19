@@ -3,10 +3,9 @@ import {ActionIcon, Avatar, Divider, Group, Image, Paper, rem, Textarea} from "@
 import {IconPhoto, IconSend, IconUpload, IconX} from "@tabler/icons-react";
 import {isMobile} from 'react-device-detect';
 import {api} from "../../network/api";
-import {getDownloadURL, ref, uploadBytes} from "firebase/storage";
-import {chatsRef} from "../../firebase/storage";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 import {Message} from "../../api-wrapper";
+import {getImageUrl, uploadImage} from "../../network/media";
 
 interface UploadedImage {
     url: string,
@@ -63,12 +62,9 @@ function ChatTextArea() {
                                         setUploadingImage(true);
                                         try {
                                             files.forEach(async (file) => {
-                                                const fileRef = ref(chatsRef, `testChat/${file.name}`); //TODO insert chatID here!
-                                                const upload = await uploadBytes(fileRef, file);
-                                                const url = await getDownloadURL(upload.ref);
-                                                setImage({url, imageId: fileRef.fullPath})
-                                                console.log(upload.ref.name); // TODO remove
-                                                console.log(upload.ref); // TODO remove
+                                                const objectId = await uploadImage(file, `chats/testChat/${file.name}`); //TODO insert chatID here!
+                                                const url = await getImageUrl(objectId) // TODO function can fail. Handle separately?
+                                                setImage({url, imageId: objectId})
                                                 setUploadingImage(false);
                                             })
                                         } catch (e) {
@@ -132,6 +128,7 @@ function ChatTextArea() {
                                     // TODO handle error
                                 });
                             setMessage("");
+                            setImage(null);
                         }}
                     >
                         <IconSend/>

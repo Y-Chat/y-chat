@@ -161,15 +161,6 @@ services:
         ports:
           - "7505:8080"
     # Media Service
-    ychat-media-db:
-        container_name: ychat-media-db
-        image: 'mongo'
-        restart: unless-stopped
-        environment:
-          - MONGO_INITDB_ROOT_USERNAME=admin
-          - MONGO_INITDB_ROOT_PASSWORD=devpw
-        ports:
-          - "27020:27017"
     ychat-media:
         container_name: ychat-media
         image: 'mrsarius/yc-media'
@@ -178,14 +169,5 @@ services:
         build:
             context: media-service
             dockerfile: Dockerfile
-        depends_on:
-          - ychat-media-db
-        environment:
-          - spring.data.mongodb.host=ychat-media-db
-          - spring.data.mongodb.port=27017
-          - spring.data.mongodb.username=admin
-          - spring.data.mongodb.password=devpw
-          - spring.data.mongodb.database=media
-          - spring.data.mongodb.authentication-database=admin
         ports:
           - "7506:8080"
