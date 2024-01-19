@@ -1,25 +1,25 @@
 package com.ychat.ychat.controllers;
 
-import com.ychat.ychat.services.FirebaseStorageService;
-import jakarta.servlet.http.HttpServletRequest;
+import com.openapi.gen.media.api.DataApi;
+import com.openapi.gen.media.dto.GetMedia200Response;
+import com.ychat.ychat.FirebaseInitializer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/")
-public class DataController {
+public class DataController implements DataApi {
 
     @Autowired
-    private FirebaseStorageService firebaseStorageService;
+    private FirebaseInitializer firebaseInitializer;
 
-    @GetMapping("/data/{*mapping}")
-    public String getMedia(@PathVariable("mapping") String objectName) throws ResponseStatusException { // TODO wrap exceptions a little more precisely
+    @Override
+    public ResponseEntity<GetMedia200Response> getMedia(String objectName) {
         if (objectName.startsWith("/")) {
             objectName = objectName.substring(1);
         }
-        return firebaseStorageService.generateSignedUrl(objectName);
+
+        String url = firebaseInitializer.generateSignedUrl(objectName);
+        return ResponseEntity.ok(new GetMedia200Response(url));
     }
 }
