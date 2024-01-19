@@ -15,8 +15,6 @@ jobs:
           submodules: 'true'
           token: ${{ secrets.PAT_TOKEN }}
       - run: npm ci
-      - run: ls -a ./api-specs
-      - run: ls -a
       - run: npm run generate
       - run: CI=false npm run build # TODO remove warnings from compilation and then CI=false
       - uses: FirebaseExtended/action-hosting-deploy@v0
