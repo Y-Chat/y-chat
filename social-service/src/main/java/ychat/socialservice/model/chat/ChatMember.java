@@ -1,32 +1,74 @@
 package ychat.socialservice.model.chat;
 
+import jakarta.persistence.*;
+import lombok.NonNull;
 import ychat.socialservice.model.user.User;
+import ychat.socialservice.model.util.TimestampEntity;
 
-public abstract class ChatMember {
+/**
+ * Abstraction over group and direct chat membership to allow for efficient handling of common
+ * functionality. It is not mapped to its on table as the subclasses are already many-to-many
+ * connection tables themselves.
+ */
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class ChatMember extends TimestampEntity {
+    @EmbeddedId
+    protected ChatMemberId chatMemberId;
+
+    @ManyToOne
+    @MapsId("userId")
+    @JoinColumn
     private User user;
-    protected ChatStatus chatStatus;
 
-    public ChatMember(User user, ChatStatus chatStatus) {
-        if (user == null)
-            throw new NullPointerException("Null User was passed to ChatMember.");
+    @ManyToOne
+    @MapsId("chatId")
+    @JoinColumn
+    private Chat chat;
+
+    @Enumerated(EnumType.STRING)
+    private ChatStatus chatStatus;
+
+    protected ChatMember() {} // Required by JPA
+
+    public ChatMember(@NonNull User user, @NonNull Chat chat) {
+        this.chatMemberId = new ChatMemberId(user.getId(), chat.getId());
         this.user = user;
-        this.setChatStatus(chatStatus);
+        this.chat = chat;
+        this.chatStatus = ChatStatus.ACTIVE;
     }
 
     public User getUser() {
-        return this.user;
+        return user;
+    }
+
+    public Chat getChat() {
+        return chat;
     }
 
     public ChatStatus getChatStatus() {
-        return this.chatStatus;
+        return chatStatus;
     }
 
-    public abstract void setChatStatus(ChatStatus chatStatus);
+    public void setChatStatus(ChatStatus chatStatus) {
+        if (chatStatus == null ) return;
+        this.chatStatus = chatStatus;
+    }
 
-    public abstract boolean equals(Object o);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        ChatMember that = (ChatMember) o;
+        return this.chatMemberId.equals(that.chatMemberId);
+    }
 
-    public abstract int hashCode();
+    @Override
+    public int hashCode() {
+        return chatMemberId.hashCode();
+    }
 
+    @Override
     public abstract String toString();
 
 }

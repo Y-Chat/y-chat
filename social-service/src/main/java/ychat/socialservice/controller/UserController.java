@@ -1,170 +1,177 @@
 package ychat.socialservice.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ychat.socialservice.model.user.UserProfile;
-import ychat.socialservice.model.user.UserSettings;
+import ychat.socialservice.service.dto.UserProfileDTO;
+import ychat.socialservice.service.dto.UserSettingsDTO;
+import ychat.socialservice.model.util.CreateDTO;
+import ychat.socialservice.model.util.UpdateDTO;
+import ychat.socialservice.service.dto.BlockedUserDTO;
 import ychat.socialservice.service.UserService;
+import ychat.socialservice.service.dto.UserDTO;
+import ychat.socialservice.util.IllegalUserInputException;
 
-import java.util.Set;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * This endpoint manages the user as he exists in the Y-Chat domain, specifically their profiles,
- * settings, and who they have blocked.
- * <p>
- * Importantly, the lifetime of a user is owned by the Auth service. The user email and phone number
- * are transported via the JWT.
- */
 @RestController
+@ResponseStatus(HttpStatus.OK)
 @RequestMapping("/users")
+@Validated
+@Tag(
+    name = "Users Endpoint",
+    description = "Manage the user as they exist in the Y-Chat domain. The lifetime of a user is " +
+                  "owned by the service providing authentication. The user email is transported " +
+                  "via the JWT."
+)
 public class UserController {
     private final UserService userService;
     public UserController(@NonNull UserService userService) {
         this.userService = userService;
     }
 
-    // Lifecycle start -----------------------------------------------------------------------------
-    /**
-     * Create a user with an initial profile.
-     *
-     * @param userId the id associated with the user from the Auth service
-     * @param userProfile the public information of a user
-     * @return no content
-     */
+    // User start ----------------------------------------------------------------------------------
     @PostMapping
-    public ResponseEntity<Void> createUser(@RequestBody UUID userId,
-                                           @RequestBody UserProfile userProfile) {
-        userService.createUser(userId, userProfile);
-        return ResponseEntity.status(HttpStatus.OK).build();
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+        summary = "Create a user with an initial profile.",
+        description = "One cannot create a user which exists already. If the profile description " +
+                      "is empty, a default value is used. ProfilePictureId is optional. The " +
+                      "other fields are required. RemoveProfilePicture must be null."
+    )
+    public UserDTO createUser(
+        @RequestParam @NotNull UUID userId,
+        @RequestBody @Validated(CreateDTO.class) UserProfileDTO userProfileDTO
+    ) {
+        return userService.createUser(userId, userProfileDTO);
     }
 
-    /**
-     * Deletes the user from the Social service including all blocked relations and all group/chat
-     * memberships.
-     *
-     * @param userId the id of the user
-     * @return no content
-     */
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
-        userService.deleteUser(userId);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-    // Lifecycle end -------------------------------------------------------------------------------
-
-    // Profiles start ------------------------------------------------------------------------------
-    /**
-     * Fetches the profile for a given user.
-     *
-     * @param userId the id of the user
-     * @return userProfile the public information of a user
-     */
     @GetMapping("/{userId}")
-    public ResponseEntity<UserProfile> getUserProfile(@PathVariable UUID userId) {
-        UserProfile userProfile = userService.getUserProfile(userId);
-        return ResponseEntity.ok(userProfile);
+    @Operation(
+        summary = "Fetch the general information about a user.",
+        description = "Returns the user id, profile, and settings."
+    )
+    public UserDTO getUser(@PathVariable @NotNull UUID userId) {
+        return userService.getUser(userId);
     }
 
-    /**
-     * Updates the profile for a given user.
-     *
-     * @param userId the id of the user
-     * @param userProfile the public information of a user
-     * @return no content
-     */
-    @PutMapping("/{userId}")
-    public ResponseEntity<Void> updateUserProfile(@PathVariable UUID userId,
-                                                  @RequestBody UserProfile userProfile) {
-        userService.updateUserProfile(userId, userProfile);
-        return new ResponseEntity<>(HttpStatus.OK);
+    @DeleteMapping("/{userId}")
+    @Operation(
+        summary = "Delete a user from the Social service.",
+        description = "The deletion process includes all blocked relations and all chat " +
+                      "memberships."
+    )
+    public void deleteUser(@PathVariable @NotNull UUID userId) {
+        userService.deleteUser(userId);
     }
-    // Profiles end --------------------------------------------------------------------------------
+    // User end ------------------------------------------------------------------------------------
 
-    // Settings start ------------------------------------------------------------------------------
-    /**
-     * Fetch the settings for a given user.
-     * @param userId the id of the user
-     * @return the settings for the user
-     */
+    // Profiles and settings start -----------------------------------------------------------------
+    @GetMapping("/{userId}/profile")
+    @Operation(
+        summary = "Fetch the profile of a user.",
+        description = "All returned fields are populated. RemoveProfilePictureId is null."
+    )
+    public UserProfileDTO getUserProfile(@PathVariable @NotNull UUID userId) {
+        return userService.getUserProfile(userId);
+    }
+
+    @PatchMapping("/{userId}/profile")
+    @Operation(
+        summary = "Update the profile of a user.",
+        description = "All given fields are updated. To remove the profilePictureId, set the " +
+                      "field to null and removeProfilePictureId to true."
+    )
+    public void updateUserProfile(
+        @PathVariable @NotNull UUID userId,
+        @RequestBody @Validated(UpdateDTO.class) UserProfileDTO userProfileDTO
+    ) {
+        if (userProfileDTO.removeProfilePictureId() && userProfileDTO.profilePictureId() != null) {
+            throw new IllegalUserInputException(
+                "It is not allowed to set both profilePictureId and removeProfilePicture."
+            );
+        }
+        userService.updateUserProfile(userId, userProfileDTO);
+    }
+
     @GetMapping("/{userId}/settings")
-    public ResponseEntity<UserSettings> getUserSettings(@PathVariable UUID userId) {
-        UserSettings userSettings = userService.getUserSettings(userId);
-        return ResponseEntity.ok(userSettings);
+    @Operation(
+        summary = "Fetch the settings for a user.",
+        description = "All returned fields are populated."
+    )
+    public UserSettingsDTO getUserSettings(@PathVariable @NotNull UUID userId) {
+        return userService.getUserSettings(userId);
     }
 
-    /**
-     * Update the settings for a given user.
-     *
-     * @param userId the id of the user
-     * @param userSettings the new settings for the user
-     * @return no content
-     */
-    @PutMapping("/{userId}/settings")
-    public ResponseEntity<Void> updateUserSettings(@PathVariable UUID userId,
-                                                   @RequestBody UserSettings userSettings) {
-        userService.updateUserSettings(userId, userSettings);
-        return new ResponseEntity<>(HttpStatus.OK);
+    @PatchMapping("/{userId}/settings")
+    @Operation(
+        summary = "Update the settings for a user.",
+        description = "All given fields are updated."
+    )
+    public void updateUserSettings(
+        @PathVariable @NotNull UUID userId,
+        @RequestBody @Validated(UpdateDTO.class) UserSettingsDTO userSettingsDTO) {
+        userService.updateUserSettings(userId, userSettingsDTO);
     }
-    // Settings end --------------------------------------------------------------------------------
+    // Profiles and settings end -------------------------------------------------------------------
 
     // Blocking start ------------------------------------------------------------------------------
-    /**
-     * Get the blocklist for a user. Not paginated as there is a limit on the number of users you
-     * can block.
-     *
-     * @param userId the id of the blocker
-     * @return a list of ids belonging to the blocked users
-     */
     @GetMapping("/{userId}/blockedUsers")
-    public ResponseEntity<Set<UUID>> getBlockedUsers(@PathVariable UUID userId) {
-        Set<UUID> blockedUserIds = userService.getBlockedUsers(userId);
-        return ResponseEntity.ok(blockedUserIds);
+    @Operation(
+        summary = "Fetch the blocklist for a user.",
+        description = "Returns a page of ids, profiles, and timestamps when the user has been " +
+                      "blocked. Page size is not allowed to exceed 1000."
+    )
+    public Page<BlockedUserDTO> getBlockedUsers(@PathVariable @NotNull UUID userId,
+                                                @NotNull Pageable pageable) {
+        if (pageable.getPageSize() > UserService.MAX_BLOCKED_USER_PAGE_SIZE) {
+            throw new IllegalUserInputException(
+                "Page size for Blocked Users is not allowed to be larger than " +
+                UserService.MAX_BLOCKED_USER_PAGE_SIZE + "."
+            );
+        }
+        return userService.getBlockedUsers(userId, pageable);
     }
 
-    /**
-     * Check whether a given user has another user blocked.
-     *
-     * @param userId the id of the blocker
-     * @param checkUserId the id of the blockee
-     * @return a boolean indicating whether the user is blocked
-     */
-    @GetMapping("/{userId}/blockedUsers/{checkUserId}")
-    public ResponseEntity<Boolean> checkBlockedUser(@PathVariable UUID userId,
-                                                    @PathVariable UUID checkUserId) {
-        boolean blocked = userService.checkBlockedUser(userId, checkUserId);
-        return ResponseEntity.ok(blocked);
+    @GetMapping("/{userId}/blockedUsers/{isBlockedId}")
+    @Operation(
+        summary = "Check whether a given user has another user blocked.",
+        description = "Returns null, if the user is not blocked. Returns a timestamp " +
+                      "corresponding to the block time, if the user is blocked."
+    )
+    public LocalDateTime isBlockedUser(@PathVariable @NotNull UUID userId,
+                                       @PathVariable @NotNull UUID isBlockedId) {
+        return userService.isBlockedUser(userId, isBlockedId);
     }
-    /**
-     * Add another user to the list of blocked users. A user cannot block themselves. There is a
-     * limit on the number of users a user can block.
-     *
-     * @param userId the id of the blocker
-     * @param blockUserId the id of the blockee
-     * @return no content
-     */
+
     @PostMapping("/{userId}/blockedUsers")
-    public ResponseEntity<Void> addBlockedUser(
-        @PathVariable UUID userId, @RequestParam UUID blockUserId
-    ) {
+    @Operation(
+        summary = "Add a user to the blocklist.",
+        description = "A user cannot block themselves. There is a limit on the number of users a " +
+                      "user can block. A user cannot block a user that they have already blocked."
+    )
+    public void addBlockedUser(@PathVariable @NotNull UUID userId,
+                               @RequestParam @NotNull UUID blockUserId) {
+        if (userId == blockUserId)
+            throw new IllegalUserInputException("User cannot block themselves: " + userId);
         userService.addBlockedUser(userId, blockUserId);
-        return ResponseEntity.ok().build();
     }
 
-    /**
-     * Removes another user from the blocklist.
-     *
-     * @param userId the id of the blocker
-     * @param unblockUserId the id of the blockee
-     * @return no content
-     */
     @DeleteMapping("/{userId}/blockedUsers")
-    public ResponseEntity<Void> removeBlockedUser(@PathVariable UUID userId,
-                                                  @RequestParam UUID unblockUserId) {
+    @Operation(
+        summary = "Remove a user from the blocklist.",
+        description = "One cannot remove a user which has not been blocked."
+    )
+    public void removeBlockedUser(@PathVariable @NotNull UUID userId,
+                                  @RequestParam @NotNull UUID unblockUserId) {
         userService.removeBlockedUser(userId, unblockUserId);
-        return ResponseEntity.ok().build();
     }
     // Blocking end --------------------------------------------------------------------------------
 }

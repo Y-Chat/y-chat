@@ -1,19 +1,14 @@
 package ychat.socialservice;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
-// TODO look at fetch types for JPA
-// TODO think about adding timestamps to DB
-// TODO change additional parameters to query
-// Go through all controllers to have error handling
-// TODO fit everything to column
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
+@SpringBootApplication
+@OpenAPIDefinition(info=@Info(title="Social Service API"))
 public class SocialServiceApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(SocialServiceApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(SocialServiceApplication.class, args);
+    }
 }

@@ -1,40 +1,67 @@
 package ychat.socialservice.model.chat;
 
+import jakarta.persistence.*;
+import lombok.NonNull;
+import ychat.socialservice.util.IllegalUserInputException;
 import ychat.socialservice.model.user.User;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+/**
+ * The connection of a user to a direct chat. Owns the DirectChatMember entity. It is important to
+ * mention that a direct chat can also consist of just a single member, as would be the case when
+ * one user is deleted and the other still needs access to their messages.
+ */
+@Entity
+@Table(name = "direct_chat")
 public class DirectChat extends Chat {
-    private List<DirectChatMember> members;
+    @OneToMany(
+        mappedBy = "chat", cascade = CascadeType.ALL, fetch = FetchType.LAZY,
+        orphanRemoval = true
+    )
+    private Set<DirectChatMember> members;
 
-    public DirectChat(User fstUser, User sndUser) {
+    protected DirectChat() {} // Required by JPA
+
+    public DirectChat(@NonNull User fstUser, @NonNull User sndUser) {
         super();
-        if (fstUser == null || sndUser == null)
-            throw new NullPointerException("Null fstUser or sndUser was passed to DirectChat.");
         if (fstUser.equals(sndUser)) {
-            throw new IllegalArgumentException(
-                "The following User tried to create a DirectChat with themselves" + fstUser
+            throw new IllegalUserInputException(
+                "User is not allowed to have a direct chat with themselves: " + fstUser
             );
         }
-        this.members = new ArrayList<>();
-        this.members.add(new DirectChatMember(this, fstUser, ChatStatus.ACTIVE));
-        this.members.add(new DirectChatMember(this, sndUser, ChatStatus.ACTIVE));
+        this.members = new HashSet<>();
+        this.members.add(new DirectChatMember(fstUser, this, sndUser.getId()));
+        this.members.add(new DirectChatMember(sndUser, this, fstUser.getId()));
     }
 
     @Override
-    public Set<User> getMembers() {
-        HashSet<User> users = new HashSet<>();
-        for(DirectChatMember member : this.members) {
-            users.add(member.getUser());
+    public boolean toDeleteIfUserRemoved(User user) {
+        Optional<DirectChatMember> optionalDirectChatMember = getOtherMember(user);
+        if (optionalDirectChatMember.isEmpty())
+            return true;
+        DirectChatMember otherMember = optionalDirectChatMember.get();
+        return otherMember.getChatStatus() == ChatStatus.DELETED;
+    }
+
+    public Optional<DirectChatMember> getMember(User user) {
+        for (DirectChatMember member : members) {
+            if (user.equals(member.getUser()))
+                return Optional.of(member);
         }
-        return users;
+        return Optional.empty();
+    }
+
+    public Optional<DirectChatMember> getOtherMember(User user) {
+        for (DirectChatMember member : members) {
+            if (!user.equals(member.getUser()))
+                return Optional.of(member);
+        }
+        return Optional.empty();
     }
 
     @Override
     public String toString() {
-        return "DirectChat{" + "id=" + this.getId() + ", members=" + this.getMembers() + '}';
+        return "DirectChat{" + "id=" + getId() + ", members=" + members + '}';
     }
 }

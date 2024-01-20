@@ -2,7 +2,8 @@ version: '3'
 
 services:
   pgadmin:
-    image: dpage/pgadmin4:latest
+    container_name: "ychat-pgadmin"
+    image: dpage/pgadmin4:8.2
     environment:
       TZ: "UTC"
       PGADMIN_DEFAULT_EMAIL: "ychat@ychat.com"
@@ -11,13 +12,13 @@ services:
     ports:
       - "55050:80"
     volumes:
-      - ./pgadmin/servers.json:/pgadmin4/servers.json
-      - ./pgadmin/pgpass:/pgpass
+      - ./social-db/pgadmin/servers.json:/pgadmin4/servers.json
     depends_on:
       - social-db
 
   social-db:
-    image: postgres:latest
+    container_name: "ychat-social-db"
+    image: postgres:16.1
     environment:
       TZ: "UTC"
       POSTGRES_DB: "social-db"
@@ -26,5 +27,6 @@ services:
       POSTGRES_PASSWORD: "ychatformerlyknownas"
     ports:
       - "55432:5432"
-#    volumes:
-#      - ./social-db/social-db-schema.sql:/docker-entrypoint-initdb.d/social-db-schema.sql
+    volumes:
+      - ./social-db/social-db/social-db-1-config.sql:/docker-entrypoint-initdb.d/social-db-1-config.sql
+      - ./social-db/social-db/social-db-2-schema.sql:/docker-entrypoint-initdb.d/social-db-2-schema.sql

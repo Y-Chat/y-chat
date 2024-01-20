@@ -1,27 +1,33 @@
 package ychat.socialservice.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ychat.socialservice.service.ChatDTO;
 import ychat.socialservice.model.chat.ChatStatus;
+import ychat.socialservice.service.dto.ChatDTO;
+import ychat.socialservice.service.dto.ChatMemberDTO;
 import ychat.socialservice.service.ChatService;
-import ychat.socialservice.service.ChatType;
+import ychat.socialservice.util.IllegalUserInputException;
 
-import java.util.Set;
 import java.util.UUID;
 
-/**
- * This endpoint manages chats, an abstraction over group and direct chats, specifically creating
- * direct chats, the chat type, and handling the chat status for the members. Group chats can be
- * created at the groups endpoint.
- * <p>
- * A direct chat cannot be deleted explicitly but is deleted once both members have set the chat
- * status to deleted. The deletion includes the entries to chat members.
- */
 @RestController
 @RequestMapping("/chats")
+@ResponseStatus(HttpStatus.OK)
+@Validated
+@Tag(
+    name = "Chats Endpoint",
+    description = "Manage chats, an abstraction over group and direct chats. Specifically, all " +
+                  "operations common to both group and direct chats. A direct chat cannot be " +
+                  "deleted explicitly but is deleted once both users have either been deleted or " +
+                  "set the chat status to deleted."
+)
 public class ChatController {
     private final ChatService chatService;
 
@@ -29,82 +35,93 @@ public class ChatController {
         this.chatService = chatService;
     }
 
-    // Lifecycle and chat type start ---------------------------------------------------------------
-    /**
-     * Creates a direct chat between two users. A user cannot create a chat with themselves and
-     * there cannot exist more than one chat between two users.
-     *
-     * @param fstUserId the id of the first user
-     * @param sndUserId the id of the second user
-     * @return the id of the newly created direct chat
-     */
-    @PostMapping
-    public ResponseEntity<UUID> createDirectChat(
-        @RequestParam(name = "fstUserId") UUID fstUserId,
-        @RequestParam(name = "sndUserId") UUID sndUserId
-    ) {
-        UUID chatId = chatService.createDirectChat(fstUserId, sndUserId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(chatId);
+    // Chats start ---------------------------------------------------------------------------------
+    @GetMapping("/{chatId}")
+    @Operation(
+        summary = "Fetch the general information about a chat for specific user.",
+        description = "Returns the chat id and chat type. If it is a group chat, the group " +
+                      "profile will also be returned. If it is direct chat, the user profile of " +
+                      "the other user will be returned. If the other user of a direct chat does " +
+                      "not exist anymore, it will still return the id of the other user but no " +
+                      "longer the user profile."
+    )
+    public ChatDTO getChat(@PathVariable @NotNull UUID chatId, @RequestParam @NotNull UUID userId) {
+        return chatService.getChat(chatId, userId);
     }
 
-    /**
-     * Fetches the chat type, i.e. direct or group chat, for a given chat.
-     *
-     * @param chatId the id of the chat
-     * @return the chat type
-     */
-    @GetMapping("/{chatId}")
-    public ResponseEntity<ChatType> getType(@PathVariable UUID chatId) {
-        ChatType chatType = chatService.getType(chatId);
-        return ResponseEntity.status(HttpStatus.OK).body(chatType);
+    @GetMapping
+    @Operation(
+        summary = "Fetch all chats which a user is part of.",
+        description = "Returns a page of the same objects that getChat returns. Page size is not " +
+                      "allowed to exceed 1000."
+    )
+    public Page<ChatDTO> getAllChats(@RequestParam @NotNull UUID userId,
+                                     @NotNull Pageable pageable) {
+        if (pageable.getPageSize() > ChatService.MAX_CHAT_PAGE_SIZE) {
+            throw new IllegalUserInputException(
+                "Page size for Chats is not allowed to be larger than " +
+                ChatService.MAX_CHAT_PAGE_SIZE + "."
+            );
+        }
+        return chatService.getAllChats(userId, pageable);
     }
-    // Lifecycle and chat type end -----------------------------------------------------------------
+
+    @PostMapping("/directChats")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+        summary = "Create a direct chat between two users.",
+        description = "A user cannot create a chat with themselves and there cannot exist more " +
+                      "than one chat between two users. Returns the same object as getChat. " +
+                      "UserId refers to the user in relation to which the ChatDTO should be " +
+                      "returned."
+    )
+    public ChatDTO createDirectChat(@RequestParam @NotNull UUID userId,
+                                    @RequestParam @NotNull UUID otherUserId) {
+        return chatService.createDirectChat(userId, otherUserId);
+    }
+    // Chats end -----------------------------------------------------------------------------------
 
     // Members start -------------------------------------------------------------------------------
-    /**
-     * Gets all members of a chat. This will either be two or equal to the number of members in a
-     * group, thus the response is bounded in size.
-     *
-     * @param chatId the id of the chat
-     * @return a list of user ids corresponding to the chat members
-     */
     @GetMapping("/{chatId}/members")
-    public ResponseEntity<Set<UUID>> getMembers(@PathVariable UUID chatId) {
-        Set<UUID> userIds = chatService.getMembers(chatId);
-        return ResponseEntity.status(HttpStatus.OK).body(userIds);
+    @Operation(
+        summary = "Fetch all members of a chat.",
+        description = "Returns the user ids, profiles, and if it is a group chat, also the roles " +
+                      "of each member. Page size is not allowed to exceed 1000."
+    )
+    public Page<ChatMemberDTO> getChatMembers(@PathVariable @NotNull UUID chatId,
+                                              @NotNull Pageable pageable) {
+        if (pageable.getPageSize() > ChatService.MAX_CHAT_MEMBER_PAGE_SIZE) {
+            throw new IllegalUserInputException(
+                "Page size for Chat Members is not allowed to be larger than " +
+                ChatService.MAX_CHAT_MEMBER_PAGE_SIZE + "."
+            );
+        }
+        return chatService.getChatMembers(chatId, pageable);
     }
 
-    /**
-     * Fetches the status of a chat for a given chat member. This can also be used to check if a
-     * user is a member of a chat, if they are not, NOT_A_MEMBER is returned.
-     *
-     * @param chatId the id of the chat
-     * @param userId the id of the chat member
-     * @return the chat status of the chat member
-     */
-    @GetMapping("/{chatId}/members/{userId}")
-    public ResponseEntity<ChatStatus> getStatus(@PathVariable UUID chatId,
-                                                @PathVariable UUID userId) {
-        ChatStatus chatStatus = chatService.getStatus(chatId, userId);
-        return ResponseEntity.status(HttpStatus.OK).body(chatStatus);
+    @GetMapping("/{chatId}/members/{userId}/status")
+    @Operation(
+        summary = "Fetch the chat status for a given chat and user.",
+        description = "If the user is not part of the chat, NOT_A_MEMBER is returned."
+    )
+    public ChatStatus getChatStatus(@PathVariable @NotNull UUID chatId,
+                                    @PathVariable @NotNull UUID userId) {
+        return chatService.getChatStatus(chatId, userId);
     }
 
-    /**
-     * Updates the status of a chat for a given chat member. All chats can be archived and active,
-     * only direct chats can be deleted. To achieve the same effect for a group, the user needs to
-     * leave the group. NOT_A_MEMBER cannot be used.
-     *
-     * @param chatId the id of the chat
-     * @param userId the id of the chat member
-     * @param chatStatus the new chat status
-     * @return no content
-     */
-    @PutMapping("/{chatId}/members/{userId}")
-    public ResponseEntity<Void> setStatus(@PathVariable UUID chatId,
-                                          @PathVariable UUID userId,
-                                          @RequestBody ChatStatus chatStatus) {
-        chatService.setStatus(chatId, userId, chatStatus);
-        return ResponseEntity.status(HttpStatus.OK).build();
+    @PatchMapping("/{chatId}/members/{userId}/status")
+    @Operation(
+        summary = "Update the chat status for a given chat and user.",
+        description = "One cannot update the chat status of a user who is not a member of the " +
+                      "chat. Direct chats are not allowed to be set to NOT_A_MEMBER. Group chats " +
+                      "are not allowed to be set to neither NOT_A_MEMBER nor DELETED. This " +
+                      "endpoint cannot be used to exit a group. When both members of a direct " +
+                      "chat have the chat as DELETED, then the chat will be deleted."
+    )
+    public void setChatStatus(@PathVariable @NotNull UUID chatId,
+                              @PathVariable @NotNull UUID userId,
+                              @RequestBody @NotNull ChatStatus chatStatus) {
+        chatService.setChatStatus(chatId, userId, chatStatus);
     }
     // Members end ---------------------------------------------------------------------------------
 }

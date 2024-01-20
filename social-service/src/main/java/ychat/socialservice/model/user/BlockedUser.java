@@ -1,35 +1,35 @@
 package ychat.socialservice.model.user;
 
 import jakarta.persistence.*;
-import ychat.socialservice.model.util.CreationTimestampEntity;
+import lombok.NonNull;
+import ychat.socialservice.model.util.TimestampEntity;
 
 import java.util.Objects;
 
+/**
+ * Holds the blocking relation for the User entity. This entity is owned by the User entity, all
+ * operations on it happen via cascading on the User entity.
+ */
 @Entity
-@Table(name = "blocked")
-public class Blocked extends CreationTimestampEntity {
+@Table(name = "blocked_user")
+public class BlockedUser extends TimestampEntity {
     @EmbeddedId
-    @AttributeOverrides({
-        @AttributeOverride(name = "fromId", column = @Column(name = "from_id")),
-        @AttributeOverride(name = "toId", column = @Column(name = "to_id")),
-    })
-    private BlockedId blockedId;
+    private BlockedUserId blockedUserId;
 
     @ManyToOne
-    @MapsId("fromId")
-    @JoinColumn(name = "from_id")
+    @MapsId("fromUserId")
+    @JoinColumn
     private User fromUser;
 
     @ManyToOne
-    @MapsId("toId")
-    @JoinColumn(name = "to_id")
+    @MapsId("toUserId")
+    @JoinColumn
     private User toUser;
 
-    public Blocked() {} // Required by JPA
+    protected BlockedUser() {} // Required by JPA
 
-    public Blocked(User fromUser, User toUser) {
-        super();
-        this.blockedId = new BlockedId(fromUser.getId(), toUser.getId());
+    public BlockedUser(@NonNull User fromUser, @NonNull User toUser) {
+        this.blockedUserId = new BlockedUserId(fromUser.getId(), toUser.getId());
         this.fromUser = fromUser;
         this.toUser = toUser;
     }
@@ -45,14 +45,14 @@ public class Blocked extends CreationTimestampEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || this.getClass() != o.getClass()) return false;
-        Blocked blocked = (Blocked) o;
-        return this.blockedId.equals(blocked.blockedId);
+        if (o == null || getClass() != o.getClass()) return false;
+        BlockedUser that = (BlockedUser) o;
+        return this.blockedUserId.equals(that.blockedUserId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.blockedId);
+        return blockedUserId.hashCode();
     }
 
     @Override

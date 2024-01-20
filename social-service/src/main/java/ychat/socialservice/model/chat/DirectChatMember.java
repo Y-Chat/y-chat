@@ -1,47 +1,40 @@
 package ychat.socialservice.model.chat;
 
+import jakarta.persistence.*;
+import lombok.NonNull;
 import ychat.socialservice.model.user.User;
 
-import java.util.Objects;
+import java.util.UUID;
 
+/**
+ * Models the many-to-many relationship between users and direct chats. This entity is owned by the
+ * direct chat.
+ */
+@Entity
+@Table(name = "direct_chat_member")
 public class DirectChatMember extends ChatMember {
-    private DirectChat directChat;
+    private UUID otherUserId;
 
-    public DirectChatMember(DirectChat directChat, User user, ChatStatus chatStatus) {
-        super(user, chatStatus);
-        if (directChat == null)
-            throw new NullPointerException("Null DirectChat was passed to DirectChatMember.");
-        this.directChat = directChat;
+    protected DirectChatMember() {} // Required by JPA
+
+    public DirectChatMember(User user, DirectChat directChat, @NonNull UUID otherUserId) {
+        super(user, directChat);
+        this.otherUserId = otherUserId;
     }
 
-    public DirectChat getDirectChat() {
-        return this.directChat;
+    public UUID getOtherUserId() {
+        return otherUserId;
     }
 
-    @Override
-    public void setChatStatus(ChatStatus chatStatus) {
-        if (chatStatus == null)
-            throw new NullPointerException("Null ChatStatus was passed to DirectChatMember.");
-        this.chatStatus = chatStatus;
-    }
+    private void setOtherUserId(UUID otherUserId) {
+        this.otherUserId = otherUserId;
+    } // Required by JPA
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || this.getClass() != o.getClass()) return false;
-        DirectChatMember member = (DirectChatMember) o;
-        return this.getDirectChat().equals(member.getDirectChat())
-            && this.getUser().equals(member.getUser());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.getDirectChat(), this.getUser());
-    }
+    // equals and hashCode defined in superclass
 
     @Override
     public String toString() {
-        return "DirectChatMember{" + "directChat=" + this.getDirectChat()
-                + ", user=" + this.getUser() + '}';
+        return "DirectChatMember{" + "user=" + getUser() + "directChat=" + getChat()
+                + ", chatStatus=" + getChatStatus() + '}';
     }
 }

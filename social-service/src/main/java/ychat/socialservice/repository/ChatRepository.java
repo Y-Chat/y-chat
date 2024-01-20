@@ -7,6 +7,4 @@ import ychat.socialservice.model.chat.Chat;
 import java.util.UUID;
 
 @Repository
-public interface ChatRepository extends JpaRepository<Chat, UUID> {
-
-}
+public interface ChatRepository extends JpaRepository<Chat, UUID> {}

@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  social-service:
+    container_name: "ychat-social-service"
+    image: "yc-social"
+    build:
+      context:  "./social-service"
+      dockerfile: "Dockerfile"
+    environment:
+      TZ: "UTC"
+      SERVER_PORT: "80"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://social-db:5432/social-db"
+      SPRING_DATASOURCE_USERNAME: "ychat"
+      SPRING_DATASOURCE_PASSWORD: "ychatformerlyknownas"
+    ports:
+      - "38080:80"
+    depends_on:
+      - social-db

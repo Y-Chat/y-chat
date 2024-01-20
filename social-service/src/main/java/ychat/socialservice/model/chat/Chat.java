@@ -1,36 +1,45 @@
 package ychat.socialservice.model.chat;
 
+import jakarta.persistence.*;
 import ychat.socialservice.model.user.User;
+import ychat.socialservice.model.util.TimestampEntity;
 
-import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
-public abstract class Chat {
+/**
+ * Allows the uniform handling of group and direct chats. It is its own table to allow polymorphic
+ * queries while helping with consistency.
+ */
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Chat extends TimestampEntity {
+    @Id
     private UUID id;
 
     public Chat() {
-        this.id = UUID.randomUUID();
+        id = UUID.randomUUID();
     }
 
-    public abstract Set<User> getMembers();
+    public abstract boolean toDeleteIfUserRemoved(User user);
 
     public UUID getId() {
-        return this.id;
+        return id;
     }
+
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || this.getClass() != o.getClass()) return false;
-        Chat chat = (Chat) o;
-        return this.getId().equals(chat.getId());
+        Chat that = (Chat) o;
+        return this.id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getId());
+        return id.hashCode();
     }
 
+    @Override
     public abstract String toString();
 }

@@ -1,23 +1,45 @@
 package ychat.socialservice.model.util;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
 import java.time.LocalDateTime;
 
-// TODO only have timestampentity
+/**
+ * Adds created and modified timestamps to all subclasses.
+ */
 @MappedSuperclass
-public abstract class UpdateEntity extends CreateEntity {
-    @Column(name = "updated")
-    private LocalDateTime updated;
+public abstract class TimestampEntity {
+    private LocalDateTime created;
+
+    private LocalDateTime modified;
+
+    public LocalDateTime getCreated() {
+        return created;
+    }
+
+    public LocalDateTime getModified() {
+        return modified;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.created = LocalDateTime.now();
+        this.modified = this.created;
+    }
 
     @PreUpdate
     protected void onUpdate() {
-        this.updated = LocalDateTime.now();
+        this.modified = LocalDateTime.now();
     }
 
-    public LocalDateTime getUpdated() {
-        return updated;
-    }
+    @Override
+    public abstract boolean equals(Object o);
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public abstract String toString();
 }

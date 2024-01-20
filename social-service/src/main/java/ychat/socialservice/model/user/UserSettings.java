@@ -2,16 +2,57 @@ package ychat.socialservice.model.user;
 
 import jakarta.persistence.Embeddable;
 
-/*
-- Will not necessarily be implemented as a feature but such a class would most likely become necessary
- */
+import java.util.Objects;
 
+/**
+ * Stores the settings for a user. Will not necessarily be implemented as a feature but such a
+ * record would most likely become necessary eventually.
+ */
 @Embeddable
-public record UserSettings (
-    Boolean twoFactorAuth,
-    Boolean notifications
-) {
-    public UserSettings() { // Required by JPA
-        this(null, null);
+public class UserSettings {
+    private boolean readReceipts;
+    private boolean lastSeen;
+
+    protected UserSettings() {} // Required by JPA
+
+    public UserSettings(Boolean readReceipts, Boolean lastSeen) {
+        this.readReceipts = readReceipts != null ? readReceipts : true;
+        this.lastSeen = lastSeen != null ? lastSeen : true;
+    }
+
+    public boolean isReadReceipts() {
+        return readReceipts;
+    }
+
+    public void setReadReceipts(Boolean readReceipts) {
+        if (readReceipts == null) return;
+        this.readReceipts = readReceipts;
+    }
+
+    public boolean isLastSeen() {
+        return lastSeen;
+    }
+
+    public void setLastSeen(Boolean lastSeen) {
+        if (lastSeen == null) return;
+        this.lastSeen = lastSeen;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        UserSettings that = (UserSettings) o;
+        return this.readReceipts == that.readReceipts && this.lastSeen == that.lastSeen;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(readReceipts, lastSeen);
+    }
+
+    @Override
+    public String toString() {
+        return "UserSettings{" + "readReceipts=" + readReceipts + ", lastSeen=" + lastSeen + '}';
     }
 }

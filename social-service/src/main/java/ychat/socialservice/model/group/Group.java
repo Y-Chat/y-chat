@@ -1,84 +1,81 @@
 package ychat.socialservice.model.group;
 
 import jakarta.persistence.*;
+import lombok.NonNull;
+import ychat.socialservice.util.LimitReachedException;
 import ychat.socialservice.model.chat.Chat;
 import ychat.socialservice.model.user.User;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
-// TODO persistence cascade and fetch
-
+/**
+ * A group is collection of users with a common chat. Internally, a group is a type of chat, so one
+ * can think of group as group chat. Owns the group member entity.
+ */
 @Entity
-@Table(name = "groups")
-public class GroupChat extends Chat {
+@Table(name = "\"group\"") // Group is a reserved keyword in postgres
+public class Group extends Chat {
+    private static final int MEMBER_LIMIT = 1000;
+
     @Embedded
-    @AttributeOverrides({
-        @AttributeOverride(name = "name", column = @Column(name = "group_name")),
-        @AttributeOverride(
-            name = "profileDescription",
-            column = @Column(name = "profile_description")
-        ),
-    })
     private GroupProfile groupProfile;
 
-    // TODO be able to fetch groupMembers and check for membership and how to add etc
-    @OneToMany(mappedBy = "groupChat")
+    @OneToMany(
+        mappedBy = "chat", cascade = CascadeType.ALL, fetch = FetchType.LAZY,
+        orphanRemoval = true
+    )
     private Set<GroupMember> groupMembers;
 
-    public GroupChat(User initUser, GroupProfile groupProfile) {
+    protected Group() {} // Required by JPA
+
+    public Group(@NonNull User initUser, @NonNull GroupProfile groupProfile) {
         super();
-        this.setGroupProfile(groupProfile);
-        GroupMember initGroupMember = new GroupMember(
-            initUser, this, GroupRole.GROUP_ADMIN
-        );
+        this.groupProfile = groupProfile;
+
+        GroupMember initGroupMember = new GroupMember(initUser, this);
+        initGroupMember.setGroupRole(GroupRole.GROUP_ADMIN);
         this.groupMembers = new HashSet<>();
         this.groupMembers.add(initGroupMember);
     }
 
-    public GroupChat() {} // Required by JPA
-
     @Override
-    public Set<UUID> getMemberIds() {
-        HashSet<UUID> memberIds = new HashSet<>();
-        for (GroupMember groupMember : groupMembers)
-            memberIds.add(groupMember.getUser().getId());
-        return memberIds;
+    public boolean toDeleteIfUserRemoved(User user) {
+        return groupMembers.size() == 1 && isGroupMember(user);
     }
 
     public GroupProfile getGroupProfile() {
         return groupProfile;
     }
 
-    public void setGroupProfile(GroupProfile groupProfile) {
-        if (groupProfile == null)
-            throw new NullPointerException("GroupProfile given to Group was null.");
-        if (groupProfile.name() == null)
-            throw new NullPointerException("GroupProfile given to Group has null in name.");
-        if (groupProfile.profileDescription() == null) {
-            this.groupProfile = new GroupProfile(groupProfile.name(), "I am groop.");
-            return;
+    // One can fetch members via the GroupMemberRepository
+
+    public boolean isGroupMember(User user) {
+        if (user == null) return false;
+        return groupMembers.contains(new GroupMember(user, this));
+    }
+
+    public void addGroupMember(User user) {
+        if (user == null) return;
+        if (groupMembers.size() >= Group.MEMBER_LIMIT) {
+            throw new LimitReachedException(
+                "User reached the block limit of " + Group.MEMBER_LIMIT + ": " + user
+            );
         }
-        this.groupProfile = groupProfile;
+        GroupMember groupMember = new GroupMember(user, this);
+        groupMembers.add(groupMember);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || this.getClass() != o.getClass()) return false;
-        GroupChat groupChat = (GroupChat) o;
-        return this.getId().equals(groupChat.getId());
+    public void removeGroupMember(User user) {
+        if (user == null) return;
+        GroupMember groupMember = new GroupMember(user, this);
+        groupMembers.remove(groupMember);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.getId());
-    }
+    // hashCode and equals work on the id in the superclass
 
     @Override
     public String toString() {
-        return "Group{" + "id=" + this.getId() + ", groupProfile=" + this.getGroupProfile() + '}';
+        return "Group{" + "id=" + getId() + ", groupProfile=" + groupProfile + '}';
     }
 }

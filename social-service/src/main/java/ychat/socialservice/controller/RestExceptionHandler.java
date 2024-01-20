@@ -1,42 +1,72 @@
 package ychat.socialservice.controller;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import ychat.socialservice.exception.IllegalUserInputException;
-import ychat.socialservice.exception.LimitReachedException;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ychat.socialservice.util.IllegalUserInputException;
+import ychat.socialservice.util.LimitReachedException;
 
-/*
-- This potentially leaks implementation details which is ignored for development purposes
+/**
+ * Global exception handler for all REST endpoints. This potentially leaks implementation details
+ * which is ignored for development purposes
  */
-
-@ControllerAdvice
+@RestControllerAdvice
 public class RestExceptionHandler {
-    @ExceptionHandler(EntityExistsException.class)
-    public ResponseEntity<String> handleEntityExistsException(EntityExistsException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    @ExceptionHandler({IllegalUserInputException.class, MethodArgumentNotValidException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ApiResponse(description = "Illegal user input", responseCode = "400", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+    })
+    public String handleIllegalUserInputException(Exception e) {
+        return e.getMessage();
     }
+
+    @ExceptionHandler(EntityExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ApiResponse(description = "Entity exists already", responseCode = "409", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+    })
+    public String handleEntityExistsException(EntityExistsException e) {
+        return e.getMessage();
+    }
+
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ApiResponse(description = "Entity not found", responseCode = "404", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+    })
+    public String handleEntityNotFoundException(EntityNotFoundException e) {
+        return e.getMessage();
     }
 
     @ExceptionHandler(LimitReachedException.class)
-    public ResponseEntity<String> handleLimitReachedException(LimitReachedException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ApiResponse(description = "Limit reached", responseCode = "403", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+    })
+    public String handleLimitReachedException(LimitReachedException e) {
+        return e.getMessage();
     }
 
-    @ExceptionHandler(IllegalUserInputException.class)
-    public ResponseEntity<String> handleIllegalUserInputException(IllegalUserInputException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-    }
-
-    // By default, all basic Java Exceptions are treated as not the users fault
+    /**
+     * By default, all not explicitly handled exceptions are treated as not the users fault
+     * <p>
+     * Especially, also the SQL execution errors of JPA. The application should filter out
+     * constraint violations before storing them in the DB.
+     */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleException(Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ApiResponse(description = "Unexpected exception thrown", responseCode = "500", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+    })
+    public String handleException(Exception e) {
+        return e.getMessage();
     }
 }
