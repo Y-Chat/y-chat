@@ -5,7 +5,7 @@ metadata:
   labels:
     app: api-gateway
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: api-gateway
@@ -24,18 +24,23 @@ spec:
           image: mrsarius/yc-api-gateway:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 27017
+            - containerPort: 8080
           env:
             - name: ychat.gateway.redirect.target.auth
-              value: "https://www.google.de"
+              value: "http://auth-service:8080" # TODO remove not needed anymore
             - name: ychat.gateway.redirect.target.social
-              value: "https://www.google.de"
+              value: "http://social-service:8080" # TODO
             - name: ychat.gateway.redirect.target.messaging
-              value: "https://www.google.de"
+              value: "http://messaging-service:8080"
             - name: ychat.gateway.redirect.target.notification
-              value: "https://www.google.de"
+              value: "http://notification-service:8080"
             - name: ychat.gateway.redirect.target.payment
-              value: "https://www.google.de"
+              value: "http://payment-service:8080" # TODO
+            - name: ychat.gateway.redirect.target.media
+              value: "http://media-service:8080"
+            - name: ychat.cors.allowed.url
+              value: "https://y-chat-e5132.web.app"
+
 ---
 apiVersion: v1
 kind: Service
@@ -47,5 +52,5 @@ spec:
     app: api-gateway
   ports:
     - protocol: TCP
-      port: 80 # port to expose to the outside
+      port: 8001 # port to expose to the outside # TODO expose on port 80 or 443
       targetPort: 8080 # port of spring boot inside the container

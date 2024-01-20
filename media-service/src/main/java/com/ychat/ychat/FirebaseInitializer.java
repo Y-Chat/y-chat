@@ -49,10 +49,11 @@ public class FirebaseInitializer {
 
     public String generateSignedUrl(String objectName) {
         try {
+            logger.info("1"); // TODO remove
             Bucket bucket = StorageClient.getInstance().bucket();
             BlobInfo blobInfo = BlobInfo.newBuilder(bucket.asBucketInfo(), objectName).build();
             Blob blob = bucket.getStorage().get(blobInfo.getBlobId());
-
+            logger.info("2 {}", blob); // TODO remove
             if (blob == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Object not found");
             }
@@ -60,9 +61,10 @@ public class FirebaseInitializer {
             if (objectName.startsWith("chats/")) {
                 // TODO check from social service if user is part of chat otherwise return 403
             }
-
             return blob.signUrl(2, TimeUnit.HOURS).toString();
         } catch (StorageException e) {
+            logger.error(e.toString());
+            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error retrieving object");
         }
     }

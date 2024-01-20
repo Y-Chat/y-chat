@@ -1,0 +1,42 @@
+############## media service ##############
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media-service-deployment
+  labels:
+    app: media-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: media-service
+  strategy:
+    type: RollingUpdate # if a new container is available in docker registry the update will gradually roll out
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: media-service
+    spec:
+      containers:
+        - name: media-service
+          image: mrsarius/yc-media:latest
+          ports:
+            - containerPort: 8080 # port of spring boot inside the container
+---
+# this service exposes the test-service to your localhost:8080. Of course, later the only exposed service will be the api-gateway
+apiVersion: v1
+kind: Service
+metadata:
+  name: media-service
+spec:
+  type: ClusterIP
+  selector:
+    app: media-service
+  ports:
+    - protocol: TCP
+      port: 8080 # port to expose to the outside
+      targetPort: 8080 # port of spring boot inside the container
