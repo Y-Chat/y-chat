@@ -1,4 +1,4 @@
-# Deploy Kafka to Kubernetes using [Strimzi](https://strimzi.io)
+# Deploy Kafka with a Statefulset to Kubernetes using [Strimzi](https://strimzi.io)
 ```
 kubectl create namespace kafka
 ```
