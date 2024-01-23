@@ -122,7 +122,7 @@ spec:
             - name: spring.data.mongodb.authentication-database
               value: "admin"
             - name: spring.kafka.bootstrap-servers
-              value: "my-cluster-kafka-bootstrap.kafka:9092"
+              value: "kafka-service:9092"
             - name: spring.kafka.consumer.group-id
               value: "notification"
             - name: spring.kafka.consumer.auto-offset-reset
