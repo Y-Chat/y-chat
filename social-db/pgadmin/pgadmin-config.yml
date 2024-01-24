@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgadmin-config
+data:
+  TZ: UTC
+  PGADMIN_LISTEN_PORT: 80
