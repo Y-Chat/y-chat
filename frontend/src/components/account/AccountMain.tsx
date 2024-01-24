@@ -20,13 +20,17 @@ import {useAppStore} from "../../state/store";
 import MenuDrawer from "../menu/MenuDrawer";
 import {IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
+import {signOut} from "firebase/auth";
+import auth from "../../firebase/auth";
+import {getImageUrl, uploadImage} from "../../network/media";
 
 export function AccountMain() {
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [accentColor, setAccentColor] = useState('#fff');
+    const [logoutLoading, setLogoutLoading] = useState(false);
     const sizeHeader = 10;
-    const user = useAppStore((state) => state.user);
+    const user = useAppStore((state) => state.user)!; // this view can only be rendered if user is not null!
     const setUser = useAppStore((state) => state.setUser);
-    const setUserLoading = useAppStore((state) => state.setUserLoading);
     const form = useForm({
         initialValues: {
             email: user?.email,
@@ -40,6 +44,7 @@ export function AccountMain() {
             //password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
         },
     });
+
     return (
         <>
             <header>
@@ -50,7 +55,7 @@ export function AccountMain() {
                 }}>
                     <Group justify="space-between" pl={10} h={"100%"} pr={10}>
                         <MenuDrawer/>
-                        <Text fz="sm" fw={500}>Account Settings</Text>
+                        <Text fz="xl" fw={500}>Account Settings</Text>
                         <span/>
                     </Group>
                     <Divider/>
@@ -63,7 +68,31 @@ export function AccountMain() {
                     <Stack justify="flex-start" align="stretch">
                         <Center mb={10}>
                             <Dropzone
-                                onDrop={(files) => console.log('accepted files', files)}
+                                maxFiles={1}
+                                multiple={false}
+                                pos={"relative"}
+                                loading={uploadingAvatar}
+                                onDrop={(files) => {
+                                    setUploadingAvatar(true);
+                                    try {
+                                        const uid = auth.currentUser?.uid
+                                        if (!uid)
+                                            return;
+
+                                        files.forEach(async (file) => {
+                                            const objectId = await uploadImage(file, `profilePictures/${uid}/${file.name}`);
+                                            const url = await getImageUrl(objectId);
+                                            setUser({
+                                                ...user,
+                                                avatar: url
+                                            })
+                                            setUploadingAvatar(false);
+                                        })
+                                    } catch (e) {
+                                        setUploadingAvatar(false);
+                                        // TODO handle error
+                                    }
+                                }}
                                 onReject={(files) => console.log('rejected files', files)}
                                 accept={IMAGE_MIME_TYPE}
                             >
@@ -93,7 +122,7 @@ export function AccountMain() {
                                         </Avatar>
                                     </Dropzone.Reject>
                                     <Dropzone.Idle>
-                                        <Avatar src={user?.avatar} size={120} color={accentColor}/>
+                                        <Avatar src={user.avatar} size={120} color={accentColor}/>
                                     </Dropzone.Idle>
                                 </Group>
                             </Dropzone>
@@ -152,17 +181,25 @@ export function AccountMain() {
                                     withPicker={false}
                                     fullWidth
                                     swatches={[
-                                       "white", "#6BD731", "#0969FF", "#4C5897","#8931B2", "#F01879", "#C91A25"
+                                        "white", "#6BD731", "#0969FF", "#4C5897", "#8931B2", "#F01879", "#C91A25"
                                     ]}
                                 />
                             </Center>
                         </Input.Wrapper>
                         <Divider m='xs'/>
                         <Button
+                            loading={logoutLoading}
                             rightSection={<IconLogout size={14}/>}
                             variant="default"
                             onClick={() => {
-                                setUser(null)
+                                setLogoutLoading(true)
+                                signOut(auth).then(() => {
+                                    setLogoutLoading(false)
+                                    setUser(null)
+                                }).catch(() => {
+                                    setLogoutLoading(false)
+                                    // TODO maybe handle error
+                                })
                             }}
                         >
                             <Text>Logout</Text>
@@ -172,5 +209,6 @@ export function AccountMain() {
             </Container>
         </>
 
-    );
+    )
+        ;
 }

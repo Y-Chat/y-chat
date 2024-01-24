@@ -7,3 +7,16 @@ The objective of this project is to plan, develop, and implement the architectur
 - Benedikt Strobel: Message Service/DB, API Gateway, Notification Service
 - Niklas Mamtschur: Social Service/DB, Media Service, Auth Service
 - Everyone: Docker/Kubernetes
+
+## Local Dev Setup
+### Prerequisites
+- Make sure you are **running on linux or macOS**
+- Install docker and docker compose.
+- The following services require the firebase credentials at ```src/main/resources/firebase-service-credentials.json```
+  - Notification Service
+  - Media Service
+### Usage
+- Run ```docker compose up``` to start the entire Y-chat ecosystem. The frontend will be exposed on [localhost:3000](http://localhost:3000/)
+- To develop a service locally
+    - Comment out the service in the docker-compose.yml
+    - Make sure to edit the redirect target for the service in the api-gateway environment of the docker-compose.yml

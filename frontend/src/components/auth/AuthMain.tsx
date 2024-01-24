@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {
     Anchor,
     Button,
@@ -11,23 +11,21 @@ import {
     Text,
     Container,
     Center,
-    LoadingOverlay
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
 import Logo from "../shell/Logo";
 import {useAppStore} from "../../state/store";
-import {auth} from "../../firebase";
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth"
 import {GoogleButton} from "./GoogleButton";
 import {AppleButton} from "./AppleButton";
 import {showErrorNotification} from "../../notifications/notifications";
+import auth from "../../firebase/auth";
 
 function AuthMain() {
     const setUser = useAppStore((state) => state.setUser)
-    const userLoading = useAppStore((state) => state.userLoading)
-    const setUserLoading = useAppStore((state) => state.setUserLoading)
     const [type, toggle] = useToggle(['login', 'register']);
+    const [userLoading, setUserLoading] = useState<boolean>(false)
 
     const form = useForm({
             initialValues: {
@@ -53,18 +51,18 @@ function AuthMain() {
 
 
     function register(email: string, password: string) {
+        setUserLoading(true);
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredentials) => {
-                setUserLoading(false);
                 setUser({
                     firstName: "Example",
                     lastName: "Name",
                     username: "example_username",
                     email: "example@example.com",
-                    avatar: "https://www.w3schools.com/howto/img_avatar2.png",
-                    balance: 69,
-                    firebaseUser: userCredentials.user
+                    avatar: null,
+                    balance: 69
                 })
+                setUserLoading(false);
             }).catch((error) => {
             showErrorNotification(error.code);
             setUserLoading(false);
@@ -72,22 +70,23 @@ function AuthMain() {
     }
 
     function login(email: string, password: string) {
+        setUserLoading(true);
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredentials) => {
-                setUserLoading(false);
                 setUser({
                     firstName: "Example",
                     lastName: "Name",
                     username: "example_username",
                     email: "example@example.com",
-                    avatar: "https://www.w3schools.com/howto/img_avatar2.png",
-                    balance: 69,
-                    firebaseUser: userCredentials.user
+                    avatar: null,
+                    balance: 69
                 })
-            }).catch((error) => {
-            showErrorNotification(error.code);
-            setUserLoading(false);
-        });
+                setUserLoading(false);
+            })
+            .catch((error) => {
+                showErrorNotification(error.code);
+                setUserLoading(false);
+            });
 
     }
 
@@ -104,31 +103,29 @@ function AuthMain() {
                 <Center mb={"md"}>
                     <Logo size={100}/>
                 </Center>
-                <Paper pos="relative" radius="md" p="xl" withBorder>
-                    <LoadingOverlay pos="absolute" visible={userLoading} zIndex={1000}
-                                    overlayProps={{backgroundOpacity: 0.5, blur: 4}}/>
-
+                <Paper radius="md" p="xl" withBorder>
                     <Group grow mb="md" mt="md">
-                        <GoogleButton radius="xl">Google</GoogleButton>
-                        <AppleButton radius="xl">Apple</AppleButton>
+                        <GoogleButton disabled={userLoading} radius="xl">Google</GoogleButton>
+                        <AppleButton disabled={userLoading} radius="xl">Apple</AppleButton>
                     </Group>
 
                     <Divider label="Or continue with email" labelPosition="center" my="lg"/>
 
-                    <form onSubmit={form.onSubmit(() => {
-                        setUserLoading(true);
-                        const email = form.values.email
-                        const password = form.values.password
-                        if (type === "register") {
-                            register(email, password)
-                        } else if (type === "login") {
-                            login(email, password)
-                        }
-                    })}>
+                    <form
+                        onSubmit={form.onSubmit(() => {
+                            const email = form.values.email
+                            const password = form.values.password
+                            if (type === "register") {
+                                register(email, password)
+                            } else if (type === "login") {
+                                login(email, password)
+                            }
+                        })}>
                         <Stack>
                             {type === 'register' && (
                                 <>
                                     <TextInput
+                                        disabled={userLoading}
                                         withAsterisk
                                         required
                                         size="md"
@@ -139,6 +136,7 @@ function AuthMain() {
                                         radius="md"
                                     />
                                     <TextInput
+                                        disabled={userLoading}
                                         withAsterisk
                                         required
                                         size="md"
@@ -152,11 +150,12 @@ function AuthMain() {
                             )}
 
                             <TextInput
+                                disabled={userLoading}
                                 size="md"
                                 withAsterisk
                                 required
                                 label="Email"
-                                placeholder="Email@example.com"
+                                placeholder="email@example.com"
                                 value={form.values.email}
                                 onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
                                 error={form.errors.email && 'Invalid email'}
@@ -165,6 +164,7 @@ function AuthMain() {
 
                             {type === 'register' && (
                                 <TextInput
+                                    disabled={userLoading}
                                     size="md"
                                     withAsterisk
                                     required
@@ -179,11 +179,12 @@ function AuthMain() {
                             )}
 
                             <PasswordInput
+                                disabled={userLoading}
                                 size="md"
                                 withAsterisk
                                 required
                                 label="Password"
-                                placeholder="Your password"
+                                placeholder="your password"
                                 value={form.values.password}
                                 onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
                                 error={form.errors.password}
@@ -192,11 +193,12 @@ function AuthMain() {
 
                             {type === 'register' && (
                                 <PasswordInput
+                                    disabled={userLoading}
                                     size="md"
                                     withAsterisk
                                     required
                                     label="Repeat Password"
-                                    placeholder="Your password"
+                                    placeholder="your password again"
                                     value={form.values.passwordRepeat}
                                     onChange={(event) => form.setFieldValue('passwordRepeat', event.currentTarget.value)}
                                     error={form.errors.passwordRepeat}
@@ -211,7 +213,7 @@ function AuthMain() {
                                     ? 'Already have an account? Login'
                                     : "Don't have an account? Register"}
                             </Anchor>
-                            <Button type="submit" radius="xl">
+                            <Button type="submit" radius="xl" loading={userLoading}>
                                 {upperFirst(type)}
                             </Button>
                         </Group>

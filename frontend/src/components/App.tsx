@@ -1,6 +1,6 @@
 import React from 'react';
 import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
-import {MantineProvider} from "@mantine/core";
+import {LoadingOverlay, MantineProvider} from "@mantine/core";
 import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
 import {useAppStore} from "../state/store";
 import AuthMain from "./auth/AuthMain";
@@ -10,13 +10,14 @@ import {AccountMain} from "./account/AccountMain";
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import {Notifications} from "@mantine/notifications";
+import {PermissionsModal} from "./common/PermissionsModal";
+import {useAuthState} from "react-firebase-hooks/auth";
+import auth from "../firebase/auth";
 
 function App() {
 
+    const [firebaseUser, loading] = useAuthState(auth);
     const user = useAppStore((state) => state.user);
-
-    // TODO dev mode to disable auth and stuff
-    const devMode: boolean = process.env.DEV_MODE == "true"
 
     const theme: MantineThemeOverride = {
         primaryColor: "mainColors",
@@ -45,9 +46,11 @@ function App() {
             {/*</BrowserView>*/}
             {/*<MobileView>*/}
             <MantineProvider theme={theme} defaultColorScheme="dark">
-                <Notifications position="top-right"/>
+                <PermissionsModal/>
+                <Notifications autoClose={5000} position="top-right"/>
+                <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
                 <Router>
-                    {user ?
+                    {user && firebaseUser ?
                         <Routes>
                             <Route path="/" element={<Shell/>}>
                                 <Route path="/" element={<ChatMain/>}/>

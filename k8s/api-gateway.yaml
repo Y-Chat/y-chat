@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-deployment
+  labels:
+    app: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  strategy:
+    type: RollingUpdate # if a new container is available in docker registry the update will gradually roll out
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: mrsarius/yc-api-gateway:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ychat.gateway.redirect.target.auth
+              value: "http://auth-service:8080" # TODO remove not needed anymore
+            - name: ychat.gateway.redirect.target.social
+              value: "http://social-service:8080" # TODO
+            - name: ychat.gateway.redirect.target.messaging
+              value: "http://messaging-service:8080"
+            - name: ychat.gateway.redirect.target.notification
+              value: "http://notification-service:8080"
+            - name: ychat.gateway.redirect.target.payment
+              value: "http://payment-service:8080" # TODO
+            - name: ychat.gateway.redirect.target.media
+              value: "http://media-service:8080"
+            - name: ychat.cors.allowed.url
+              value: "https://y-chat.net"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-service
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+  ports:
+    - protocol: TCP
+      port: 80 # port to expose to the outside
+      targetPort: 8080 # port of spring boot inside the container
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tls-secret
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURFekNDQWZ1Z0F3SUJBZ0lVVllFOVVtQjlqMW9DeE14anRLdDV0REhDNTNzd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0dURVhNQlVHQTFVRUF3d09ZWEJwTG5rdFkyaGhkQzV1WlhRd0hoY05NalF3TVRJeU1qTTFOVFE1V2hjTgpNalF3TWpJeE1qTTFOVFE1V2pBWk1SY3dGUVlEVlFRRERBNWhjR2t1ZVMxamFHRjBMbTVsZERDQ0FTSXdEUVlKCktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQU1PK2NoTk56dFlpMFBIdHc1clJwN1dQSmVybmM3QlgKUWpmVm85d2NNN0xXUkhXT3ZoTTlxK09iRjluYlZRRitRc0QrT1FmL3dDZ3ltTTNPMDVsUjFMbnJOaTBvOTl5egpNREhIanFTd0V6RjRSMXU0OFpaeHluNzM4ZlFqMVp2a0ppWCttZlFtcVlhb2pycUZrZUV2M2g3N0x1M0tyRXZZCitLMWt5d2UxUHdoSzB2ZnFwdm9Mc2pqTVNXenZ1TUt5c1hxc201WGdUdGtoaWp4aWlUWFRqL3lsM3BTVFpkQ3UKcWlHajhHV24rVXdiY0tNYmUyRFFRSGM0Tkw2d1FrUENGUFBvVFlEOFNGQnowK1ZtQ083QjdnRlNVR2g5MmxsTAp3MDZzWEVnNnVFeWQveXBTOU9qb25XYktubEp3MEliMmlkWlpEektSVk1YY2IrQ1B0Z3ZXMlhzQ0F3RUFBYU5UCk1GRXdIUVlEVlIwT0JCWUVGRkZUUEtNMEFXMlNKaUJoQ21TR2I5VE1NRU5CTUI4R0ExVWRJd1FZTUJhQUZGRlQKUEtNMEFXMlNKaUJoQ21TR2I5VE1NRU5CTUE4R0ExVWRFd0VCL3dRRk1BTUJBZjh3RFFZSktvWklodmNOQVFFTApCUUFEZ2dFQkFIT0JuV0VQQllyT3B0OFExaEJUemM0dnNqZ1A5VjlYNDhtb0VjZkZabWZkdGJ2NWpCbk9jRFFqCnk2dTZxN3dGNTlmdk1MQ254dVFxS24yc2s4WG0vQnRpb1lzUCtBN0EwODBxeXVFNE1jc1kvclVLVVZpMncxWUYKVVVnZEw4ejE3RVpTVGYvUlRiV250RXZ4VEQ5ZjQ3VWJPeXhoOHR2bCtLVjBrN2M2bzVjMDJZVkNoSmZYK1NGegpQekdodTFaNXhzcTVadEpuQ2YxZjJCc1NTaUY3aEdZU2Rzb2l5MUhuOXBvK24vdFpPRzNIWFRFb1dhQXRQVDcxCkFneGgxdmRUMFUrU0ErT29BMGFtS3hFNnlVcHRlZU5pbnhyRmU3VW9zRnZBOUdQUnFyKzFzaldWeE9LSUF3WHYKZzQyQlUyVlVnYkJrYWxLYW9KNVRNR2kxbGltMUwrWT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRRER2bklUVGM3V0l0RHgKN2NPYTBhZTFqeVhxNTNPd1YwSTMxYVBjSERPeTFrUjFqcjRUUGF2am14ZloyMVVCZmtMQS9qa0gvOEFvTXBqTgp6dE9aVWRTNTZ6WXRLUGZjc3pBeHg0NmtzQk14ZUVkYnVQR1djY3ArOS9IMEk5V2I1Q1lsL3BuMEpxbUdxSTY2CmhaSGhMOTRlK3k3dHlxeEwyUGl0Wk1zSHRUOElTdEwzNnFiNkM3STR6RWxzNzdqQ3NyRjZySnVWNEU3WklZbzgKWW9rMTA0LzhwZDZVazJYUXJxb2hvL0JscC9sTUczQ2pHM3RnMEVCM09EUytzRUpEd2hUejZFMkEvRWhRYzlQbApaZ2p1d2U0QlVsQm9mZHBaUzhOT3JGeElPcmhNbmY4cVV2VG82SjFteXA1U2NOQ0c5b25XV1E4eWtWVEYzRy9nCmo3WUwxdGw3QWdNQkFBRUNnZ0VBR1JUV2ppV3FxcUtVYm1OK2JHQ1A0a0pBNUF3Yk5VM0JCT0dCbVFzZURyekkKMGQxaitwZ3M1Y0d5T1M2VEFsbDQyVHpaOXUzczQ5bXozYTh5U3RPQzgvMnhGL0ZIYlVhaWxzWlF2MFoyZHlESAoxL2RuTVZWTVVwK1hwNlpOMFNkWFFnZ1JGd2s3TUs5NWRtbjJDc28wNW5oZUI0Y3dNNW5PSjMyaVRFOExrQmE0CitPMVlRdFJvNkIraU81bXg5RXloQWswT1pJcFlLdUtaMjJjZzY5ZzZ3bWd1YVc1MDdzdDdUZmFhYjJhT095dG8KZzh1K1dQTFhYblo5b29sTTBOOHNyTjdYRVZiUU52azMrNUpWbWRLeTU4SjI2YmJWOENTeUhiUFN1R2FyUEZGeAoxaFR0eXlxVHh6czBVU1JuMFByRkhzS1d4SzFNNTA3VFNLN3VnTnFXNVFLQmdRRGpRU2VMUndpUmtkdlFWc3RnCit0NW5pWG5IWEs2K3lkcjBtRk9LLzlnSzZlYnEzdkRsbStPdzVUeFBnZjVBL0NTNndWNEg3bFdELzMyZEMxWWcKaWhNZWNHMGk0Y0ZuZWxCaitaSjlQWjZJUzNFdGp6bkZFSEg0SGs2bmFCazVJdlZ2UVNVZGZZQ0lVWG9BVmVqRApNTW9VNFN2MDhKMlVaWEdnS2VIamVRSGdyd0tCZ1FEY2dPNUZCRWZkVnZIZFRMWjQ2eEZUZ0Y3ZjBmS3lIclZVCmdrdnNWUU1MNThkYk1EUnNNMEdIR2M2TXdQREc4RHhaTTB1bEpjWFR0QlFud2dSNC85aDNtaUdXWWNaNzRETmEKRWRUeFZ4c3NzR1ZrSkliSHZ2WTZna3dLN2JjbERIYWJlcTFaa3RBTjFXY3dvL2NJODBMM21mVTQ0eUFxZ2YxaAp1UFYxRFNMTzlRS0JnQkZwSTN0ek5ML2FXZW5yVEdlZ3NMdGo5L1dETDB3a3NPYSthT0FrVzh2eVFhUEs4cy9VCmtxd3gwOTRQaW9nMkNTWlp2RGVGVmYzbjdCckZESk12b09sYkdiRnJkR0xXSnlTUnNWeHhCUjFTRWxpNE9XZlUKcTdhanM4ajFtOEVaNFkzbGdzOXdseEZhbEt0RDZiSlNvWmpaNjRFM2tnc1ZmcEFUeFYrbEhMUzNBb0dCQUk0aApJUFFsblRqamFRVVBCSE1PZWQyTDJodUUxVjNRZzJzVWpXR3BMa3lIT3EzaGRYamsxUEVEUm1yZGxwVjBsa0djCjJiNTZpWGc3RTk3SXBWOWs4aCt0bnNhekFXQXBsSkFTL0dJUGxubUl2ZUg5MVU1OUhYTjdOdzY0U1J1OVc5bysKQ2V5NXdCZWFuV2Z4MkRMUnNqR3M4QzZaMzhybWZPOTNhK2ZsN3JEZEFvR0JBTkM4S0doTGV5VjRvZmVZWXBaawpHLzZXc1RiN2srWm5vZGdyRzd5MG9MTitiR2J5RlNZWmNYSUdnMlptQnF2UWlnZXREOXNKRVNOT1ZwQVdha2pWCldGQWJWYUgzYkYvdCtJNjFoODZyNE42UnZwYVExaTBKWkl4VVdrLzVDOFNjY1lON0lZa2toZ0F4N3pSYzRhSDEKUXRqZm9BYzBXSXZacXhmYnM0VFlBcGJjCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: y-chat-ingress
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  rules:
+    - host: api.y-chat.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - api.y-chat.net
+      secretName: tls-secret

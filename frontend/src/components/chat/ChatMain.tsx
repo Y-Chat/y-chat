@@ -1,14 +1,26 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {ActionIcon, Avatar, Divider, Group, Text} from "@mantine/core";
 import MenuDrawer from "../menu/MenuDrawer";
 import MessageList from "./MessageList";
 import ChatTextArea from "../text/ChatTextArea";
 import {IconVideo} from "@tabler/icons-react";
+import {accessToken, api} from "../../network/api";
 
 function ChatMain() {
     // size in percent of screen -> content is 100% - sizeHeader - sizeFooter
     const sizeHeader = 10;
     const sizeFooter = 10;
+
+    useEffect(() => {
+        api.getMessages({chatId: 'b883492e-cb45-484e-895a-0703700deac7', fromDate: new Date(2000, 0, 1)})
+            .then(r => {
+                console.log(JSON.stringify(r))
+            })
+            .catch(e => console.error(e))
+        if(!!accessToken) {
+            api.updateToken({notificationToken: accessToken}).catch((x) => console.error(x))
+        }
+    }, [])
 
     return (
         <>

@@ -1,0 +1,128 @@
+import java.security.MessageDigest
+
+plugins {
+	id 'java'
+	id "application"
+	id 'org.springframework.boot' version '3.2.1'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id "org.openapi.generator" version "6.6.0"
+	id "com.github.node-gradle.node" version "7.0.1"
+}
+
+group = 'com.ychat'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	implementation 'junit:junit:4.13.1'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
+	implementation 'io.swagger:swagger-annotations:1.6.8'
+	implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: '3.0.2'
+	implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '8.0.1.Final'
+
+	implementation group: 'com.google.firebase', name: 'firebase-admin', version: '9.2.0'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
+	implementation('org.springframework.kafka:spring-kafka')
+
+}
+
+openApiGenerate {
+	generatorName.set("spring")
+	outputDir.set("$rootDir/generated/openapi/messaging")
+	inputSpec.set("$rootDir/api-specs/messaging/openapi.yml")
+	apiPackage.set("com.openapi.gen.messaging.api")
+	modelPackage.set("com.openapi.gen.messaging.dto")
+	configOptions.set([
+			delegatePattern: "true",
+			serializableModel: "true",
+			useJakartaEe: "true",
+			useSpringBoot3: "true",
+			useSwaggerUI: "false",
+			interfaceOnly: "true",
+			documentationProvider: "none",
+			performBeanValidation: "true",
+			useBeanValidation: "true",
+			dateLibrary: "java8-localdatetime"
+	])
+	typeMappings.set([
+			"string+date-time": "LocalDateTime",
+			"string+ObjectId": "UUID"
+	])
+}
+
+compileJava {
+	dependsOn "openApiGenerate"
+	dependsOn "asyncApiGenerate"
+}
+
+nodeSetup {
+	download = true
+}
+
+application {
+	mainClass = "com.ychat.ychat.YchatApplication"
+}
+
+task asyncApiGenerate(type: NpxTask) {
+	dependsOn npmInstall
+	// Checking spec file hashes and not running if same as last run
+	String specFilePath = './api-specs/notification/asyncapi.yml'
+	String outputFolder = 'generated/asyncapi/notification'
+	String packageName = 'javaPackage=com.asyncapi.gen.notification'
+
+	MessageDigest specFileNameDigest = MessageDigest.getInstance("SHA-256")
+	specFileNameDigest.update(specFilePath.getBytes())
+
+	MessageDigest specFileContentDigest = MessageDigest.getInstance("SHA-256")
+	specFileContentDigest.update(new File(specFilePath).text.getBytes())
+	String currentSpecFileHash = new String(new BigInteger(1, specFileContentDigest.digest()).toString(16))
+
+	String specFileHelperFolder = './.gradle/asyncapigen/'
+	String specFileHelperFileName = specFileHelperFolder+new BigInteger(1,specFileNameDigest.digest()).toString(16)+".txt"
+	String oldSpecFileHash = file(specFileHelperFileName).exists() ? new File(specFileHelperFileName).text : ''
+	if(!currentSpecFileHash.equals(oldSpecFileHash) || !file(outputFolder).exists()) {
+		System.out.println("Async api spec file hashes differ, rerunning generation")
+		delete outputFolder
+		file(specFileHelperFolder).mkdirs()
+		file(specFileHelperFileName).createNewFile()
+		new File(specFileHelperFileName).text = currentSpecFileHash
+		// Actually running async api gen
+		dependsOn nodeSetup
+		dependsOn npmSetup
+		command = '@asyncapi/cli'
+		args = ['generate', 'fromTemplate', specFilePath, '@asyncapi/java-spring-template', '-o', outputFolder, '--param', packageName]
+	} else {
+		System.out.println("Async api spec file hasn't changed, skipping generation")
+		command = "npxnoop" // Required because the npx task can't be aborted, it needs to execute something. Otherwise it considers itself failed and aborts the build
+	}
+}
+
+clean {
+	delete "generated"
+	delete ".gradle/asyncapigen"
+}
+
+
+sourceSets {
+	main {
+		java {
+			srcDirs "src/main/java"
+			srcDirs "generated/openapi/messaging/src/main/java"
+			srcDirs "generated/asyncapi/notification/src/main/java"
+		}
+	}
+}

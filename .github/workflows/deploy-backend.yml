@@ -1,0 +1,42 @@
+name: Deploy Backend
+on: workflow_dispatch
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Write firebase-service-credentials from action secrets
+        env:
+          FIREBASE_SERVICE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS_JSON }}
+        run: |
+          touch ./notification-service/src/main/resources/firebase-service-credentials.json
+          echo "$FIREBASE_SERVICE_CREDENTIALS_JSON" >> ./notification-service/src/main/resources/firebase-service-credentials.json
+          echo "$FIREBASE_SERVICE_CREDENTIALS_JSON" >> ./media-service/src/main/resources/firebase-service-credentials.json
+          ls -a ./notification-service/src/main/resources
+          ls -a ./media-service/src/main/resources
+
+      - name: Build and Push Docker Images
+        run: |
+          docker buildx create --use
+          docker buildx inspect --bootstrap
+          docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-api-gateway:latest ./api-gateway
+          docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-media:latest ./media-service
+          docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-payment:latest ./payment-service
+          docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-messaging:latest ./messaging-service
+          docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-notification:latest ./notification-service
+          : # docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-social:latest ./social-service
