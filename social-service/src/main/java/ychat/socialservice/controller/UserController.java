@@ -87,9 +87,10 @@ public class UserController {
     @Operation(
         summary = "Update the profile of a user.",
         description = "All given fields are updated. To remove the profilePictureId, set the " +
-                      "field to null and removeProfilePictureId to true."
+                      "field to null and removeProfilePictureId to true. Returns the same object " +
+                      "as getUserProfile."
     )
-    public void updateUserProfile(
+    public UserProfileDTO updateUserProfile(
         @PathVariable @NotNull UUID userId,
         @RequestBody @Validated(UpdateDTO.class) UserProfileDTO userProfileDTO
     ) {
@@ -98,7 +99,7 @@ public class UserController {
                 "It is not allowed to set both profilePictureId and removeProfilePicture."
             );
         }
-        userService.updateUserProfile(userId, userProfileDTO);
+        return userService.updateUserProfile(userId, userProfileDTO);
     }
 
     @GetMapping("/{userId}/settings")
@@ -113,12 +114,12 @@ public class UserController {
     @PatchMapping("/{userId}/settings")
     @Operation(
         summary = "Update the settings for a user.",
-        description = "All given fields are updated."
+        description = "All given fields are updated. Returns the same object as getUserSettings."
     )
-    public void updateUserSettings(
+    public UserSettingsDTO updateUserSettings(
         @PathVariable @NotNull UUID userId,
         @RequestBody @Validated(UpdateDTO.class) UserSettingsDTO userSettingsDTO) {
-        userService.updateUserSettings(userId, userSettingsDTO);
+        return userService.updateUserSettings(userId, userSettingsDTO);
     }
     // Profiles and settings end -------------------------------------------------------------------
 
@@ -155,13 +156,15 @@ public class UserController {
     @Operation(
         summary = "Add a user to the blocklist.",
         description = "A user cannot block themselves. There is a limit on the number of users a " +
-                      "user can block. A user cannot block a user that they have already blocked."
+                      "user can block. A user cannot block a user that they have already " +
+                      "blocked. Returns the same object as getBlockedUsers."
+
     )
-    public void addBlockedUser(@PathVariable @NotNull UUID userId,
+    public BlockedUserDTO addBlockedUser(@PathVariable @NotNull UUID userId,
                                @RequestParam @NotNull UUID blockUserId) {
         if (userId == blockUserId)
             throw new IllegalUserInputException("User cannot block themselves: " + userId);
-        userService.addBlockedUser(userId, blockUserId);
+        return userService.addBlockedUser(userId, blockUserId);
     }
 
     @DeleteMapping("/{userId}/blockedUsers")

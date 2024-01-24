@@ -8,6 +8,7 @@ import ychat.socialservice.model.group.GroupMember;
 import ychat.socialservice.model.group.GroupProfile;
 import ychat.socialservice.model.user.User;
 import ychat.socialservice.repository.GroupMemberRepository;
+import ychat.socialservice.service.dto.ChatMemberDTO;
 import ychat.socialservice.service.dto.DTOConverter;
 import ychat.socialservice.service.dto.GroupProfileDTO;
 import ychat.socialservice.repository.GroupRepository;
@@ -71,7 +72,7 @@ public class GroupService {
         return DTOConverter.convertToDTO(group.getGroupProfile());
     }
 
-    public void updateGroupProfile(UUID groupId, GroupProfileDTO groupProfileDTO) {
+    public GroupProfileDTO updateGroupProfile(UUID groupId, GroupProfileDTO groupProfileDTO) {
         Group group = findGroupByIdOrThrow(groupId);
         GroupProfile groupProfile = group.getGroupProfile();
         groupProfile.setGroupName(groupProfileDTO.groupName());
@@ -81,11 +82,12 @@ public class GroupService {
             groupProfile.setProfilePictureId(groupProfileDTO.profilePictureId());
         groupProfile.setProfileDescription(groupProfileDTO.profileDescription());
         groupRepo.save(group);
+        return DTOConverter.convertToDTO(group.getGroupProfile());
     }
     // Profiles end --------------------------------------------------------------------------------
 
     // Members start -------------------------------------------------------------------------------
-    public void addGroupMember(UUID groupId, UUID userId) {
+    public ChatMemberDTO addGroupMember(UUID groupId, UUID userId) {
         Group group = findGroupByIdOrThrow(groupId);
         User user = userService.findUserByIdOrThrow(userId);
         if (group.isGroupMember(user)) {
@@ -93,8 +95,9 @@ public class GroupService {
                 group + " already has " + user + " as member."
             );
         }
-        group.addGroupMember(user);
+        GroupMember groupMember = group.addGroupMember(user);
         groupRepo.save(group);
+        return DTOConverter.convertToDTO(groupMember);
     }
 
     public void removeGroupMember(UUID groupId, UUID userId) {
@@ -122,7 +125,7 @@ public class GroupService {
         return groupMember.getGroupRole();
     }
 
-    public void updateGroupRole(UUID groupId, UUID userId, GroupRole groupRole) {
+    public GroupRole updateGroupRole(UUID groupId, UUID userId, GroupRole groupRole) {
         if (groupRole == GroupRole.NOT_A_MEMBER)
             throw new IllegalUserInputException("NOT_A_MEMBER is not allowed for updateGroupRole.");
         Optional<GroupMember> optionalGroupMember = findGroupMemberByIdsOrThrow(groupId, userId);
@@ -131,6 +134,7 @@ public class GroupService {
         GroupMember groupMember = optionalGroupMember.get();
         groupMember.setGroupRole(groupRole);
         groupMemberRepo.save(groupMember);
+        return groupMember.getGroupRole();
     }
     // Members end ---------------------------------------------------------------------------------
 }

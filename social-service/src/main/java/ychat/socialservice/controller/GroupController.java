@@ -7,6 +7,7 @@ import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ychat.socialservice.service.dto.ChatMemberDTO;
 import ychat.socialservice.service.dto.GroupProfileDTO;
 import ychat.socialservice.model.util.CreateDTO;
 import ychat.socialservice.model.util.UpdateDTO;
@@ -77,7 +78,7 @@ public class GroupController {
         description = "All given fields are updated. To remove the profilePictureId, set the " +
                       "field to null and removeProfilePictureId to true."
     )
-    public void updateGroupProfile(
+    public GroupProfileDTO updateGroupProfile(
         @PathVariable @NotNull UUID groupId,
         @RequestBody @Validated(UpdateDTO.class) GroupProfileDTO groupProfileDTO
     ) {
@@ -85,7 +86,7 @@ public class GroupController {
             throw new IllegalUserInputException(
                 "It is not allowed to set both profilePictureId and removeProfilePicture."
             );
-        groupService.updateGroupProfile(groupId, groupProfileDTO);
+        return groupService.updateGroupProfile(groupId, groupProfileDTO);
     }
     // Profile start -------------------------------------------------------------------------------
 
@@ -97,11 +98,11 @@ public class GroupController {
     @Operation(
         summary = "Add a new user to the group.",
         description = "The new user is added as a GROUP_MEMBER. One cannot add someone who is " +
-                      "already part of the group."
+                      "already part of the group. Returns the same object as getChatMember."
     )
-    public void addGroupMember(@PathVariable @NotNull UUID groupId,
-                               @RequestParam @NotNull UUID userId) {
-        groupService.addGroupMember(groupId, userId);
+    public ChatMemberDTO addGroupMember(@PathVariable @NotNull UUID groupId,
+                                        @RequestParam @NotNull UUID userId) {
+        return groupService.addGroupMember(groupId, userId);
     }
 
     @DeleteMapping("/{groupId}/members")
@@ -131,10 +132,10 @@ public class GroupController {
                       "endpoint cannot be used to remove someone from a group. NOT_A_MEMBER is " +
                       "not a valid value for this endpoint."
     )
-    public void updateGroupRole(@PathVariable @NotNull UUID groupId,
+    public GroupRole updateGroupRole(@PathVariable @NotNull UUID groupId,
                                 @PathVariable @NotNull UUID userId,
                                 @RequestBody @NotNull GroupRole groupRole) {
-        groupService.updateGroupRole(groupId, userId, groupRole);
+        return groupService.updateGroupRole(groupId, userId, groupRole);
     }
     // Members end ---------------------------------------------------------------------------------
 }

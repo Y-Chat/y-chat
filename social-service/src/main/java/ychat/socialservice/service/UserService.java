@@ -93,7 +93,7 @@ public class UserService {
         return DTOConverter.convertToDTO(user.getUserProfile());
     }
 
-    public void updateUserProfile(UUID userId, UserProfileDTO userProfileDTO) {
+    public UserProfileDTO updateUserProfile(UUID userId, UserProfileDTO userProfileDTO) {
         User user = findUserByIdOrThrow(userId);
         UserProfile userProfile = user.getUserProfile();
         userProfile.setFirstName(userProfileDTO.firstName());
@@ -104,6 +104,7 @@ public class UserService {
             userProfile.setProfilePictureId(userProfileDTO.profilePictureId());
         userProfile.setProfileDescription(userProfileDTO.profileDescription());
         userRepo.save(user);
+        return DTOConverter.convertToDTO(user.getUserProfile());
     }
 
     public UserSettingsDTO getUserSettings(UUID userId) {
@@ -111,12 +112,13 @@ public class UserService {
         return DTOConverter.convertToDTO(user.getUserSettings());
     }
 
-    public void updateUserSettings(UUID userId, UserSettingsDTO userSettingsDTO) {
+    public UserSettingsDTO updateUserSettings(UUID userId, UserSettingsDTO userSettingsDTO) {
         User user = findUserByIdOrThrow(userId);
         UserSettings userSettings = user.getUserSettings();
         userSettings.setReadReceipts(userSettingsDTO.readReceipts());
         userSettings.setLastSeen(userSettingsDTO.lastSeen());
         userRepo.save(user);
+        return DTOConverter.convertToDTO(user.getUserSettings());
     }
     // Profiles and settings end -------------------------------------------------------------------
 
@@ -138,11 +140,12 @@ public class UserService {
         return blockedUser.getCreated();
     }
 
-    public void addBlockedUser(UUID userId, UUID blockUserId) {
+    public BlockedUserDTO addBlockedUser(UUID userId, UUID blockUserId) {
         User user = findUserByIdOrThrow(userId);
         User blockUser = findUserByIdOrThrow(blockUserId);
-        user.addBlockedUser(blockUser);
+        BlockedUser blockedUser = user.addBlockedUser(blockUser);
         userRepo.save(user);
+        return DTOConverter.convertToDTO(blockedUser);
     }
 
     public void removeBlockedUser(UUID userId, UUID unblockUserId) {

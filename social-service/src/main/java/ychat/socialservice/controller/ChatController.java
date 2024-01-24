@@ -118,10 +118,10 @@ public class ChatController {
                       "endpoint cannot be used to exit a group. When both members of a direct " +
                       "chat have the chat as DELETED, then the chat will be deleted."
     )
-    public void setChatStatus(@PathVariable @NotNull UUID chatId,
+    public ChatStatus setChatStatus(@PathVariable @NotNull UUID chatId,
                               @PathVariable @NotNull UUID userId,
                               @RequestBody @NotNull ChatStatus chatStatus) {
-        chatService.setChatStatus(chatId, userId, chatStatus);
+        return chatService.setChatStatus(chatId, userId, chatStatus);
     }
     // Members end ---------------------------------------------------------------------------------
 }

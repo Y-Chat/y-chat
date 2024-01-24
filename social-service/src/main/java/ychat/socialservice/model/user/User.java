@@ -61,8 +61,8 @@ public class User extends TimestampEntity {
         return blockedUsers.contains(new BlockedUser(this, user));
     }
 
-    public void addBlockedUser(User user) {
-        if (user == null) return;
+    public BlockedUser addBlockedUser(User user) {
+        if (user == null) return null;
         if (blockedUsers.size() >= User.BLOCK_LIMIT) {
             throw new LimitReachedException(
                 "User reached the block limit of " + User.BLOCK_LIMIT + ": " + user
@@ -70,6 +70,7 @@ public class User extends TimestampEntity {
         }
         BlockedUser blockedUser = new BlockedUser(this, user);
         blockedUsers.add(blockedUser);
+        return blockedUser;
     }
 
     public void removeBlockedUser(User user) {

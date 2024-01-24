@@ -99,7 +99,7 @@ public class ChatService {
         return chatMember.getChatStatus();
     }
 
-    public void setChatStatus(UUID chatId, UUID userId, ChatStatus chatStatus) {
+    public ChatStatus setChatStatus(UUID chatId, UUID userId, ChatStatus chatStatus) {
         if (chatStatus == ChatStatus.NOT_A_MEMBER)
             throw new IllegalUserInputException("NOT_A_MEMBER is not allowed for a chat status.");
 
@@ -119,11 +119,12 @@ public class ChatService {
             if (chat.toDeleteIfUserRemoved(user)) {
                 // Deletes chat membership via cascading as well
                 chatRepo.delete(chat);
-                return;
+                return ChatStatus.DELETED;
             }
         }
         chatMember.setChatStatus(chatStatus);
         chatMemberRepo.save(chatMember);
+        return chatMember.getChatStatus();
     }
     // Members end ---------------------------------------------------------------------------------
 }

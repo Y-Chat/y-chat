@@ -55,8 +55,8 @@ public class Group extends Chat {
         return groupMembers.contains(new GroupMember(user, this));
     }
 
-    public void addGroupMember(User user) {
-        if (user == null) return;
+    public GroupMember addGroupMember(User user) {
+        if (user == null) return null;
         if (groupMembers.size() >= Group.MEMBER_LIMIT) {
             throw new LimitReachedException(
                 "User reached the block limit of " + Group.MEMBER_LIMIT + ": " + user
@@ -64,6 +64,7 @@ public class Group extends Chat {
         }
         GroupMember groupMember = new GroupMember(user, this);
         groupMembers.add(groupMember);
+        return groupMember;
     }
 
     public void removeGroupMember(User user) {

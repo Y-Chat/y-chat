@@ -4,6 +4,7 @@
 - Endpoint comments for security
 - Logging
 - Testing
+- change specification: return object on post, add internal
 
 ## About
 - The Social service manages users, groups, and chats and their relationships
