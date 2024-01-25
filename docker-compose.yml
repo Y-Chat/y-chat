@@ -19,7 +19,7 @@ services:
             dockerfile: Dockerfile
         environment:
           - ychat.gateway.redirect.target.auth=http://ychat-auth:8080
-          - ychat.gateway.redirect.target.social=http://ychat-social:8080
+          - ychat.gateway.redirect.target.social=http://ychat-social:80
           - ychat.gateway.redirect.target.messaging=http://ychat-messaging:8080
           - ychat.gateway.redirect.target.notification=http://ychat-notification:8080
           - ychat.gateway.redirect.target.payment=http://ychat-payment:8080
@@ -171,3 +171,37 @@ services:
             dockerfile: Dockerfile
         ports:
           - "7506:8080"
+  # Social Service
+    ychat-social-db:
+      container_name: "ychat-social-db"
+      image: postgres:16.1
+      restart: unless-stopped
+      environment:
+        TZ: "UTC"
+        POSTGRES_DB: "social-db"
+        POSTGRES_INITDB_ARGS: "--locale=en_US.utf8"
+        POSTGRES_USER: "ychat"
+        POSTGRES_PASSWORD: "ychatformerlyknownas"
+      ports:
+        - "55432:5432"
+      volumes:
+        - ./social-db/social-db/social-db-1-config.sql:/docker-entrypoint-initdb.d/social-db-1-config.sql
+        - ./social-db/social-db/social-db-2-schema.sql:/docker-entrypoint-initdb.d/social-db-2-schema.sql
+    ychat-social:
+      container_name: "ychat-social-service"
+      image: "mrsarius/yc-social"
+      restart: unless-stopped
+      pull_policy: never
+      build:
+        context: "./social-service"
+        dockerfile: "Dockerfile"
+      environment:
+        TZ: "UTC"
+        SERVER_PORT: "80"
+        SPRING_DATASOURCE_URL: "jdbc:postgresql://ychat-social-db:5432/social-db"
+        SPRING_DATASOURCE_USERNAME: "ychat"
+        SPRING_DATASOURCE_PASSWORD: "ychatformerlyknownas"
+      ports:
+        - "38080:80"
+      depends_on:
+        - ychat-social-db
