@@ -24,6 +24,7 @@ services:
           - ychat.gateway.redirect.target.notification=http://ychat-notification:8080
           - ychat.gateway.redirect.target.payment=http://ychat-payment:8080
           - ychat.gateway.redirect.target.media=http://ychat-media:8080
+          - ychat.gateway.redirect.target.calling=http://ychat-calling:8080
           - ychat.cors.allowed.url=http://localhost:3000
         ports: 
           - "7500:8080"
@@ -131,6 +132,40 @@ services:
           - spring.kafka.listener.concurrency=3
         ports:
           - "7504:8080"
+    # Calling Service
+    ychat-calling-db:
+        container_name: ychat-notification-db
+        image: 'mongo'
+        restart: unless-stopped
+        environment:
+          - MONGO_INITDB_ROOT_USERNAME=admin
+          - MONGO_INITDB_ROOT_PASSWORD=devpw
+        ports:
+          - "27020:27017"
+    ychat-calling:
+        container_name: ychat-calling
+        image: 'mrsarius/yc-calling'
+        restart: unless-stopped
+        pull_policy: never
+        build:
+            context: calling-service
+            dockerfile: Dockerfile
+        depends_on:
+          - ychat-calling-db
+        environment:
+          - spring.data.mongodb.host=ychat-calling-db
+          - spring.data.mongodb.port=27020
+          - spring.data.mongodb.username=admin
+          - spring.data.mongodb.password=devpw
+          - spring.data.mongodb.database=calling
+          - spring.data.mongodb.authentication-database=admin
+          - spring.kafka.bootstrap-servers=ychat-kafka:29092
+          - spring.kafka.consumer.group-id=calling
+          - spring.kafka.consumer.auto-offset-reset=earliest
+          - spring.kafka.listener.poll-timeout=3000
+          - spring.kafka.listener.concurrency=3
+        ports:
+          - "7507:8080"
     # Payment Service
     ychat-payment-db:
         container_name: ychat-payment-db

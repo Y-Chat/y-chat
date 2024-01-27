@@ -21,3 +21,7 @@
 	path = notification-service/api-specs
 	url = ../y-chat-api.git
 	branch = main
+[submodule "calling-service/api-specs"]
+	path = calling-service/api-specs
+	url = ../y-chat-api.git
+	branch = main
