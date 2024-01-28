@@ -93,7 +93,7 @@ function AuthMain() {
                         firstName: user.userProfileDTO.firstName,
                         lastName: user.userProfileDTO.lastName,
                         email: userCredentials.user.email!,
-                        avatar: null,
+                        profilePictureId: null,
                         balance: 1337
                     });
                     setUserLoading(false);

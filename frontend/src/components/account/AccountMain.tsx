@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {
     Avatar,
     Center,
@@ -23,6 +23,7 @@ import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 import {signOut} from "firebase/auth";
 import auth from "../../firebase/auth";
 import {getImageUrl, uploadImage} from "../../network/media";
+import {api} from "../../network/api";
 
 export function AccountMain() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -31,6 +32,7 @@ export function AccountMain() {
     const sizeHeader = 10;
     const user = useUserStore((state) => state.user)!; // this view can only be rendered if user is not null!
     const setUser = useUserStore((state) => state.setUser);
+    const [userProfilePictureURL, setUserProfilePictureURL] = useState<string | null>(null);
     const form = useForm({
         initialValues: {
             email: user?.email,
@@ -44,6 +46,14 @@ export function AccountMain() {
             //password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
         },
     });
+
+    useEffect(() => {
+        if (user.profilePictureId) {
+            getImageUrl(user.profilePictureId).then(url => {
+                setUserProfilePictureURL(url);
+            })
+        }
+    }, [user.profilePictureId])
 
     return (
         <>
@@ -79,13 +89,24 @@ export function AccountMain() {
                                         if (!uid)
                                             return;
 
-                                        files.forEach(async (file) => {
-                                            const objectId = await uploadImage(file, `profilePictures/${uid}/${file.name}`);
-                                            const url = await getImageUrl(objectId);
-                                            setUser({
-                                                ...user,
-                                                avatar: url
-                                            })
+                                        files.forEach((file) => {
+                                            uploadImage(file, `profilePictures/${uid}/${file.name}`).then(objectId => {
+                                                return api.updateUserProfile({
+                                                    userId: user.id,
+                                                    userProfileDTO: {
+                                                        firstName: user.firstName,
+                                                        lastName: user.lastName,
+                                                        profilePictureId: objectId
+                                                    }
+                                                })
+                                            }).then(userProfile => {
+                                                setUser({
+                                                    ...user,
+                                                    profilePictureId: userProfile.profilePictureId || null
+                                                })
+                                            }).catch(err => {
+                                                // TODO handle error
+                                            });
                                             setUploadingAvatar(false);
                                         })
                                     } catch (e) {
@@ -122,7 +143,9 @@ export function AccountMain() {
                                         </Avatar>
                                     </Dropzone.Reject>
                                     <Dropzone.Idle>
-                                        <Avatar src={user.avatar} size={120} color={accentColor}/>
+                                        <Avatar
+                                            src={userProfilePictureURL}
+                                            size={120} color={accentColor}/>
                                     </Dropzone.Idle>
                                 </Group>
                             </Dropzone>

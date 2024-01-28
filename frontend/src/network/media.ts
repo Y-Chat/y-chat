@@ -3,14 +3,20 @@ import {getDownloadURL, ref, uploadBytes} from "firebase/storage";
 import {storageRef} from "../firebase/storage";
 
 // get downloadable URL for objectName
-export async function getImageUrl(objectName: string): Promise<string> {
-    if (objectName.startsWith("chats/")) {
-        // get signed file url from media server because for chat media, extra permissions have to be checked
-        const resp = await api.getMedia({objectName})
-        return resp.url
+export async function getImageUrl(objectName: string): Promise<string | null> {
+    try {
+        if (objectName.startsWith("chats/")) {
+            // get signed file url from media server because for chat media, extra permissions have to be checked
+            const resp = await api.getMedia({objectName})
+            return resp.url
+        }
+        const objectRef = ref(storageRef, objectName);
+        return await getDownloadURL(objectRef);
+    } catch (err) {
+        // TODO handle error
+        return null
     }
-    const objectRef = ref(storageRef, objectName);
-    return await getDownloadURL(objectRef);
+
 }
 
 // upload file to path (path including file name). Returns objectId on successful upload.

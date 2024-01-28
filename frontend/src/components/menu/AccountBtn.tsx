@@ -24,7 +24,7 @@ function AccountBtn({toggleNav}: AccountBtnProps) {
             }}>
             <Group>
                 <Avatar
-                    src={user?.avatar}
+                    src={user?.profilePictureId}
                     radius="xl"
                 />
 

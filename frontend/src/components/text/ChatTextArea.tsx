@@ -3,19 +3,41 @@ import {ActionIcon, Avatar, Divider, Group, Image, Paper, rem, Textarea} from "@
 import {IconPhoto, IconSend, IconUpload, IconX} from "@tabler/icons-react";
 import {isMobile} from 'react-device-detect';
 import {api} from "../../network/api";
-import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
+import {Dropzone, FileWithPath, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 import {Message} from "../../api-wrapper";
-import {getImageUrl, uploadImage} from "../../network/media";
-
-interface UploadedImage {
-    url: string,
-    imageId: string
-}
+import {uploadImage} from "../../network/media";
+import {showErrorNotification} from "../../notifications/notifications";
 
 function ChatTextArea() {
     const [message, setMessage] = useState("");
-    const [image, setImage] = useState<UploadedImage | null>(null);
-    const [uploadingImage, setUploadingImage] = useState(false);
+    const [image, setImage] = useState<{ file: FileWithPath | null, url: string }>({file: null, url: ""});
+    const [messageSending, setMessageSending] = useState(false);
+
+    async function sendMessage() {
+        setMessageSending(true);
+        let msg: Message = {
+            id: "c7d5906b-df61-45bd-b44e-b3b8d4c8946a", // Is ignored by server, will be fixed so we don't need to pass a random uuid here
+            senderId: "c7d5906b-df61-45bd-b44e-b3b8d4c8946a",
+            chatId: "8e400639-1a6b-44f6-adf6-d4fd7d463e93", // TODO
+            sentTimestamp: new Date(),
+            message: message
+        }
+
+        if (image.file) {
+            try {
+                //TODO insert chatID here!
+                msg.mediaId = await uploadImage(image.file, `chats/testChat/${image.file.name}`);
+                const m = await api.sendMessage({message: msg});
+                // TODO add message to local storage
+                setMessage("");
+                setImage({file: null, url: ""});
+            } catch (err) {
+                setMessageSending(false);
+                return showErrorNotification("An error occurred sending your message.", "Sending Message Failed");
+            }
+        }
+        setMessageSending(false);
+    }
 
     return (
         <footer style={{
@@ -35,6 +57,7 @@ function ChatTextArea() {
             >
                 <Group gap={10}>
                     <Textarea
+                        disabled={messageSending}
                         value={message}
                         onChange={(event) => {
                             setMessage(event.target.value);
@@ -49,7 +72,6 @@ function ChatTextArea() {
                         leftSection={image ? <Image w="80%" src={image.url}></Image> : undefined}
                         rightSection={
                             <ActionIcon
-                                loading={uploadingImage}
                                 variant="transparent"
                                 aria-label="Media"
                             >
@@ -57,20 +79,10 @@ function ChatTextArea() {
                                     maxFiles={1}
                                     multiple={false}
                                     pos={"relative"}
-                                    loading={uploadingImage}
                                     onDrop={(files) => {
-                                        setUploadingImage(true);
-                                        try {
-                                            files.forEach(async (file) => {
-                                                const objectId = await uploadImage(file, `chats/testChat/${file.name}`); //TODO insert chatID here!
-                                                const url = await getImageUrl(objectId) // TODO function can fail. Handle separately?
-                                                setImage({url, imageId: objectId})
-                                                setUploadingImage(false);
-                                            })
-                                        } catch (e) {
-                                            setUploadingImage(false);
-                                            // TODO handle error
-                                        }
+                                        files.forEach((file) => {
+                                            setImage({file: file, url: URL.createObjectURL(file)})
+                                        })
                                     }}
                                     onReject={(files) => console.log('rejected files', files)}
                                     accept={IMAGE_MIME_TYPE}
@@ -109,26 +121,12 @@ function ChatTextArea() {
                         }/>
 
                     <ActionIcon
+                        loading={messageSending}
                         size={42}
                         variant="filled"
                         aria-label="Send"
                         disabled={!message.length && !image}
-                        onClick={async () => {
-                            const msg: Message = {
-                                id: "c7d5906b-df61-45bd-b44e-b3b8d4c8946a", // Is ignored by server, will be fixed so we don't need to pass a random uuid here
-                                senderId: "frontendTest",
-                                chatId: "8e400639-1a6b-44f6-adf6-d4fd7d463e93",
-                                sentTimestamp: new Date(),
-                                mediaId: image ? image.imageId : undefined,
-                                message: message
-                            }
-                            api.sendMessage({message: msg})
-                                .catch(() => {
-                                    // TODO handle error
-                                });
-                            setMessage("");
-                            setImage(null);
-                        }}
+                        onClick={sendMessage}
                     >
                         <IconSend/>
                     </ActionIcon>

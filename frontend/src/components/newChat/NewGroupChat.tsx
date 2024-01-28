@@ -6,8 +6,6 @@ import {IconPlus, IconUpload, IconX} from "@tabler/icons-react";
 import {api} from "../../network/api";
 import {useUserStore} from "../../state/userStore";
 import {useChatsStore} from "../../state/chatsStore";
-import {storageRef} from "../../firebase/storage";
-import {ref} from "firebase/storage";
 import {uploadImage} from "../../network/media";
 
 export function NewGroupChat() {
@@ -58,8 +56,7 @@ export function NewGroupChat() {
                 });
 
                 if (avatarPreview.file) {
-                    const r = ref(storageRef, `chats/${group.id}/${avatarPreview.file.name}`);
-                    const objectId = await uploadImage(avatarPreview.file, r.fullPath);
+                    const objectId = await uploadImage(avatarPreview.file, `chats/${group.id}/${avatarPreview.file.name}`);
                     await api.updateGroupProfile({
                         groupId: group.id,
                         groupProfileDTO: {
