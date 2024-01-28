@@ -73,11 +73,11 @@ public class ChatService {
     public ChatDTO createDirectChat(UUID userId, UUID otherUserId) {
         User user = userService.findUserByIdOrThrow(userId);
         User otherUser = userService.findUserByIdOrThrow(otherUserId);
-        if (directChatMemberRepo.existsBetweenTwoUsers(user, otherUser)) {
-            throw new IllegalUserInputException(
-                "Direct chat between " + user + " and " + otherUser + " already exists."
-            );
-        }
+//        if (directChatMemberRepo.existsBetweenTwoUsers(user, otherUser)) { TODO this is causing errors!
+//            throw new IllegalUserInputException(
+//                "Direct chat between " + user + " and " + otherUser + " already exists."
+//            );
+//        }
         DirectChat directChat = new DirectChat(user, otherUser);
         directChatRepo.save(directChat);
         return DTOConverter.convertToDTO(directChat, user);
