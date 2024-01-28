@@ -30,13 +30,17 @@ function ChatTextArea() {
                 const m = await api.sendMessage({message: msg});
                 // TODO add message to local storage
                 setMessage("");
-                setImage({file: null, url: ""});
+                resetImage()
             } catch (err) {
                 setMessageSending(false);
                 return showErrorNotification("An error occurred sending your message.", "Sending Message Failed");
             }
         }
         setMessageSending(false);
+    }
+
+    function resetImage() {
+        setImage({file: null, url: ""});
     }
 
     return (
@@ -69,7 +73,23 @@ function ChatTextArea() {
                             flex: "1 1 auto"
                         }}
                         maxRows={5}
-                        leftSection={image ? <Image w="80%" src={image.url}></Image> : undefined}
+                        leftSection={image.url ?
+                            <>
+                                <Image
+                                    h={"xl"}
+                                    w={"xl"}
+                                    onClick={resetImage}
+                                    src={image.url}/>
+                                <ActionIcon onClick={resetImage} color={"red"} style={{
+                                    position: "absolute",
+                                    top: -2,
+                                    left: -2
+                                }} size={13}>
+                                    <IconX/>
+                                </ActionIcon>
+                            </> : undefined
+
+                        }
                         rightSection={
                             <ActionIcon
                                 variant="transparent"

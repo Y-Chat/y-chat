@@ -4,6 +4,7 @@ import {storageRef} from "../firebase/storage";
 
 // get downloadable URL for objectName
 export async function getImageUrl(objectName: string): Promise<string | null> {
+    // TODO theoretically we could add some caching mechanism here. Only fetch new URL if the URL in cache expired
     try {
         if (objectName.startsWith("chats/")) {
             // get signed file url from media server because for chat media, extra permissions have to be checked

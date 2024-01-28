@@ -5,9 +5,9 @@ import {
     Text,
     TextInput,
     rem,
-    Indicator, Avatar, ActionIcon, Stack, Center, Flex,
+    Indicator, Avatar, ActionIcon, Stack, Center
 } from '@mantine/core';
-import {IconMessageOff, IconMessagePlus, IconSearch, IconX} from '@tabler/icons-react';
+import {IconMessageOff, IconSearch, IconUsersPlus, IconX} from '@tabler/icons-react';
 import {useUserStore} from "../../state/userStore";
 import {useNavigate} from "react-router-dom";
 import {useChatsStore} from "../../state/chatsStore";
@@ -96,34 +96,34 @@ export function ContactList({toggleNav}: ContactListProps) {
             <Center>
                 <Text c={"dimmed"}>Chats</Text>
             </Center>
-            <Flex justify="space-between" align="center" gap="md">
-                <TextInput
-                    placeholder="Search friends or chats"
-                    size="md"
-                    w="100%"
-                    leftSection={
-                        search != "" ?
-                            <ActionIcon variant="transparent" onClick={() => {
-                                setSearch("");
-                            }}>
-                                <IconX style={{width: rem(16), height: rem(16)}} stroke={1.5}/>
-                            </ActionIcon>
-                            :
-                            <IconSearch style={{width: rem(16), height: rem(16)}} stroke={1.5}/>
-                    }
-                    value={search}
-                    onChange={(e) => {
-                        setSearch(e.currentTarget.value);
-                    }}
-                />
-                <ActionIcon
-                    onClick={() => {
-                        toggleNav();
-                        navigate("/newChat");
-                    }}
-                    variant="transparent"><IconMessagePlus color={"white"}/></ActionIcon>
-            </Flex>
-
+            <TextInput
+                placeholder="Search new friends or chats"
+                size="md"
+                w="100%"
+                rightSection={
+                    <ActionIcon
+                        onClick={() => {
+                            toggleNav();
+                            navigate("/newChat");
+                        }}
+                        variant="transparent"><IconUsersPlus/>
+                    </ActionIcon>
+                }
+                leftSection={
+                    search != "" ?
+                        <ActionIcon variant="transparent" onClick={() => {
+                            setSearch("");
+                        }}>
+                            <IconX style={{width: rem(16), height: rem(16)}} stroke={1.5}/>
+                        </ActionIcon>
+                        :
+                        <IconSearch style={{width: rem(16), height: rem(16)}} stroke={1.5}/>
+                }
+                value={search}
+                onChange={(e) => {
+                    setSearch(e.currentTarget.value);
+                }}
+            />
             {rows.length <= 0 ?
                 <Center>
                     <Stack justify="start" align="center" gap={5}>
