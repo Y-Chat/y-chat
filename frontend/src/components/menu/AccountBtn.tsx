@@ -1,7 +1,7 @@
 import React from "react";
 import {Avatar, Group, rem, Text, UnstyledButton} from "@mantine/core";
 import {IconChevronRight} from "@tabler/icons-react";
-import {useAppStore} from "../../state/store";
+import {useUserStore} from "../../state/userStore";
 import {useNavigate} from "react-router-dom";
 
 interface AccountBtnProps {
@@ -9,7 +9,7 @@ interface AccountBtnProps {
 }
 
 function AccountBtn({toggleNav}: AccountBtnProps) {
-    const user = useAppStore((state) => state.user)
+    const user = useUserStore((state) => state.user)
     const navigate = useNavigate()
     return (
         <UnstyledButton
@@ -34,7 +34,7 @@ function AccountBtn({toggleNav}: AccountBtnProps) {
                     </Text>
 
                     <Text c="dimmed" size="xs">
-                        {`@${user?.username}`}
+                        {`${user?.email}`}
                     </Text>
                 </div>
                 <Text c="green">{`${user?.balance}€`}</Text>

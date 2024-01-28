@@ -16,7 +16,7 @@ import {
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {TextInput} from "@mantine/core";
-import {useAppStore} from "../../state/store";
+import {useUserStore} from "../../state/userStore";
 import MenuDrawer from "../menu/MenuDrawer";
 import {IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
@@ -29,8 +29,8 @@ export function AccountMain() {
     const [accentColor, setAccentColor] = useState('#fff');
     const [logoutLoading, setLogoutLoading] = useState(false);
     const sizeHeader = 10;
-    const user = useAppStore((state) => state.user)!; // this view can only be rendered if user is not null!
-    const setUser = useAppStore((state) => state.setUser);
+    const user = useUserStore((state) => state.user)!; // this view can only be rendered if user is not null!
+    const setUser = useUserStore((state) => state.setUser);
     const form = useForm({
         initialValues: {
             email: user?.email,

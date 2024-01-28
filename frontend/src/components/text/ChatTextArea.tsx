@@ -114,16 +114,6 @@ function ChatTextArea() {
                         aria-label="Send"
                         disabled={!message.length && !image}
                         onClick={async () => {
-                            try { // TODO remove
-                                const resp = await api.getBlockedUsers({
-                                    userId: "6f4f9125-ea98-4ad6-a45f-9980837f8f7a",
-                                    pageable: {}
-                                })
-                            } catch (e) {
-                                console.log(e)
-                            }
-
-                            debugger
                             const msg: Message = {
                                 id: "c7d5906b-df61-45bd-b44e-b3b8d4c8946a", // Is ignored by server, will be fixed so we don't need to pass a random uuid here
                                 senderId: "frontendTest",
@@ -132,7 +122,6 @@ function ChatTextArea() {
                                 mediaId: image ? image.imageId : undefined,
                                 message: message
                             }
-                            console.log(msg) // TODO remove
                             api.sendMessage({message: msg})
                                 .catch(() => {
                                     // TODO handle error

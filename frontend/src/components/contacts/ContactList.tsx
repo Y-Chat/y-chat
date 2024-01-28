@@ -1,219 +1,17 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     UnstyledButton,
     Group,
     Text,
     TextInput,
     rem,
-    keys, Indicator, Avatar, ActionIcon, Stack, Center,
+    Indicator, Avatar, ActionIcon, Stack, Center, Flex,
 } from '@mantine/core';
-import {IconMessageOff, IconSearch, IconX} from '@tabler/icons-react';
-import {useAppStore} from "../../state/store";
+import {IconMessageOff, IconMessagePlus, IconSearch, IconX} from '@tabler/icons-react';
+import {useUserStore} from "../../state/userStore";
 import {useNavigate} from "react-router-dom";
-
-interface Chat {
-    id: number
-    avatar: null | string,
-    firstName: string,
-    lastName: string,
-    username: string,
-    newMessages: number,
-    date: Date
-}
-
-function filterData(data: Chat[], search: string) {
-    const query = search.toLowerCase().trim();
-    return data.filter((item) =>
-        keys(data[0]).some((key) => {
-            const elem: any = item[key]
-            if (typeof elem == "string")
-                return elem.toString().toLowerCase().includes(query)
-        })
-    );
-}
-
-const data: Chat[] = [
-    {
-        id: 1,
-        avatar: null,
-        firstName: "Niklas",
-        lastName: "Mamtschur",
-        username: "xXmamtschurXx",
-        newMessages: 1,
-        date: new Date()
-    },
-    {
-        id: 2,
-        avatar: null,
-        firstName: "Benedikt",
-        lastName: "Strobel",
-        username: "strobel123",
-        newMessages: 3,
-        date: new Date()
-    },
-    {
-        id: 3,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 4,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 5,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    }, {
-        id: 6,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 1,
-        date: new Date()
-    },
-    {
-        id: 7,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 1,
-        date: new Date()
-    },
-    {
-        id: 8,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 9,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 1,
-        date: new Date()
-    },
-    {
-        id: 10,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 1,
-        date: new Date()
-    },
-    {
-        id: 11,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 12,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 13,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 14,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 15,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 16,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 17,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 18,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 19,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    },
-    {
-        id: 20,
-        avatar: null,
-        firstName: "Ben",
-        lastName: "Riegel",
-        username: "ri3gel",
-        newMessages: 0,
-        date: new Date()
-    }
-
-];
+import {useChatsStore} from "../../state/chatsStore";
+import {Chat} from "../../model/Chat";
 
 interface ContactListProps {
     toggleNav: () => void
@@ -221,19 +19,43 @@ interface ContactListProps {
 
 export function ContactList({toggleNav}: ContactListProps) {
     const [search, setSearch] = useState('');
-    const [sortedData, setSortedData] = useState(data);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const user = useUserStore((state) => state.user)!;
+    const chats = useChatsStore((state) => state.chats);
+    const [sortedChats, setSortedChats] = useState<Chat[]>(chats);
+    const fetchChats = useChatsStore((state) => state.fetchChats);
+    const setSelectedChat = useChatsStore((state) => state.setSelectedChat);
+
+    function filterData() {
+        const query = search.toLowerCase().trim();
+        const sorted = chats.filter((item) => {
+                return (item.name + item.email).toLowerCase().includes(query)
+                // return Object.values(item).some(val => {
+                //     if (typeof val == "string")
+                //         return val.toString().toLowerCase().includes(query)
+                // })
+            }
+        );
+        setSortedChats(sorted);
+    }
+
+    useEffect(() => {
+        fetchChats(user.id);
+    }, []);
+
+    useEffect(() => {
+        filterData();
+    }, [search])
 
 
-    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const {value} = event.currentTarget;
-        setSearch(value);
-        setSortedData(filterData(data, value));
-    };
+    useEffect(() => {
+        filterData();
+    }, [chats]);
 
-    const rows = sortedData.map((row) => (
+    const rows = sortedChats.map((row) => (
         <UnstyledButton key={row.id} onClick={() => {
-            navigate('/')
+            setSelectedChat(row.id);
+            //navigate('/')
             toggleNav();
         }}>
             <Group justify="space-between">
@@ -243,10 +65,16 @@ export function ContactList({toggleNav}: ContactListProps) {
                     </Indicator>
                     <div style={{marginLeft: 5}}>
                         <Text fz="sm" fw={500}>
-                            {`${row.firstName} ${row.lastName}`}
+                            {`${row.name}`}
                         </Text>
-                        <Text c="dimmed" fz="xs">
-                            {`@${row.username}`}
+                        <Text c="dimmed" fz="xs" style={{
+                            height: "1.5em",
+                            width: 160,
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis"
+                        }}>
+                            {`${row.lastMessage}`}
                         </Text>
                     </div>
                 </Group>
@@ -268,29 +96,39 @@ export function ContactList({toggleNav}: ContactListProps) {
             <Center>
                 <Text c={"dimmed"}>Chats</Text>
             </Center>
-            <TextInput
-                placeholder="Search friends or chats"
-                size="md"
-                mb="md"
-                leftSection={
-                    search != "" ?
-                        <ActionIcon variant="transparent" onClick={() => {
-                            setSearch("")
-                            setSortedData(filterData(data, ""));
-                        }}>
-                            <IconX style={{width: rem(16), height: rem(16)}} stroke={1.5}/>
-                        </ActionIcon>
-                        :
-                        <IconSearch style={{width: rem(16), height: rem(16)}} stroke={1.5}/>
-                }
-                value={search}
-                onChange={handleSearchChange}
-            />
+            <Flex justify="space-between" align="center" gap="md">
+                <TextInput
+                    placeholder="Search friends or chats"
+                    size="md"
+                    w="100%"
+                    leftSection={
+                        search != "" ?
+                            <ActionIcon variant="transparent" onClick={() => {
+                                setSearch("");
+                            }}>
+                                <IconX style={{width: rem(16), height: rem(16)}} stroke={1.5}/>
+                            </ActionIcon>
+                            :
+                            <IconSearch style={{width: rem(16), height: rem(16)}} stroke={1.5}/>
+                    }
+                    value={search}
+                    onChange={(e) => {
+                        setSearch(e.currentTarget.value);
+                    }}
+                />
+                <ActionIcon
+                    onClick={() => {
+                        toggleNav();
+                        navigate("/newChat");
+                    }}
+                    variant="transparent"><IconMessagePlus color={"white"}/></ActionIcon>
+            </Flex>
+
             {rows.length <= 0 ?
                 <Center>
                     <Stack justify="start" align="center" gap={5}>
                         <IconMessageOff/>
-                        <Text>No Chats</Text>
+                        <Text>No Chats.</Text>
                     </Stack>
                 </Center>
                 :
