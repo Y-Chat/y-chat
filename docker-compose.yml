@@ -134,7 +134,7 @@ services:
           - "7504:8080"
     # Calling Service
     ychat-calling-db:
-        container_name: ychat-notification-db
+        container_name: ychat-calling-db
         image: 'mongo'
         restart: unless-stopped
         environment:
