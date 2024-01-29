@@ -29,7 +29,10 @@ public class MessagingService {
 
     private final Random random = new Random();
 
-    public MessagingService(@Autowired ChatMessageRepository messageRepository, @Autowired NotificationServiceConnector notificationServiceConnector){
+    public MessagingService(
+            @Autowired ChatMessageRepository messageRepository,
+            @Autowired NotificationServiceConnector notificationServiceConnector
+    ){
         this.messageRepository = messageRepository;
         this.notificationServiceConnector = notificationServiceConnector;
     }
@@ -53,8 +56,7 @@ public class MessagingService {
 
     public Optional<Message> sendMessage(Message message, UUID senderId) {
         // TODO Check if senderId is part of chat
-        // TODO Check if mediaId is valid
-        // TODO Check if transactionId is valid
+        // TODO Check if transactionId is valid (Do when/if payment service is implemented)
         com.ychat.ychat.models.Message newMessage = new com.ychat.ychat.models.Message(
                 UUID.randomUUID(),
                 senderId,
