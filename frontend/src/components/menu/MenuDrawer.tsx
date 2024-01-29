@@ -1,8 +1,8 @@
 import React from "react";
 import {
     Burger,
+    Container,
     Drawer,
-    ScrollArea,
 } from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
 import AccountBtn from "./AccountBtn";
@@ -26,11 +26,14 @@ function MenuDrawer() {
                 overlayProps={{backgroundOpacity: 0.5, blur: 4}}
             >
                 <Drawer.Header>
-                    <AccountBtn toggleNav={close}/>
+                    <Container w={"100%"} p={"md"}>
+                        <AccountBtn toggleNav={close}/>
+                    </Container>
+
                 </Drawer.Header>
-                <ScrollArea type="scroll" scrollbarSize={2} scrollHideDelay={500}>
+                <Container p={"md"}>
                     <ContactList toggleNav={close}/>
-                </ScrollArea>
+                </Container>
             </Drawer>
         </>
     );

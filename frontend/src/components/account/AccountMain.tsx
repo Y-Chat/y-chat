@@ -24,6 +24,7 @@ import {signOut} from "firebase/auth";
 import auth from "../../firebase/auth";
 import {getImageUrl, uploadImage} from "../../network/media";
 import {api} from "../../network/api";
+import {useNavigate} from "react-router-dom";
 
 export function AccountMain() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -33,6 +34,7 @@ export function AccountMain() {
     const user = useUserStore((state) => state.user)!; // this view can only be rendered if user is not null!
     const setUser = useUserStore((state) => state.setUser);
     const [userProfilePictureURL, setUserProfilePictureURL] = useState<string | null>(null);
+    const navigate = useNavigate()
     const form = useForm({
         initialValues: {
             email: user?.email,
@@ -217,8 +219,9 @@ export function AccountMain() {
                             onClick={() => {
                                 setLogoutLoading(true)
                                 signOut(auth).then(() => {
-                                    setLogoutLoading(false)
-                                    setUser(null)
+                                    setLogoutLoading(false);
+                                    setUser(null);
+                                    navigate("/");
                                 }).catch(() => {
                                     setLogoutLoading(false)
                                     // TODO maybe handle error

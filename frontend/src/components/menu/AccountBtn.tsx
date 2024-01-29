@@ -17,7 +17,6 @@ function AccountBtn({toggleNav}: AccountBtnProps) {
                 navigate('/account')
                 toggleNav();
             }}
-            p={"md"}
             style={{
                 display: "block",
                 width: "100%"

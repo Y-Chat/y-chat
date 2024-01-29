@@ -11,7 +11,7 @@ function ChatMain() {
     // size in percent of screen -> content is 100% - sizeHeader - sizeFooter
     const sizeHeader = 10;
     const sizeFooter = 10;
-    const selectedChat = useChatsStore(state => state.selectedChat)
+    const selectedChat = useChatsStore(state => state.selectedChat);
 
     useEffect(() => {
         api.getMessages({chatId: 'b883492e-cb45-484e-895a-0703700deac7', fromDate: new Date(2000, 0, 1)})
@@ -41,10 +41,16 @@ function ChatMain() {
                                 <Avatar size={40} src={null} radius={40}/>
                                 <div style={{marginLeft: 5}}>
                                     <Text fz="sm" fw={500}>
-                                        {`Ben Strobel`}
+                                        {`${selectedChat!.name}`}
                                     </Text>
-                                    <Text c="dimmed" fz="xs">
-                                        {`@strobel123`}
+                                    <Text c="dimmed" fz="xs" w={150} style={{
+                                        height: "1.5em",
+                                        width: 155,
+                                        overflow: "hidden",
+                                        whiteSpace: "nowrap",
+                                        textOverflow: "ellipsis"
+                                    }}>
+                                        {selectedChat!.groupInfo ? `${selectedChat?.groupInfo?.description}` : `@${selectedChat?.email}`}
                                     </Text>
                                 </div>
                             </Group>
@@ -57,24 +63,30 @@ function ChatMain() {
                 </div>
             </header>
 
-            <div style={{
-                position: "absolute",
-                top: `${sizeHeader}vh`,
-                height: `${100 - sizeHeader - sizeFooter}vh`,
-                width: "100vw",
-            }}>
-                <MessageList/>
-            </div>
+            {!selectedChat ? <Text>Welcome to Y-Chat</Text> :
+                <>
+                    <div style={{
+                        position: "absolute",
+                        top: `${sizeHeader}vh`,
+                        height: `${100 - sizeHeader - sizeFooter}vh`,
+                        width: "100vw",
+                    }}>
+                        <MessageList/>
+                    </div>
 
-            <div style={{
-                position: "fixed",
-                bottom: 0,
-                height: `${sizeFooter}vh`,
-                width: "100vw",
-                zIndex: 1
-            }}>
-                <ChatTextArea/>
-            </div>
+                    <div style={{
+                        position: "fixed",
+                        bottom: 0,
+                        height: `${sizeFooter}vh`,
+                        width: "100vw",
+                        zIndex: 1
+                    }}>
+                        <ChatTextArea/>
+                    </div>
+                </>
+            }
+
+
         </>
     );
 }

@@ -62,8 +62,9 @@ export const useChatsStore = create<ChatsState>()(
                             email: "email@user.com",
                             lastMessage: "Hey whad up? I was sondering how to do something lol i am just writitng words!",
                             newMessages: 1,
-                            isGroup: !!chat.groupProfileDTO,
-                            date: new Date()
+                            groupInfo: chat.groupProfileDTO ? {description: chat.groupProfileDTO.profileDescription || ""} : undefined,
+                            archived: false,
+                            date: new Date(Math.random() * 1000000000000) // TODO calc date
                         }
                         return transformedChat;
                     })

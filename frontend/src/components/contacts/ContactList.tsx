@@ -7,11 +7,17 @@ import {
     rem,
     Indicator, Avatar, ActionIcon, Stack, Center
 } from '@mantine/core';
-import {IconMessageOff, IconSearch, IconUsersPlus, IconX} from '@tabler/icons-react';
+import {
+    IconArchive,
+    IconMessageOff,
+    IconSearch, IconUserCancel, IconUsersPlus,
+    IconX
+} from '@tabler/icons-react';
 import {useUserStore} from "../../state/userStore";
 import {useNavigate} from "react-router-dom";
 import {useChatsStore} from "../../state/chatsStore";
 import {Chat} from "../../model/Chat";
+import {NewDirectChat} from "../newChat/NewDirectChat";
 
 interface ContactListProps {
     toggleNav: () => void
@@ -28,7 +34,7 @@ export function ContactList({toggleNav}: ContactListProps) {
 
     function filterData() {
         const query = search.toLowerCase().trim();
-        const sorted = chats.filter((item) => {
+        const filtered = chats.filter((item) => {
                 return (item.name + item.email).toLowerCase().includes(query)
                 // return Object.values(item).some(val => {
                 //     if (typeof val == "string")
@@ -36,7 +42,8 @@ export function ContactList({toggleNav}: ContactListProps) {
                 // })
             }
         );
-        setSortedChats(sorted);
+        filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
+        setSortedChats(filtered);
     }
 
     useEffect(() => {
@@ -55,10 +62,10 @@ export function ContactList({toggleNav}: ContactListProps) {
     const rows = sortedChats.map((row) => (
         <UnstyledButton key={row.id} onClick={() => {
             setSelectedChat(row.id);
-            //navigate('/')
+            navigate('/');
             toggleNav();
         }}>
-            <Group justify="space-between">
+            <Group justify="space-between" gap={0}>
                 <Group gap="sm">
                     <Indicator disabled={!row.newMessages}>
                         <Avatar size={40} src={row.avatar} radius={40}/>
@@ -69,7 +76,7 @@ export function ContactList({toggleNav}: ContactListProps) {
                         </Text>
                         <Text c="dimmed" fz="xs" style={{
                             height: "1.5em",
-                            width: 160,
+                            width: 155,
                             overflow: "hidden",
                             whiteSpace: "nowrap",
                             textOverflow: "ellipsis"
@@ -88,26 +95,39 @@ export function ContactList({toggleNav}: ContactListProps) {
         <Stack
             justify="flex-start"
             gap={25}
-            mt={25}
             mb={25}
-            pr={10}
-            pl={10}
+            p={0}
         >
-            <Center>
-                <Text c={"dimmed"}>Chats</Text>
-            </Center>
+            <Group justify="space-between">
+                <ActionIcon
+                    variant={"transparent"}
+                    onClick={() => {
+                        toggleNav();
+                        navigate("/newGroup");
+                    }}
+                >
+                    <IconUsersPlus/>
+                </ActionIcon>
+                <ActionIcon
+                    variant={"transparent"}
+                >
+                    <IconArchive/>
+                </ActionIcon>
+                <ActionIcon
+                    variant={"transparent"}
+                >
+                    <IconUserCancel/>
+                </ActionIcon>
+            </Group>
+            {/*<Center>*/}
+            {/*    <Text c={"dimmed"}>Chats</Text>*/}
+            {/*</Center>*/}
             <TextInput
-                placeholder="Search new friends or chats"
+                placeholder="Search chats or add friends"
                 size="md"
                 w="100%"
                 rightSection={
-                    <ActionIcon
-                        onClick={() => {
-                            toggleNav();
-                            navigate("/newChat");
-                        }}
-                        variant="transparent"><IconUsersPlus/>
-                    </ActionIcon>
+                    <NewDirectChat email={search}/>
                 }
                 leftSection={
                     search != "" ?
@@ -126,7 +146,7 @@ export function ContactList({toggleNav}: ContactListProps) {
             />
             {rows.length <= 0 ?
                 <Center>
-                    <Stack justify="start" align="center" gap={5}>
+                    <Stack c={"dimmed"} justify="start" align="center" gap={5}>
                         <IconMessageOff/>
                         <Text>No Chats.</Text>
                     </Stack>

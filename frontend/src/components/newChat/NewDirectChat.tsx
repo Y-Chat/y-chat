@@ -1,17 +1,39 @@
-import React from "react";
-import {useForm} from "@mantine/form";
+import React, {useState} from "react";
+import {ActionIcon} from "@mantine/core";
+import {IconUserPlus} from "@tabler/icons-react";
+import {api} from "../../network/api";
+import {useUserStore} from "../../state/userStore";
+import {useChatsStore} from "../../state/chatsStore";
+import {showErrorNotification} from "../../notifications/notifications";
 
-export function NewDirectChat() {
-    const form = useForm({
-        initialValues: {},
+interface NewDirectChatProps {
+    email: string
+}
 
-        validate: {},
-    });
-
+export function NewDirectChat({email}: NewDirectChatProps) {
+    const [isLoading, setIsLoading] = useState(false)
+    const isValidEmail = /^\S+@\S+$/.test(email)
+    const user = useUserStore(state => state.user)!
+    const fetchChats = useChatsStore(state => state.fetchChats)
     return (
-        <form onSubmit={form.onSubmit(() => {
-        })}>
-
-        </form>
+        <ActionIcon
+            loading={isLoading}
+            onClick={async () => {
+                setIsLoading(true);
+                try {
+                    const chat = await api.createDirectChat({userId: user.id, otherUserId: email}) // TODO API must accept email instead of uid!
+                    await fetchChats(user.id);
+                } catch (err) {
+                    // TODO handle err
+                    showErrorNotification("It seems like the email you entered is not registered in our system.","User not found"); // ignore other errors for now
+                    setIsLoading(false);
+                }
+                setIsLoading(false);
+            }}
+            variant="transparent"
+            disabled={!isValidEmail}
+        >
+            <IconUserPlus/>
+        </ActionIcon>
     );
 }
