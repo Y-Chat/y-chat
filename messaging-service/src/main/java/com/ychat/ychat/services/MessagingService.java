@@ -61,7 +61,7 @@ public class MessagingService {
                 message.getChatId(),
                 LocalDateTime.now(),
                 message.getMessage(),
-                message.getMediaId(),
+                message.getMediaPath(),
                 message.getTransactionId()
         );
         newMessage = messageRepository.save(newMessage);
