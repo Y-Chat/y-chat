@@ -13,6 +13,7 @@ import {Notifications} from "@mantine/notifications";
 import {PermissionsModal} from "./common/PermissionsModal";
 import {useAuthState} from "react-firebase-hooks/auth";
 import auth from "../firebase/auth";
+import ChatCall from "./chat/ChatCall";
 
 function App() {
 
@@ -55,6 +56,7 @@ function App() {
                             <Route path="/" element={<Shell/>}>
                                 <Route path="/" element={<ChatMain/>}/>
                                 <Route path="/account" element={<AccountMain/>}/>
+                                <Route path={"/call"} element={<ChatCall/>}/>
                             </Route>
                             <Route path="/*" element={<p>This should not happen</p>}/>
                         </Routes>

@@ -5,11 +5,14 @@ import MessageList from "./MessageList";
 import ChatTextArea from "../text/ChatTextArea";
 import {IconVideo} from "@tabler/icons-react";
 import {accessToken, api} from "../../network/api";
+import {useNavigate} from "react-router-dom";
 
 function ChatMain() {
     // size in percent of screen -> content is 100% - sizeHeader - sizeFooter
     const sizeHeader = 10;
     const sizeFooter = 10;
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         api.getMessages({chatId: 'b883492e-cb45-484e-895a-0703700deac7', fromDate: new Date(2000, 0, 1)})
@@ -47,7 +50,9 @@ function ChatMain() {
                                 </div>
                             </Group>
                         </Group>
-                        <ActionIcon variant="transparent" c="lightgray">
+                        <ActionIcon variant="transparent" c="lightgray" onClick={() => {
+                            navigate("/call")
+                        }}>
                             <IconVideo/>
                         </ActionIcon>
                     </Group>

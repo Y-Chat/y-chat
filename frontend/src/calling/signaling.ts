@@ -39,13 +39,26 @@ export class CallSignaling {
     peerConnection = new RTCPeerConnection(servers);
     localStream: MediaStream;
     remoteStream: MediaStream;
+    webcamVideo: HTMLVideoElement | null;
+    remoteVideo: HTMLVideoElement | null;
 
     constructor() {
         this.peerConnection = new RTCPeerConnection(servers);
         this.remoteStream = new MediaStream();
         this.localStream = new MediaStream();
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((x) => {
+        this.webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
+        this.remoteVideo = null;
+        this.setOwnMedia(true)
+    }
+
+    setOwnMedia(withAudio: boolean) {
+        this.webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
+        navigator.mediaDevices.getUserMedia({ video: true, audio: withAudio }).then((x) => {
             this.localStream = x;
+            console.log("webcamVideo: ", this.webcamVideo)
+            if(this.webcamVideo) {
+                this.webcamVideo.srcObject = this.localStream;
+            }
         })
     }
 
@@ -71,11 +84,11 @@ export class CallSignaling {
             type: offerDescription.type,
         };
 
-        api.createCall({call: {
-            id: "c7d5906b-df61-45bd-b44e-b3b8d4c8946a", // Is ignored by server, will be fixed so we don't need to pass a random uuid here
-            timestamp: new Date(),
+        api.createCall({createCallRequest: {
             calleeId: mockedCalleeId,
-            callerId: mockedCallerId
+            offer: {
+                type: ""
+            }
         }})
     }
 
