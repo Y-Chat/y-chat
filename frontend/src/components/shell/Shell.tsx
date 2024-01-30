@@ -3,8 +3,8 @@ import {Outlet} from "react-router-dom";
 import {AppShell, Burger, Container, Divider, Group, ScrollArea} from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
 import {ShellOutletContext} from "./ShellOutletContext";
-import AccountBtn from "../menu/AccountBtn";
-import {ContactList} from "../contacts/ContactList";
+import AccountBtn from "./AccountBtn";
+import {ContactList} from "./ContactList";
 import {IconBar} from "./IconBar";
 
 
@@ -17,6 +17,7 @@ function Shell() {
 
     return (
         <AppShell
+            zIndex={2000}
             header={{height: 90}}
             navbar={{
                 width: 300,

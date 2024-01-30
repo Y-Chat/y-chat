@@ -1,74 +1,29 @@
-import React, {useEffect} from "react";
-import {ActionIcon, Avatar, Container, Group, Text} from "@mantine/core";
-import MessageList from "./MessageList";
-import ChatTextArea from "./ChatTextArea";
-import {IconVideo} from "@tabler/icons-react";
-import {accessToken, api} from "../../network/api";
+import React, {useEffect, useState} from "react";
+import {LoadingOverlay} from "@mantine/core";
 import {useChatsStore} from "../../state/chatsStore";
-import {useOutletContext} from "react-router-dom";
-import {ShellOutletContext} from "../shell/ShellOutletContext";
+import {Chat} from "../../model/Chat";
+import {useUserStore} from "../../state/userStore";
+import {ChatWindow} from "./ChatWindow";
 
+// This component serves as a wrapper for the actual chat Window. It takes makes sure the chat is available and loaded.
 function ChatMain() {
-    const selectedChat = useChatsStore(state => state.selectedChat);
-    const [setHeader] = useOutletContext<ShellOutletContext>();
+    const selectedChatId = useChatsStore(state => state.selectedChatId);
+    const getChat = useChatsStore(state => state.getChat);
+    const user = useUserStore(state => state.user)!;
+    const [chat, setChat] = useState<Chat | null>(null);
 
     useEffect(() => {
-        api.getMessages({chatId: 'b883492e-cb45-484e-895a-0703700deac7', fromDate: new Date(2000, 0, 1)})
-            .then(r => {
-                console.log(JSON.stringify(r))
-            })
-            .catch(e => console.error(e))
-        if (!!accessToken) {
-            api.updateToken({notificationToken: accessToken}).catch((x) => console.error(x))
-        }
-    }, [])
-
-    useEffect(() => {
-        setHeader(
-            <>
-                <Group justify={"center"} gap={0}>
-                    <Avatar src={null} radius={"xl"} mr={"xs"}/>
-                    <div style={{marginLeft: 5}}>
-                        <Text fz="sm" fw={500}>
-                            {`${selectedChat!.name}`}
-                        </Text>
-                        <Text c="dimmed" fz="xs" w={150} style={{
-                            height: "1.5em",
-                            width: 155,
-                            overflow: "hidden",
-                            whiteSpace: "nowrap",
-                            textOverflow: "ellipsis"
-                        }}>
-                            {selectedChat!.groupInfo ? `${selectedChat?.groupInfo?.description}` : `@${selectedChat?.email}`}
-                        </Text>
-                    </div>
-                </Group>
-
-                <Container style={{flexGrow: 0}}>
-                    <ActionIcon variant="transparent" c="lightgray">
-                        <IconVideo size={"sm"}/>
-                    </ActionIcon>
-                </Container>
-            </>
-        );
-    }, []);
+        getChat(selectedChatId, user.id).then(c => {
+            if (c) {
+                setChat(c);
+            }
+        })
+    }, [selectedChatId]);
 
     return (
         <>
-            {!selectedChat ? <Text>Welcome to Y-Chat</Text> :
-                <>
-                    <MessageList/>
-                    <div style={{
-                        position: "fixed",
-                        bottom: 0,
-                        height: 90,
-                        width: "100vw",
-                        zIndex: 1
-                    }}>
-                        <ChatTextArea/>
-                    </div>
-                </>
-            }
+            <LoadingOverlay w={"100%"} visible={!chat} overlayProps={{radius: 0, blur: 10, zIndex: 1000}}/>
+            {chat ? <ChatWindow chat={chat}/> : undefined}
         </>
     );
 }

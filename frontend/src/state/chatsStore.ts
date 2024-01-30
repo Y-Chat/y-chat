@@ -3,11 +3,13 @@ import {persist, PersistStorage} from 'zustand/middleware'
 import {api} from "../network/api";
 import superjson from 'superjson';
 import {Chat} from "../model/Chat";
+import {ChatDTO} from "../api-wrapper";
 
 interface ChatsState {
     chats: Chat[],
-    selectedChat: Chat | null
+    selectedChatId: string
     setSelectedChat: (chatId: string) => void
+    getChat: (chatId: string, userId: string) => Promise<Chat | null>
     fetchChats: (userId: string) => Promise<void>
 }
 
@@ -28,12 +30,26 @@ export const useChatsStore = create<ChatsState>()(
         (set, get) => (
             {
                 chats: [],
-                selectedChat: null,
+                selectedChatId: "",
                 setSelectedChat: (chatId: string) => {
-                    const chat = get().chats.find((chat) => chat.id == chatId)
+                    const chat = get().chats.find((chat) => chat.id == chatId);
                     if (chat) {
-                        set({selectedChat: chat});
+                        set({selectedChatId: chatId});
                     }
+                },
+                getChat: async (chatId: string, userId: string) => {
+                    let chat = get().chats.find((chat) => chat.id == chatId);
+                    // fetch if we don't have this chat cached locally
+                    if (!chat) {
+                        try {
+                            chat = transformChat(await api.getChat({userId: userId, chatId: chatId}));
+                            // if we fetched a new chat -> add it to our store
+                            set({chats: [...get().chats, chat]});
+                        } catch (err) {
+                            return null;
+                        }
+                    }
+                    return chat;
                 },
                 fetchChats: async (userId: string) => {
                     const resp = await api.getAllChats({
@@ -42,32 +58,7 @@ export const useChatsStore = create<ChatsState>()(
                             size: 100 // TODO
                         }
                     });
-                    const chats = resp.content?.map(chat => {
-                        let name: string = "Chat";
-                        let avatar: string | undefined = undefined;
-
-                        if (chat.userProfileDTO) {
-                            name = `${chat.userProfileDTO.firstName} ${chat.userProfileDTO.lastName}`;
-                            avatar = chat.userProfileDTO.profilePictureId; // TODO
-                        } else if (chat.groupProfileDTO) {
-                            name = chat.groupProfileDTO.groupName;
-                            avatar = chat.groupProfileDTO.profilePictureId; // TODO
-                        }
-
-
-                        const transformedChat: Chat = {
-                            id: chat.chatId,
-                            avatar: null,
-                            name: name,
-                            email: "email@user.com",
-                            lastMessage: "Hey whad up? I was sondering how to do something lol i am just writitng words!",
-                            newMessages: 1,
-                            groupInfo: chat.groupProfileDTO ? {description: chat.groupProfileDTO.profileDescription || ""} : undefined,
-                            archived: false,
-                            date: new Date(Math.random() * 1000000000000) // TODO calc date
-                        }
-                        return transformedChat;
-                    })
+                    const chats = resp.content?.map(transformChat) || [];
                     set({chats: chats});
                 }
             }
@@ -78,3 +69,28 @@ export const useChatsStore = create<ChatsState>()(
         },
     ),
 )
+
+function transformChat(apiChat: ChatDTO): Chat {
+    let name: string = "Chat";
+    let avatar: string | undefined = undefined;
+
+    if (apiChat.userProfileDTO) {
+        name = `${apiChat.userProfileDTO.firstName} ${apiChat.userProfileDTO.lastName}`;
+        avatar = apiChat.userProfileDTO.profilePictureId; // TODO
+    } else if (apiChat.groupProfileDTO) {
+        name = apiChat.groupProfileDTO.groupName;
+        avatar = apiChat.groupProfileDTO.profilePictureId; // TODO
+    }
+
+    return {
+        id: apiChat.chatId,
+        avatar: null,
+        name: name,
+        email: "email@user.com",
+        lastMessage: "Hey whad up? I was sondering how to do something lol i am just writitng words!",
+        newMessages: 1,
+        groupInfo: apiChat.groupProfileDTO ? {description: apiChat.groupProfileDTO.profileDescription || ""} : undefined,
+        archived: false,
+        date: new Date(Math.random() * 1000000000000) // TODO calc date
+    };
+}

@@ -70,8 +70,7 @@ function MessageList() {
     const scrollToBottom = () => viewport.current!.scrollTo({top: viewport.current!.scrollHeight, behavior: 'smooth'});
 
     return (
-        <ScrollArea type="scroll" scrollbarSize={2} scrollHideDelay={500} h={"80vh"} viewportRef={viewport} pl={"md"}
-                    pr={"md"}>
+        <ScrollArea type="scroll" scrollbarSize={2} scrollHideDelay={500} viewportRef={viewport} pl={"md"} pr={"md"} pb={90}>
             <ActionIcon
                 color={"dark"}
                 c={"mainColors.6"}
@@ -79,8 +78,8 @@ function MessageList() {
                 size={50}
                 variant="filled"
                 style={{
-                    position: "absolute",
-                    bottom: 0,
+                    position: "fixed",
+                    bottom: 90,
                     right: 0,
                     marginBottom: 20,
                     marginRight: 20,
@@ -97,8 +96,8 @@ function MessageList() {
                 justify="flex-start"
             >
                 {messages.map((msg, i) =>
-                    <Container p={0} m={0}>
-                        <MessageBubble key={i} message={msg}/>
+                    <Container p={0} m={0} key={i}>
+                        <MessageBubble message={msg}/>
                     </Container>
                 )}
             </Stack>

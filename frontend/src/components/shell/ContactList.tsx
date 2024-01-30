@@ -62,15 +62,15 @@ export function ContactList({toggleNav}: ContactListProps) {
         filterData();
     }, [chats]);
 
-    const rows = sortedChats.map((row) => (
-        <UnstyledButton key={row.id} onClick={() => {
+    const rows = sortedChats.map((row, i) => (
+        <UnstyledButton key={i} onClick={() => {
             setSelectedChat(row.id);
             navigate('/');
             toggleNav();
         }}>
             <Group justify="space-between" gap={0}>
                 <Group gap="sm">
-                    <Indicator disabled={!row.newMessages}>
+                    <Indicator disabled={!row.newMessages} style={{flexGrow: 0}}>
                         <Avatar size={40} src={row.avatar} radius={40}/>
                     </Indicator>
                     <div style={{marginLeft: 5}}>
@@ -79,7 +79,7 @@ export function ContactList({toggleNav}: ContactListProps) {
                         </Text>
                         <Text c="dimmed" fz="xs" style={{
                             height: "1.5em",
-                            width: 155,
+                            width: 220,
                             overflow: "hidden",
                             whiteSpace: "nowrap",
                             textOverflow: "ellipsis"
