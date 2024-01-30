@@ -1,12 +1,11 @@
 import React, {useRef} from "react";
-import {ActionIcon, Flex, ScrollArea} from "@mantine/core";
+import {ActionIcon, Container, ScrollArea, Stack} from "@mantine/core";
 import MessageBubble from "./MessageBubble";
 import {IconCircleChevronDown} from "@tabler/icons-react";
 import {Message} from "../../model/Message";
 
 function MessageList() {
-
-    const messageGap = 15;
+    const gapBetweenMessages = "md";
 
     const messages: Message[] = [
         {type: "text", message: "Message1", fromMe: true, status: "read"},
@@ -71,7 +70,8 @@ function MessageList() {
     const scrollToBottom = () => viewport.current!.scrollTo({top: viewport.current!.scrollHeight, behavior: 'smooth'});
 
     return (
-        <ScrollArea type="scroll" scrollbarSize={2} scrollHideDelay={500} h={"80vh"} viewportRef={viewport}>
+        <ScrollArea type="scroll" scrollbarSize={2} scrollHideDelay={500} h={"80vh"} viewportRef={viewport} pl={"md"}
+                    pr={"md"}>
             <ActionIcon
                 color={"dark"}
                 c={"mainColors.6"}
@@ -88,22 +88,20 @@ function MessageList() {
                 }}>
                 <IconCircleChevronDown size={40}/>
             </ActionIcon>
-            <Flex
-                p={10}
-                direction="column"
-                align="flex-start"
-                style={{
-                    gap: messageGap,
-                    flexGrow: 1,
-                    flexShrink: 1,
-                    flexBasis: 0,
-                    overflowY: "auto"
-                }}>
-
+            <Stack
+                pt={gapBetweenMessages}
+                pb={gapBetweenMessages}
+                gap={gapBetweenMessages}
+                m={0}
+                align="stretch"
+                justify="flex-start"
+            >
                 {messages.map((msg, i) =>
-                    <MessageBubble key={i} message={msg}/>
+                    <Container p={0} m={0}>
+                        <MessageBubble key={i} message={msg}/>
+                    </Container>
                 )}
-            </Flex>
+            </Stack>
         </ScrollArea>
     );
 }

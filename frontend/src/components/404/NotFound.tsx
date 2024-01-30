@@ -4,7 +4,7 @@ import classes from './NotFound.module.css';
 import {useNavigate} from "react-router-dom";
 
 export function NotFound() {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     return (
         <Container className={classes.root} mt={"50%"}>
             <div className={classes.label}>404</div>

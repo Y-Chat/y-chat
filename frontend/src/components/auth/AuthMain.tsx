@@ -10,7 +10,7 @@ import {
     TextInput,
     Text,
     Container,
-    Center,
+    Center, rem,
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
@@ -114,7 +114,7 @@ function AuthMain() {
                 }}
             >
                 <Center mb={"md"}>
-                    <Logo size={100}/>
+                    <Logo style={{ width: rem(120) }}/>
                 </Center>
                 <Paper radius="md" p="xl" withBorder>
                     <Group grow mb="md" mt="md">

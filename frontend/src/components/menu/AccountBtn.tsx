@@ -10,16 +10,14 @@ interface AccountBtnProps {
 
 function AccountBtn({toggleNav}: AccountBtnProps) {
     const user = useUserStore((state) => state.user)
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     return (
         <UnstyledButton
+            h={"100%"}
+            w={"100%"}
             onClick={() => {
                 navigate('/account')
                 toggleNav();
-            }}
-            style={{
-                display: "block",
-                width: "100%"
             }}>
             <Group>
                 <Avatar

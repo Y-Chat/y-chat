@@ -5,12 +5,15 @@ import {
     Text,
     TextInput,
     rem,
-    Indicator, Avatar, ActionIcon, Stack, Center
+    Indicator,
+    Avatar,
+    ActionIcon,
+    Stack,
+    Center,
 } from '@mantine/core';
 import {
-    IconArchive,
     IconMessageOff,
-    IconSearch, IconUserCancel, IconUsersPlus,
+    IconSearch,
     IconX
 } from '@tabler/icons-react';
 import {useUserStore} from "../../state/userStore";
@@ -95,30 +98,10 @@ export function ContactList({toggleNav}: ContactListProps) {
         <Stack
             justify="flex-start"
             gap={25}
-            mb={25}
+            mt="md"
+            mb="md"
             p={0}
         >
-            <Group justify="space-between">
-                <ActionIcon
-                    variant={"transparent"}
-                    onClick={() => {
-                        toggleNav();
-                        navigate("/newGroup");
-                    }}
-                >
-                    <IconUsersPlus/>
-                </ActionIcon>
-                <ActionIcon
-                    variant={"transparent"}
-                >
-                    <IconArchive/>
-                </ActionIcon>
-                <ActionIcon
-                    variant={"transparent"}
-                >
-                    <IconUserCancel/>
-                </ActionIcon>
-            </Group>
             {/*<Center>*/}
             {/*    <Text c={"dimmed"}>Chats</Text>*/}
             {/*</Center>*/}

@@ -1,17 +1,16 @@
 import React, {useEffect} from "react";
-import {ActionIcon, Avatar, Divider, Group, Text} from "@mantine/core";
-import MenuDrawer from "../menu/MenuDrawer";
+import {ActionIcon, Avatar, Container, Group, Text} from "@mantine/core";
 import MessageList from "./MessageList";
-import ChatTextArea from "../text/ChatTextArea";
+import ChatTextArea from "./ChatTextArea";
 import {IconVideo} from "@tabler/icons-react";
 import {accessToken, api} from "../../network/api";
 import {useChatsStore} from "../../state/chatsStore";
+import {useOutletContext} from "react-router-dom";
+import {ShellOutletContext} from "../shell/ShellOutletContext";
 
 function ChatMain() {
-    // size in percent of screen -> content is 100% - sizeHeader - sizeFooter
-    const sizeHeader = 10;
-    const sizeFooter = 10;
     const selectedChat = useChatsStore(state => state.selectedChat);
+    const [setHeader] = useOutletContext<ShellOutletContext>();
 
     useEffect(() => {
         api.getMessages({chatId: 'b883492e-cb45-484e-895a-0703700deac7', fromDate: new Date(2000, 0, 1)})
@@ -24,60 +23,45 @@ function ChatMain() {
         }
     }, [])
 
+    useEffect(() => {
+        setHeader(
+            <>
+                <Group justify={"center"} gap={0}>
+                    <Avatar src={null} radius={"xl"} mr={"xs"}/>
+                    <div style={{marginLeft: 5}}>
+                        <Text fz="sm" fw={500}>
+                            {`${selectedChat!.name}`}
+                        </Text>
+                        <Text c="dimmed" fz="xs" w={150} style={{
+                            height: "1.5em",
+                            width: 155,
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis"
+                        }}>
+                            {selectedChat!.groupInfo ? `${selectedChat?.groupInfo?.description}` : `@${selectedChat?.email}`}
+                        </Text>
+                    </div>
+                </Group>
+
+                <Container style={{flexGrow: 0}}>
+                    <ActionIcon variant="transparent" c="lightgray">
+                        <IconVideo size={"sm"}/>
+                    </ActionIcon>
+                </Container>
+            </>
+        );
+    }, []);
+
     return (
         <>
-            <header>
-                <div style={{
-                    position: "fixed",
-                    top: 0,
-                    height: `${sizeHeader}vh`,
-                    width: "100%",
-                    zIndex: 1,
-                }}>
-                    <Group w={"100%"} h={"100%"} align="center" justify="space-between" pl={10} pr={10}>
-                        <MenuDrawer/>
-                        <Group h={"100%"}>
-                            <Group h={"100%"} gap="xs">
-                                <Avatar size={40} src={null} radius={40}/>
-                                <div style={{marginLeft: 5}}>
-                                    <Text fz="sm" fw={500}>
-                                        {`${selectedChat!.name}`}
-                                    </Text>
-                                    <Text c="dimmed" fz="xs" w={150} style={{
-                                        height: "1.5em",
-                                        width: 155,
-                                        overflow: "hidden",
-                                        whiteSpace: "nowrap",
-                                        textOverflow: "ellipsis"
-                                    }}>
-                                        {selectedChat!.groupInfo ? `${selectedChat?.groupInfo?.description}` : `@${selectedChat?.email}`}
-                                    </Text>
-                                </div>
-                            </Group>
-                        </Group>
-                        <ActionIcon variant="transparent" c="lightgray">
-                            <IconVideo/>
-                        </ActionIcon>
-                    </Group>
-                    <Divider/>
-                </div>
-            </header>
-
             {!selectedChat ? <Text>Welcome to Y-Chat</Text> :
                 <>
-                    <div style={{
-                        position: "absolute",
-                        top: `${sizeHeader}vh`,
-                        height: `${100 - sizeHeader - sizeFooter}vh`,
-                        width: "100vw",
-                    }}>
-                        <MessageList/>
-                    </div>
-
+                    <MessageList/>
                     <div style={{
                         position: "fixed",
                         bottom: 0,
-                        height: `${sizeFooter}vh`,
+                        height: 90,
                         width: "100vw",
                         zIndex: 1
                     }}>
@@ -85,8 +69,6 @@ function ChatMain() {
                     </div>
                 </>
             }
-
-
         </>
     );
 }
