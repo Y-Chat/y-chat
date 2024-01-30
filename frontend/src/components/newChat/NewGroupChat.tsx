@@ -49,7 +49,7 @@ export function NewGroupChat() {
     useEffect(() => {
         setHeader(
             <Center>
-                <Text fz="xl" fw={500}>Account Settings</Text>
+                <Text size={"lg"}>Create a new group</Text>
             </Center>
         );
     }, []);

@@ -1,6 +1,6 @@
 import React from "react";
 import {ActionIcon, Center, Container, Group, Text} from "@mantine/core";
-import {IconArchive, IconUserCancel, IconUsersPlus} from "@tabler/icons-react";
+import {IconArchive, IconUserCancel, IconUsersGroup, IconUsersPlus} from "@tabler/icons-react";
 import {useNavigate} from "react-router-dom";
 import Logo from "./Logo";
 
@@ -27,7 +27,7 @@ export function IconBar({toggleNav}: IconBarProps) {
                             navigate("/newGroup");
                         }}
                     >
-                        <IconUsersPlus/>
+                        <IconUsersGroup/>
                     </ActionIcon>
                     <ActionIcon
                         variant={"transparent"}

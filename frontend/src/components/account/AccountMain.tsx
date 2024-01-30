@@ -61,7 +61,7 @@ export function AccountMain() {
     useEffect(() => {
         setHeader(
             <Center>
-                <Text fz="xl" fw={500}>Account Settings</Text>
+                <Text fz="lg">Account Settings</Text>
             </Center>
         );
     }, []);
