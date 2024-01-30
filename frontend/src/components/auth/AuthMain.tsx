@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
-import Logo from "../shell/Logo";
+import Logo from "../common/Logo";
 import {useUserStore} from "../../state/userStore";
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser} from "firebase/auth"
 import {GoogleButton} from "./GoogleButton";

@@ -13,15 +13,19 @@ import {Notifications} from "@mantine/notifications";
 import {PermissionsModal} from "./common/PermissionsModal";
 import {useAuthState} from "react-firebase-hooks/auth";
 import auth from "../firebase/auth";
-import {useChatsStore} from "../state/chatsStore";
 import {NewGroupChat} from "./newChat/NewGroupChat";
 import {NotFound} from "./404/NotFound";
 import {Welcome} from "./common/Welcome";
+import {isMobile} from "react-device-detect";
+import {HowToInstall} from "./common/HowToInstall";
 
 function App() {
 
     const [firebaseUser, loading] = useAuthState(auth);
     const user = useUserStore((state) => state.user);
+
+    // otherwise show how to install instruction
+    const showApp = (window.matchMedia('(display-mode: standalone)').matches && isMobile) || process.env.NODE_ENV == "development"
 
     const theme: MantineThemeOverride = {
         primaryColor: "mainColors",
@@ -43,37 +47,34 @@ function App() {
     }
 
     return (
-        <div>
-            {/*<BrowserView>*/}
-            {/*    <NotMobile/>*/}
-            {/*</BrowserView>*/}
-            {/*<MobileView>*/}
-            <MantineProvider theme={theme} defaultColorScheme="dark">
-                <PermissionsModal/>
-                <Notifications autoClose={5000} position="top-right"/>
-                <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
-                <Router>
-                    {user && firebaseUser ?
-                        <Routes>
-                            <Route path="/" element={<Shell/>}>
-                                <Route path="/" element={<Welcome/>}/>
-                                <Route path="/account" element={<AccountMain/>}/>
-                                <Route path="/newGroup" element={<NewGroupChat/>}/>
-                                <Route path="/chat/:chatId" element={<ChatLoader/>}/>
+        <MantineProvider theme={theme} defaultColorScheme="dark">
+            {showApp ?
+                <>
+                    <PermissionsModal/>
+                    <Notifications autoClose={5000} position="top-right"/>
+                    <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
+                    <Router>
+                        {user && firebaseUser ?
+                            <Routes>
+                                <Route path="/" element={<Shell/>}>
+                                    <Route path="/" element={<Welcome/>}/>
+                                    <Route path="/account" element={<AccountMain/>}/>
+                                    <Route path="/newGroup" element={<NewGroupChat/>}/>
+                                    <Route path="/chat/:chatId" element={<ChatLoader/>}/>
+                                    <Route path="/*" element={<NotFound/>}/>
+                                </Route>
+                            </Routes>
+                            :
+                            <Routes>
+                                <Route path="/" element={<AuthMain/>}/>
                                 <Route path="/*" element={<NotFound/>}/>
-                            </Route>
-                        </Routes>
-                        :
-                        <Routes>
-                            <Route path="/" element={<AuthMain/>}/>
-                            <Route path="/*" element={<NotFound/>}/>
-                        </Routes>
-                    }
-                </Router>
-            </MantineProvider>
-            {/*</MobileView>*/
-            }
-        </div>
+                            </Routes>
+                        }
+                    </Router>
+                </>
+                :
+                <HowToInstall/>}
+        </MantineProvider>
     );
 }
 

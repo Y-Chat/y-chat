@@ -1,8 +1,8 @@
 import React from "react";
 import {ActionIcon, Center, Container, Group, Text} from "@mantine/core";
-import {IconArchive, IconUserCancel, IconUsersGroup, IconUsersPlus} from "@tabler/icons-react";
+import {IconArchive, IconUserCancel, IconUsersGroup} from "@tabler/icons-react";
 import {useNavigate} from "react-router-dom";
-import Logo from "./Logo";
+import Logo from "../common/Logo";
 
 interface IconBarProps {
     toggleNav: () => void
