@@ -1,7 +1,7 @@
 import {getMessaging, getToken, onMessage, isSupported} from "firebase/messaging";
 import firebaseApp from "./firebaseApp";
 import {showErrorNotification, showNotification} from "../notifications/notifications";
-import {api, setApiAccessToken} from "../network/api";
+import {setApiAccessToken} from "../network/api";
 
 const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
 const hasPermission = 'Notification' in window && Notification.permission == "granted"
@@ -38,11 +38,15 @@ async function generateToken() {
         if (!currentToken)
             console.log('No registration token available. Request permission to generate one.');
 
-        console.log("FBC token: " + currentToken) // TODO remove
+        if (process.env.NODE_ENV === "development") {
+            console.log("FBC token: " + currentToken);
+        }
         setApiAccessToken(currentToken)
 
         onMessage(messaging, (payload) => {
-            console.log('Received foreground message ', payload); //TODO remove
+            if (process.env.NODE_ENV === "development") {
+                console.log('Received foreground message ', payload);
+            }
             showErrorNotification(payload.notification?.body || "", payload.notification?.title)
         })
     } catch (e) {

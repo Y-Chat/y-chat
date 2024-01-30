@@ -65,7 +65,7 @@ export function ContactList({toggleNav}: ContactListProps) {
     const rows = sortedChats.map((row, i) => (
         <UnstyledButton key={i} onClick={() => {
             setSelectedChat(row.id);
-            navigate('/');
+            navigate(`/chat/${row.id}`);
             toggleNav();
         }}>
             <Group justify="space-between" gap={0}>

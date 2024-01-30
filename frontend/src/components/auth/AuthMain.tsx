@@ -8,13 +8,12 @@ import {
     PasswordInput,
     Stack,
     TextInput,
-    Text,
     Container,
     Center, rem,
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
-import Logo from "../shell/Logo";
+import Logo from "../common/Logo";
 import {useUserStore} from "../../state/userStore";
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser} from "firebase/auth"
 import {GoogleButton} from "./GoogleButton";
@@ -34,7 +33,6 @@ function AuthMain() {
             firstName: '',
             lastName: '',
             email: '',
-            username: '',
             password: '',
             passwordRepeat: '',
             terms: true,
@@ -97,7 +95,7 @@ function AuthMain() {
                         balance: 1337
                     });
                     setUserLoading(false);
-                })
+                });
         }).catch(err => {
             showErrorNotification("Maybe you had a typo in your credentials?", "Login Unsuccessful");
             setUserLoading(false);
@@ -166,28 +164,12 @@ function AuthMain() {
                                 withAsterisk
                                 required
                                 label="Email"
-                                placeholder="email@example.com"
+                                placeholder="Email@example.com"
                                 value={form.values.email}
                                 onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
                                 error={form.errors.email && 'Invalid email'}
                                 radius="md"
                             />
-
-                            {type === 'register' && (
-                                <TextInput
-                                    disabled={userLoading}
-                                    size="md"
-                                    withAsterisk
-                                    required
-                                    label="Username"
-                                    placeholder="example_username"
-                                    value={form.values.username}
-                                    leftSection={<Text>@</Text>}
-                                    onChange={(event) => form.setFieldValue('username', event.currentTarget.value)}
-                                    error={form.errors.username && 'Invalid username'}
-                                    radius="md"
-                                />
-                            )}
 
                             <PasswordInput
                                 disabled={userLoading}
@@ -195,7 +177,7 @@ function AuthMain() {
                                 withAsterisk
                                 required
                                 label="Password"
-                                placeholder="your password"
+                                placeholder="Your password"
                                 value={form.values.password}
                                 onChange={(event) => form.setFieldValue('password', event.currentTarget.value)}
                                 error={form.errors.password}
@@ -209,7 +191,7 @@ function AuthMain() {
                                     withAsterisk
                                     required
                                     label="Repeat Password"
-                                    placeholder="your password again"
+                                    placeholder="Your password again"
                                     value={form.values.passwordRepeat}
                                     onChange={(event) => form.setFieldValue('passwordRepeat', event.currentTarget.value)}
                                     error={form.errors.passwordRepeat}

@@ -1,5 +1,5 @@
 import React, {useRef} from "react";
-import {ActionIcon, Container, ScrollArea, Stack} from "@mantine/core";
+import {ActionIcon, ScrollArea, Stack} from "@mantine/core";
 import MessageBubble from "./MessageBubble";
 import {IconCircleChevronDown} from "@tabler/icons-react";
 import {Message} from "../../model/Message";
@@ -70,7 +70,8 @@ function MessageList() {
     const scrollToBottom = () => viewport.current!.scrollTo({top: viewport.current!.scrollHeight, behavior: 'smooth'});
 
     return (
-        <ScrollArea type="scroll" scrollbarSize={2} scrollHideDelay={500} viewportRef={viewport} pl={"md"} pr={"md"} pb={90}>
+        <ScrollArea type="scroll" scrollbarSize={2} scrollHideDelay={500} viewportRef={viewport} pl={"md"} pr={"md"}
+                    pb={90}>
             <ActionIcon
                 color={"dark"}
                 c={"mainColors.6"}
@@ -96,9 +97,7 @@ function MessageList() {
                 justify="flex-start"
             >
                 {messages.map((msg, i) =>
-                    <Container p={0} m={0} key={i}>
-                        <MessageBubble message={msg}/>
-                    </Container>
+                    <MessageBubble message={msg}/>
                 )}
             </Stack>
         </ScrollArea>

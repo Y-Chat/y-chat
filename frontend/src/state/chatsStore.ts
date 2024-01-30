@@ -52,14 +52,18 @@ export const useChatsStore = create<ChatsState>()(
                     return chat;
                 },
                 fetchChats: async (userId: string) => {
-                    const resp = await api.getAllChats({
-                        userId: userId,
-                        pageable: {
-                            size: 100 // TODO
-                        }
-                    });
-                    const chats = resp.content?.map(transformChat) || [];
-                    set({chats: chats});
+                    try {
+                        const resp = await api.getAllChats({
+                            userId: userId,
+                            pageable: {
+                                size: 100 // TODO
+                            }
+                        });
+                        const chats = resp.content?.map(transformChat) || [];
+                        set({chats: chats});
+                    } catch (err) {
+                        // TODO handle errors
+                    }
                 }
             }
         ),
@@ -86,11 +90,11 @@ function transformChat(apiChat: ChatDTO): Chat {
         id: apiChat.chatId,
         avatar: null,
         name: name,
-        email: "email@user.com",
+        email: apiChat.chatType == "DIRECT_CHAT" ? "email@user.com" : undefined,
         lastMessage: "Hey whad up? I was sondering how to do something lol i am just writitng words!",
         newMessages: 1,
         groupInfo: apiChat.groupProfileDTO ? {description: apiChat.groupProfileDTO.profileDescription || ""} : undefined,
         archived: false,
-        date: new Date(Math.random() * 1000000000000) // TODO calc date
+        date: new Date() // TODO calc date
     };
 }
