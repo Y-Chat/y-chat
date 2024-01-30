@@ -10,7 +10,7 @@ import {IconBar} from "./IconBar";
 
 function Shell() {
     const [opened, {toggle}] = useDisclosure();
-    const [header, setHeader] = useState(<>test</>);
+    const [header, setHeader] = useState(<></>);
 
     // this just exists to guarantee type safety for ShellOutletContext
     const outletContext: ShellOutletContext = [setHeader]

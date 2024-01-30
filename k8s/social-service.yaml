@@ -43,12 +43,18 @@ spec:
           ports:
             - containerPort: 5432
           env:
-            - name: MONGO_INITDB_ROOT_USERNAME
+            - name: TZ
+              value: "UTC"
+            - name: POSTGRES_DB
+              value: "social-db"
+            - name: POSTGRES_INITDB_ARGS
+              value: "--locale=en_US.utf8"
+            - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
                   name: social-pg-secret
                   key: pg-user
-            - name: MONGO_INITDB_ROOT_PASSWORD
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: social-pg-secret
@@ -102,6 +108,8 @@ spec:
           env:
             - name: TZ
               value: "UTC"
+            - name: SERVER_PORT
+              value: "80"
             - name: SPRING_DATASOURCE_URL
               valueFrom:
                 configMapKeyRef:

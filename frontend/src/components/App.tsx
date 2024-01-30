@@ -5,7 +5,7 @@ import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme
 import {useUserStore} from "../state/userStore";
 import AuthMain from "./auth/AuthMain";
 import Shell from "./shell/Shell";
-import ChatMain from "./chat/ChatMain";
+import ChatLoader from "./chat/ChatLoader";
 import {AccountMain} from "./account/AccountMain";
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -16,6 +16,7 @@ import auth from "../firebase/auth";
 import {useChatsStore} from "../state/chatsStore";
 import {NewGroupChat} from "./newChat/NewGroupChat";
 import {NotFound} from "./404/NotFound";
+import {Welcome} from "./common/Welcome";
 
 function App() {
 
@@ -55,11 +56,12 @@ function App() {
                     {user && firebaseUser ?
                         <Routes>
                             <Route path="/" element={<Shell/>}>
-                                <Route path="/" element={<ChatMain/>}/>
+                                <Route path="/" element={<Welcome/>}/>
                                 <Route path="/account" element={<AccountMain/>}/>
                                 <Route path="/newGroup" element={<NewGroupChat/>}/>
+                                <Route path="/chat/:chatId" element={<ChatLoader/>}/>
+                                <Route path="/*" element={<NotFound/>}/>
                             </Route>
-                            <Route path="/*" element={<NotFound/>}/>
                         </Routes>
                         :
                         <Routes>
