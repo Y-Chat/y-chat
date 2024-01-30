@@ -1,5 +1,5 @@
 import {Notifications} from "@mantine/notifications";
-import {IconExclamationCircle} from "@tabler/icons-react";
+import {IconCircleCheck, IconExclamationCircle} from "@tabler/icons-react";
 import {rem} from "@mantine/core";
 import React from "react";
 
@@ -27,5 +27,14 @@ export function showNotification(message: string, title: string = "Notification"
         withBorder: true,
         title: title,
         message: message,
+    });
+}
+
+export function showSuccessNotification(message: string, title: string = "Notification") {
+    Notifications.show({
+        withBorder: true,
+        title: title,
+        message: message,
+        icon: <IconCircleCheck style={{width: rem(18), height: rem(18)}}/>,
     });
 }

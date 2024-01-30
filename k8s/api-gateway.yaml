@@ -26,8 +26,6 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: ychat.gateway.redirect.target.auth
-              value: "http://auth-service:8080" # TODO remove not needed anymore
             - name: ychat.gateway.redirect.target.social
               value: "http://social-service:8080" # TODO
             - name: ychat.gateway.redirect.target.messaging

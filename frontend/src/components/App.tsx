@@ -1,8 +1,8 @@
 import React from 'react';
-import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import {LoadingOverlay, MantineProvider} from "@mantine/core";
 import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
-import {useAppStore} from "../state/store";
+import {useUserStore} from "../state/userStore";
 import AuthMain from "./auth/AuthMain";
 import Shell from "./shell/Shell";
 import ChatMain from "./chat/ChatMain";
@@ -13,11 +13,14 @@ import {Notifications} from "@mantine/notifications";
 import {PermissionsModal} from "./common/PermissionsModal";
 import {useAuthState} from "react-firebase-hooks/auth";
 import auth from "../firebase/auth";
+import {useChatsStore} from "../state/chatsStore";
+import {NewGroupChat} from "./newChat/NewGroupChat";
+import {NotFound} from "./404/NotFound";
 
 function App() {
 
     const [firebaseUser, loading] = useAuthState(auth);
-    const user = useAppStore((state) => state.user);
+    const user = useUserStore((state) => state.user);
 
     const theme: MantineThemeOverride = {
         primaryColor: "mainColors",
@@ -36,7 +39,6 @@ function App() {
                 "#3a1899"
             ]
         }
-
     }
 
     return (
@@ -55,13 +57,14 @@ function App() {
                             <Route path="/" element={<Shell/>}>
                                 <Route path="/" element={<ChatMain/>}/>
                                 <Route path="/account" element={<AccountMain/>}/>
+                                <Route path="/newGroup" element={<NewGroupChat/>}/>
                             </Route>
-                            <Route path="/*" element={<p>This should not happen</p>}/>
+                            <Route path="/*" element={<NotFound/>}/>
                         </Routes>
                         :
                         <Routes>
                             <Route path="/" element={<AuthMain/>}/>
-                            <Route path="/*" element={<Navigate to={"/"} replace/>}/>
+                            <Route path="/*" element={<NotFound/>}/>
                         </Routes>
                     }
                 </Router>

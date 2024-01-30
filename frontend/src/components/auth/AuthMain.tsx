@@ -10,86 +10,99 @@ import {
     TextInput,
     Text,
     Container,
-    Center,
+    Center, rem,
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
 import Logo from "../shell/Logo";
-import {useAppStore} from "../../state/store";
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth"
+import {useUserStore} from "../../state/userStore";
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser} from "firebase/auth"
 import {GoogleButton} from "./GoogleButton";
 import {AppleButton} from "./AppleButton";
-import {showErrorNotification} from "../../notifications/notifications";
 import auth from "../../firebase/auth";
+import {api} from "../../network/api";
+import {showErrorNotification, showSuccessNotification} from "../../notifications/notifications";
+import getUuidByString from "uuid-by-string";
 
 function AuthMain() {
-    const setUser = useAppStore((state) => state.setUser)
+    const setUser = useUserStore((state) => state.setUser)
     const [type, toggle] = useToggle(['login', 'register']);
     const [userLoading, setUserLoading] = useState<boolean>(false)
 
     const form = useForm({
-            initialValues: {
-                firstName: '',
-                lastName: '',
-                email: '',
-                username: '',
-                password: '',
-                passwordRepeat: '',
-                terms: true,
-            },
+        initialValues: {
+            firstName: '',
+            lastName: '',
+            email: '',
+            username: '',
+            password: '',
+            passwordRepeat: '',
+            terms: true,
+        },
 
-            validate: {
-                email: (val) =>
-                    (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
-                password: (val) => (
-                    val.length <= 6 ? 'Password should include at least 6 characters' : null),
-                passwordRepeat: (value, values) =>
-                    (value !== values.password && type === "register" ? 'Passwords did not match' : null),
-            },
-        })
-    ;
+        validate: {
+            email: (val) =>
+                (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
+            password: (val) => (
+                val.length <= 6 ? 'Password should include at least 6 characters' : null),
+            passwordRepeat: (value, values) =>
+                (value !== values.password && type === "register" ? 'Passwords did not match' : null),
+        },
+    });
 
 
-    function register(email: string, password: string) {
+    function register() {
         setUserLoading(true);
-        createUserWithEmailAndPassword(auth, email, password)
-            .then((userCredentials) => {
-                setUser({
-                    firstName: "Example",
-                    lastName: "Name",
-                    username: "example_username",
-                    email: "example@example.com",
-                    avatar: null,
-                    balance: 69
+        createUserWithEmailAndPassword(auth, form.values.email, form.values.password)
+            .then(userCredentials => {
+                api.createUser({
+                    userId: getUuidByString(userCredentials.user.uid, 3),
+                    userProfileDTO: {
+                        firstName: form.values.firstName,
+                        lastName: form.values.lastName,
+                    }
+                }).then(user => {
+                    toggle();
+                    showSuccessNotification("Now try signing in using your credentials.", "Registration successful");
+                    form.reset();
+                    setUserLoading(false);
+                }).catch(err => {
+                    if (auth.currentUser) {
+                        deleteUser(auth.currentUser).then(r => {
+                            showErrorNotification("Something went wrong during registration. Please try again.", "Registration Unsuccessful");
+                            setUserLoading(false);
+                        }).catch(err => {
+                            // if this fails again, the user has to manually reset the user. Might think of a smarter solution in the future
+                            setUserLoading(false);
+                        });
+                    }
                 })
-                setUserLoading(false);
-            }).catch((error) => {
-            showErrorNotification(error.code);
+            }).catch(err => {
+            showErrorNotification("Something went wrong during registration. Please try again.", "Registration Unsuccessful");
             setUserLoading(false);
-        });
+        })
     }
 
-    function login(email: string, password: string) {
+    function login() {
         setUserLoading(true);
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCredentials) => {
-                setUser({
-                    firstName: "Example",
-                    lastName: "Name",
-                    username: "example_username",
-                    email: "example@example.com",
-                    avatar: null,
-                    balance: 69
+        signInWithEmailAndPassword(auth, form.values.email, form.values.password).then(userCredentials => {
+            return api.getUser({userId: getUuidByString(userCredentials.user.uid, 3)})
+                .then(user => {
+                    setUser({
+                        id: user.id,
+                        firstName: user.userProfileDTO.firstName,
+                        lastName: user.userProfileDTO.lastName,
+                        email: userCredentials.user.email!,
+                        profilePictureId: null,
+                        balance: 1337
+                    });
+                    setUserLoading(false);
                 })
-                setUserLoading(false);
-            })
-            .catch((error) => {
-                showErrorNotification(error.code);
-                setUserLoading(false);
-            });
-
+        }).catch(err => {
+            showErrorNotification("Maybe you had a typo in your credentials?", "Login Unsuccessful");
+            setUserLoading(false);
+        })
     }
-
 
     return (
         <>
@@ -101,7 +114,7 @@ function AuthMain() {
                 }}
             >
                 <Center mb={"md"}>
-                    <Logo size={100}/>
+                    <Logo style={{ width: rem(120) }}/>
                 </Center>
                 <Paper radius="md" p="xl" withBorder>
                     <Group grow mb="md" mt="md">
@@ -112,13 +125,11 @@ function AuthMain() {
                     <Divider label="Or continue with email" labelPosition="center" my="lg"/>
 
                     <form
-                        onSubmit={form.onSubmit(() => {
-                            const email = form.values.email
-                            const password = form.values.password
+                        onSubmit={form.onSubmit(async () => {
                             if (type === "register") {
-                                register(email, password)
+                                register()
                             } else if (type === "login") {
-                                login(email, password)
+                                login()
                             }
                         })}>
                         <Stack>
