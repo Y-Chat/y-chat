@@ -53,7 +53,7 @@ public class NotificationService {
                         .setToken(token.getToken())
                         .build()
                 );
-                logger.info("Send notification to UUID: " + userUUID + " with token: " + token.getToken());
+                logger.info("Sent notification to UUID: " + userUUID + " with token: " + token.getToken());
             } catch (FirebaseMessagingException e) {
                 switch (e.getMessagingErrorCode()){
                     case QUOTA_EXCEEDED -> {

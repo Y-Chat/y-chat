@@ -7,17 +7,43 @@ import {
     IconPhoneOff
 } from "@tabler/icons-react";
 import {CallSignaling} from "../../calling/signaling";
+import {getMessaging, onMessage} from "firebase/messaging";
+import firebaseApp from "../../firebase/firebaseApp";
+import {useNavigate, useSearchParams} from "react-router-dom";
+import {registerNotificationTypeHandler, unregisterNotificationTypeHandler} from "../../firebase/messaging";
 
 export default function ChatCall() {
-    const callSignaling = useMemo(() => new CallSignaling(), [])
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const callSignaling = useMemo(() => {
+        return new CallSignaling({
+            callUser: searchParams.get("callUser") ?? undefined,
+            acceptCall: searchParams.get("acceptCall") ?? undefined,
+        });
+    }, [])
     const [microphoneOn, setMicrophoneOn] = useState(true);
+
+    useEffect(() => {
+        if(!searchParams.has("acceptCall") && !searchParams.has("callUser")) {
+            callSignaling.endCall();
+            navigate("/")
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         callSignaling.setOwnMedia(microphoneOn)
     }, [microphoneOn])
 
-    useEffect(() => {
+    useEffect( () => {
+        const messaging = getMessaging(firebaseApp);
+        registerNotificationTypeHandler(["SIGNALING_NEW_ANSWER", "SIGNALING_NEW_CANDIDATE", "CALL_ENDED"], callSignaling.handleNotifications)
+
+        console.log("helper1")
         callSignaling.createCall();
+
+        return () => {
+            unregisterNotificationTypeHandler(["SIGNALING_NEW_ANSWER", "SIGNALING_NEW_CANDIDATE", "CALL_ENDED"])
+        };
     }, [])
 
     return (

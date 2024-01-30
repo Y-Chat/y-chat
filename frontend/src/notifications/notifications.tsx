@@ -1,7 +1,8 @@
 import {Notifications} from "@mantine/notifications";
-import {IconExclamationCircle} from "@tabler/icons-react";
-import {rem} from "@mantine/core";
+import {IconExclamationCircle, IconPhone, IconPhoneOff} from "@tabler/icons-react";
+import {ActionIcon, Group, rem, Text} from "@mantine/core";
 import React from "react";
+import {useNavigate} from "react-router-dom";
 
 function codeToError(errorCode: string): string {
     const errorMap = new Map<string, string>([
@@ -28,4 +29,49 @@ export function showNotification(message: string, title: string = "Notification"
         title: title,
         message: message,
     });
+}
+
+export function showCallNotification(callId: string, callerId: string) {
+    Notifications.show({
+        withBorder: true,
+        title: "Incoming Call",
+        autoClose: false,
+        withCloseButton: false,
+        message: <Group style={{width: "100%"}} justify={"center"}>
+            <Group>
+                <Text>Accept Call</Text>
+                <ActionIcon
+                    size={"4vh"}
+                    color={"white"}
+                    style={{
+                        backgroundColor: "green",
+                        padding: "5px",
+                        borderRadius: 100
+                    }}
+                    onClick={() => {
+                        // navigate(`/call?accept=${callId}`)
+                    }}
+                >
+                    <IconPhone/>
+                </ActionIcon>
+            </Group>
+            <Group>
+                <ActionIcon
+                    size={"4vh"}
+                    color={"white"}
+                    style={{
+                        backgroundColor: "red",
+                        padding: "5px",
+                        borderRadius: 100
+                    }}
+                    onClick={() => {
+                        // TODO
+                    }}
+                >
+                    <IconPhoneOff/>
+                </ActionIcon>
+                <Text>Deny Call</Text>
+            </Group>
+        </Group>,
+    })
 }

@@ -51,7 +51,8 @@ function ChatMain() {
                             </Group>
                         </Group>
                         <ActionIcon variant="transparent" c="lightgray" onClick={() => {
-                            navigate("/call")
+                            // TODO Remove mocked value
+                            navigate("/call?callUser=b52684f9-724b-3e55-8581-f581030b9ccb")
                         }}>
                             <IconVideo/>
                         </ActionIcon>
