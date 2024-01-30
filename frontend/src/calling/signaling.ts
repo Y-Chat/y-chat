@@ -84,12 +84,10 @@ export class CallSignaling {
             type: offerDescription.type,
         };
 
-        api.createCall({createCallRequest: {
+        await api.createCall({createCallRequest: {
             calleeId: mockedCalleeId,
-            offer: {
-                type: ""
-            }
-        }})
+            offer: offer
+        }}).catch((err) => console.error(err));
     }
 
     async acceptCall() {

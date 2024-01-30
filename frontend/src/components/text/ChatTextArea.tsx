@@ -129,7 +129,7 @@ function ChatTextArea() {
                                 senderId: "frontendTest",
                                 chatId: "8e400639-1a6b-44f6-adf6-d4fd7d463e93",
                                 sentTimestamp: new Date(),
-                                mediaId: image ? image.imageId : undefined,
+                                mediaPath: image ? image.imageId : undefined,
                                 message: message
                             }
                             console.log(msg) // TODO remove

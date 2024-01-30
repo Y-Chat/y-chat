@@ -1,4 +1,4 @@
-# Messaging Service
+# Calling Service
 
 ## Installation
 - Run ```npm install``` to install the generators

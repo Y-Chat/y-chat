@@ -61,14 +61,14 @@ public class MessagingService {
                 message.getChatId(),
                 LocalDateTime.now(),
                 message.getMessage(),
-                message.getMediaId(),
+                message.getMediaPath(),
                 message.getTransactionId()
         );
         newMessage = messageRepository.save(newMessage);
 
         var notification = new Notification();
         var schema1 = new AnonymousSchema1();
-        schema1.setChatId(newMessage.getChatId());
+        schema1.setChatId(newMessage.getChatId().toString());
         notification.setNewMessage(schema1);
         notificationServiceConnector.onNotification(random.nextInt(), notification);
 
