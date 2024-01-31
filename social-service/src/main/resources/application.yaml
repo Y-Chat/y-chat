@@ -20,3 +20,9 @@ spring:
     open-in-view: true
     hibernate:
       ddl-auto: none
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
+          issuer-uri: https://securetoken.google.com/y-chat-e5132

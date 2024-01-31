@@ -48,7 +48,9 @@ async function setupNotifications() {
     });
 
     registerNotificationTypeHandler(null, (payload) => {
-        console.log('Received foreground message ', payload); //TODO remove
+        if (process.env.NODE_ENV === "development") {
+        	console.log('Received foreground message ', payload);
+        }
         showErrorNotification(payload.notification?.body || "", payload.notification?.title)
     });
 }
@@ -103,7 +105,9 @@ async function generateToken() {
         if (!currentToken)
             console.log('No registration token available. Request permission to generate one.');
 
-        console.log("FBC token: " + currentToken) // TODO remove
+        if (process.env.NODE_ENV === "development") {
+            console.log("FBC token: " + currentToken);
+        }
         setApiAccessToken(currentToken)
     } catch (e) {
         console.log('An error occurred while retrieving token. ', e);
