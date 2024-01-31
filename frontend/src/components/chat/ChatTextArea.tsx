@@ -26,7 +26,7 @@ function ChatTextArea() {
         if (image.file) {
             try {
                 //TODO insert chatID here!
-                msg.mediaId = await uploadImage(image.file, `chats/testChat/${image.file.name}`);
+                msg.mediaPath = await uploadImage(image.file, `chats/testChat/${image.file.name}`);
                 const m = await api.sendMessage({message: msg});
                 // TODO add message to local storage
                 setMessage("");

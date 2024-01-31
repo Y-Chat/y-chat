@@ -2,6 +2,7 @@ package com.ychat.ychat.services;
 
 import com.asyncapi.gen.notification.model.AnonymousSchema1;
 import com.asyncapi.gen.notification.model.Notification;
+import com.openapi.gen.messaging.dto.MessageFetchDirection;
 import com.ychat.ychat.repositories.ChatMessageRepository;
 import com.openapi.gen.messaging.dto.Message;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class MessagingService {
         this.notificationServiceConnector = notificationServiceConnector;
     }
 
-    public Pair<Optional<List<Message>>, PageRequest> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize) {
+    public Pair<Optional<List<Message>>, PageRequest> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize, MessageFetchDirection direction) {
         if(page == null) {
             page = 0;
         }
@@ -42,9 +43,16 @@ public class MessagingService {
             pageSize = 20;
         }
 
+        if(direction == null) {
+            direction = MessageFetchDirection.FUTURE;
+        }
+
         PageRequest pageRequest = PageRequest.of(page, pageSize);
-        var res = messageRepository
-                .findByChatId(chatId, PageRequest.of(page, pageSize))
+        var res = (
+                direction.equals(MessageFetchDirection.FUTURE) ?
+                        messageRepository.findByChatIdAndSentTimestampAfterOrderBySentTimestampDesc(chatId, PageRequest.of(page, pageSize), fromDate) :
+                        messageRepository.findByChatIdAndSentTimestampBeforeOrderBySentTimestampDesc(chatId, PageRequest.of(page, pageSize), fromDate)
+                )
                 .stream()
                 .map(com.ychat.ychat.models.Message::toOpenAPI)
                 .collect(Collectors.toList());
@@ -61,14 +69,14 @@ public class MessagingService {
                 message.getChatId(),
                 LocalDateTime.now(),
                 message.getMessage(),
-                message.getMediaId(),
+                message.getMediaPath(),
                 message.getTransactionId()
         );
         newMessage = messageRepository.save(newMessage);
 
         var notification = new Notification();
         var schema1 = new AnonymousSchema1();
-        schema1.setChatId(newMessage.getChatId());
+        schema1.setChatId(newMessage.getChatId().toString());
         notification.setNewMessage(schema1);
         notificationServiceConnector.onNotification(random.nextInt(), notification);
 

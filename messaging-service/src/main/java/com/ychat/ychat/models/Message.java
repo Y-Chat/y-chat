@@ -8,13 +8,13 @@ import java.util.UUID;
 
 @Document()
 public class Message {
-    public Message(UUID id, UUID senderId, UUID chatId, LocalDateTime sentTimestamp, String message, UUID mediaId, UUID transactionId) {
+    public Message(UUID id, UUID senderId, UUID chatId, LocalDateTime sentTimestamp, String message, String mediaPath, UUID transactionId) {
         this.id = id;
         this.senderId = senderId;
         this.chatId = chatId;
         this.sentTimestamp = sentTimestamp;
         this.message = message;
-        this.mediaId = mediaId;
+        this.mediaPath = mediaPath;
         this.transactionId = transactionId;
     }
 
@@ -29,7 +29,7 @@ public class Message {
 
     private String message;
 
-    private UUID mediaId;
+    private String mediaPath;
 
     private UUID transactionId;
 
@@ -57,8 +57,8 @@ public class Message {
         return message;
     }
 
-    public UUID getMediaId() {
-        return mediaId;
+    public String getMediaPath() {
+        return mediaPath;
     }
 
     public UUID getTransactionId() {
@@ -82,7 +82,7 @@ public class Message {
                 message.getChatId(),
                 message.getSentTimestamp(),
                 message.getMessage(),
-                message.getMediaId(),
+                message.getMediaPath(),
                 message.getTransactionId()
         );
     }
