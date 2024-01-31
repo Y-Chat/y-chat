@@ -15,8 +15,6 @@ interface ChatWindowProps {
 export function ChatWindow({chat}: ChatWindowProps) {
     const [setHeader] = useOutletContext<ShellOutletContext>();
 
-    console.log("lol", chat)
-
     useEffect(() => {
         setHeader(
             <>

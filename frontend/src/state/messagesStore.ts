@@ -6,6 +6,8 @@ import {Message} from "../model/Message";
 import {useUserStore} from "./userStore";
 import {Chat} from "../model/Chat";
 import {api} from "../network/api";
+import getUuidByString from "uuid-by-string";
+import {debug} from "node:util";
 
 interface MessagesState {
     // maps chatId to its respective messages
@@ -25,6 +27,51 @@ const local: PersistStorage<MessagesState> = {
     removeItem: (name) => localStorage.removeItem(name),
 }
 
+interface temp {
+    chatId: string,
+    upwards: boolean,
+    date: Date
+}
+
+/*let allChats: Message[] = [] TODO remove!
+
+for (let i = 0; i < 50; i++) {
+    const message = `Message${i + 1}`;
+    const uuid = getUuidByString(message, 3);
+    const fromMe = false; // Randomly true or false
+    const object: Message = {
+        id: uuid,
+        type: 'text',
+        message,
+        fromMe,
+        status: 'read',
+        date: new Date(i * 31536000000)
+    };
+    allChats.push(object);
+}
+
+console.log(allChats)
+
+function getChatsFromDate(date: Date, n: number, newer = false) {
+    const sortedChats = allChats.sort((a, b) => b.date.getTime() - a.date.getTime());
+    const index = sortedChats.findIndex(chat => (newer ? chat.date > date : chat.date < date));
+
+    if (index !== -1) {
+        if (newer) {
+            return sortedChats.slice(index, index + 10);
+        } else {
+            return sortedChats.slice(index - n, index).reverse();
+        }
+    } else {
+        return [];
+    }
+}
+
+const b1 = getChatsFromDate(new Date(0), 10, true)
+console.log(b1);
+const b1 = getChatsFromDate(new Date(0), 10, true)*/
+
+
 export const useMessagesStore = create<MessagesState>()(
     persist(
         (set, get) => (
@@ -43,22 +90,8 @@ export const useMessagesStore = create<MessagesState>()(
                         latest = oldMessages[0].date;
                     }
 
-                    const fetchedMessages: Message[] = [{
-                        type: "text",
-                        message: "Message1",
-                        fromMe: true,
-                        status: "read",
-                        date: new Date()
-                    }, {
-                        type: "text",
-                        message: "Message2",
-                        fromMe: true,
-                        status: "read",
-                        date: new Date()
-                    }];
-
                     const updatedMessages = get().messages;
-                    updatedMessages[chatId] = [...oldMessages, ...fetchedMessages]
+                    updatedMessages[chatId] = [...oldMessages, ...[]]
 
                     set({messages: updatedMessages});
                 }

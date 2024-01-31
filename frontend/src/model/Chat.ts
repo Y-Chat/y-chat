@@ -10,7 +10,6 @@ export interface Chat {
     groupInfo?: GroupInfo // only in GroupChat
     archived: boolean
     date: Date,
-    messages: Message[]
 }
 
 interface GroupInfo {
