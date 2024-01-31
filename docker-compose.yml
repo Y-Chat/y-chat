@@ -237,6 +237,6 @@ services:
         SPRING_DATASOURCE_USERNAME: "ychat"
         SPRING_DATASOURCE_PASSWORD: "ychatformerlyknownas"
       ports:
-        - "38080:80"
+        - "7502:80"
       depends_on:
         - ychat-social-db
