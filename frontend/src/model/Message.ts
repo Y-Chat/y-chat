@@ -4,5 +4,6 @@ export interface Message {
     amount?: number, // only payment messages
     mediaUrl?: string // only media messages
     fromMe: boolean,
-    status: "sent" | "delviered" | "read"
+    status: "sent" | "delviered" | "read",
+    date: Date
 }

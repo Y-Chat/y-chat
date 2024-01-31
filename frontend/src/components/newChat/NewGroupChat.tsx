@@ -81,7 +81,7 @@ export function NewGroupChat() {
                         })
                     }
                     // TODO add group members api.addGroupMember()
-                    await fetchChats(user.id);
+                    await fetchChats();
                     form.reset();
                     setAvatarPreview({file: null, previewUrl: ""})
                 } catch (err) {

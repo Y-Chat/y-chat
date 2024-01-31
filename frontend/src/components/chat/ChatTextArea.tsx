@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {ActionIcon, Avatar, Divider, Group, Image, Paper, rem, Textarea} from "@mantine/core";
+import {ActionIcon, Avatar, Divider, Group, Image, Paper, rem, Textarea, useMantineTheme} from "@mantine/core";
 import {IconPhoto, IconSend, IconUpload, IconX} from "@tabler/icons-react";
 import {isMobile} from 'react-device-detect';
 import {api} from "../../network/api";
@@ -12,6 +12,7 @@ function ChatTextArea() {
     const [message, setMessage] = useState("");
     const [image, setImage] = useState<{ file: FileWithPath | null, url: string }>({file: null, url: ""});
     const [messageSending, setMessageSending] = useState(false);
+    const theme = useMantineTheme();
 
     async function sendMessage() {
         setMessageSending(true);
@@ -141,6 +142,7 @@ function ChatTextArea() {
                         }/>
 
                     <ActionIcon
+                        color={theme.colors[theme.primaryColor][6]}
                         loading={messageSending}
                         size={42}
                         variant="filled"

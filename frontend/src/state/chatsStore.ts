@@ -4,13 +4,15 @@ import {api} from "../network/api";
 import superjson from 'superjson';
 import {Chat} from "../model/Chat";
 import {ChatDTO} from "../api-wrapper";
+import {useUserStore} from "./userStore";
+import {Message} from "../model/Message";
 
 interface ChatsState {
     chats: Chat[],
     selectedChatId: string
     setSelectedChat: (chatId: string) => void
-    getChat: (chatId: string, userId: string) => Promise<Chat | null>
-    fetchChats: (userId: string) => Promise<void>
+    getChat: (chatId: string) => Promise<Chat | null>
+    fetchChats: () => Promise<void>
 }
 
 const local: PersistStorage<ChatsState> = {
@@ -37,7 +39,12 @@ export const useChatsStore = create<ChatsState>()(
                         set({selectedChatId: chatId});
                     }
                 },
-                getChat: async (chatId: string, userId: string) => {
+                getChat: async (chatId: string) => {
+                    const userId = useUserStore.getState().user?.id;
+                    if (!userId) {
+                        return null;
+                    }
+
                     let chat = get().chats.find((chat) => chat.id == chatId);
                     // fetch if we don't have this chat cached locally
                     if (!chat) {
@@ -51,7 +58,11 @@ export const useChatsStore = create<ChatsState>()(
                     }
                     return chat;
                 },
-                fetchChats: async (userId: string) => {
+                fetchChats: async () => {
+                    const userId = useUserStore.getState().user?.id;
+                    if (!userId) {
+                        return;
+                    }
                     try {
                         const resp = await api.getAllChats({
                             userId: userId,
@@ -69,8 +80,10 @@ export const useChatsStore = create<ChatsState>()(
         ),
         {
             name: 'chats-storage',
-            storage: local,
-        },
+            storage:
+            local,
+        }
+        ,
     ),
 )
 
@@ -95,6 +108,79 @@ function transformChat(apiChat: ChatDTO): Chat {
         newMessages: 1,
         groupInfo: apiChat.groupProfileDTO ? {description: apiChat.groupProfileDTO.profileDescription || ""} : undefined,
         archived: false,
-        date: new Date() // TODO calc date
+        date: new Date(), // TODO calc date,
+        messages: [{
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        }, {
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        },{
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        }, {
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        },{
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        }, {
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        },{
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        }, {
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        },{
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        }, {
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        },{
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        }, {
+            type: "text",
+            message: "Message0",
+            fromMe: true,
+            status: "read",
+            date: new Date()
+        }]
     };
 }

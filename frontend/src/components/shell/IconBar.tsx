@@ -14,13 +14,14 @@ export function IconBar({toggleNav}: IconBarProps) {
     return (
         <>
             <Center style={{flexGrow: 1}}>
-                <Logo style={{width:40}}></Logo>
+                <Logo style={{width: 40}}></Logo>
                 <Text fw={600} size={"lg"}>Chat</Text>
             </Center>
 
             <Container>
                 <Group justify="flex-end" style={{flexGrow: 0}}>
                     <ActionIcon
+                        c={"white"}
                         variant={"transparent"}
                         onClick={() => {
                             toggleNav();
@@ -30,11 +31,13 @@ export function IconBar({toggleNav}: IconBarProps) {
                         <IconUsersGroup/>
                     </ActionIcon>
                     <ActionIcon
+                        c={"white"}
                         variant={"transparent"}
                     >
                         <IconArchive/>
                     </ActionIcon>
                     <ActionIcon
+                        c={"white"}
                         variant={"transparent"}
                     >
                         <IconUserCancel/>

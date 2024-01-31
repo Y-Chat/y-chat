@@ -22,7 +22,7 @@ export function NewDirectChat({email}: NewDirectChatProps) {
                 setIsLoading(true);
                 try {
                     const chat = await api.createDirectChat({userId: user.id, otherUserId: email}) // TODO API must accept email instead of uid!
-                    await fetchChats(user.id);
+                    await fetchChats();
                 } catch (err) {
                     // TODO handle err
                     showErrorNotification("It seems like the email you entered is not registered in our system.","User not found"); // ignore other errors for now
