@@ -11,14 +11,18 @@ import {IconBar} from "./IconBar";
 function Shell() {
     const [opened, {toggle}] = useDisclosure();
     const [header, setHeader] = useState(<></>);
+    const [collapseHeader, setCollapseHeader] = useState(false);
 
     // this just exists to guarantee type safety for ShellOutletContext
-    const outletContext: ShellOutletContext = [setHeader]
+    const outletContext: ShellOutletContext = {
+        setHeader,
+        setCollapseHeader
+    }
 
     return (
         <AppShell
             zIndex={2000}
-            header={{height: 90}}
+            header={{height: 90, collapsed: collapseHeader}}
             navbar={{
                 width: 300,
                 breakpoint: 'xl',
@@ -26,7 +30,7 @@ function Shell() {
             }}
             padding={0}
         >
-            <AppShell.Header p={"md"}>
+            {!collapseHeader && <AppShell.Header p={"md"}>
                 <Group h={"100%"} gap={0} grow justify="space-between">
                     <Burger
                         style={{
@@ -41,9 +45,9 @@ function Shell() {
                         opened ? <IconBar toggleNav={toggle}/> : header
                     }
                 </Group>
-            </AppShell.Header>
+            </AppShell.Header>}
 
-            <AppShell.Navbar withBorder={false}>
+            {!collapseHeader && <AppShell.Navbar withBorder={false}>
                 <ScrollArea style={{flex: 1}} pl={"md"} pr={"md"}>
                     <ContactList toggleNav={toggle}/>
                 </ScrollArea>
@@ -51,7 +55,7 @@ function Shell() {
                 <Container h={90} p={"md"} m={0}>
                     <AccountBtn toggleNav={toggle}/>
                 </Container>
-            </AppShell.Navbar>
+            </AppShell.Navbar>}
 
             <AppShell.Main>
                 <Outlet context={outletContext}/>

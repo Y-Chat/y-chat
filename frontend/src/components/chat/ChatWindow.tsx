@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {Chat} from "../../model/Chat";
-import {useOutletContext} from "react-router-dom";
+import {useNavigate, useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
 import {ActionIcon, Avatar, Container, Group, Text} from "@mantine/core";
 import {IconVideo} from "@tabler/icons-react";
@@ -12,7 +12,8 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({chat}: ChatWindowProps) {
-    const [setHeader] = useOutletContext<ShellOutletContext>();
+    const {setHeader} = useOutletContext<ShellOutletContext>();
+    const navigate = useNavigate();
 
     useEffect(() => {
         setHeader(
@@ -37,7 +38,9 @@ export function ChatWindow({chat}: ChatWindowProps) {
 
                 <Container style={{flexGrow: 0}}>
                     <ActionIcon variant="transparent" c="lightgray">
-                        {chat?.email ? <IconVideo/> : undefined}
+                        {chat?.email ? <IconVideo onClick={() => {
+                            navigate("/call?callUser=461d6800-8e97-357b-ad0f-9f0262c518fe")
+                        }}/> : undefined}
                     </ActionIcon>
                 </Container>
             </>

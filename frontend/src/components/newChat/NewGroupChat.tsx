@@ -19,7 +19,7 @@ export function NewGroupChat() {
     });
     const user = useUserStore(state => state.user)!;
     const fetchChats = useChatsStore(state => state.fetchChats);
-    const [setHeader] = useOutletContext<ShellOutletContext>();
+    const {setHeader} = useOutletContext<ShellOutletContext>();
     const form = useForm<{ groupName: string, groupDescription: string, groupMembers: string[], avatar: string }>({
         initialValues: {
             groupName: "",

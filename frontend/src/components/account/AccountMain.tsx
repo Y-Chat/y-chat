@@ -34,7 +34,7 @@ export function AccountMain() {
     const setUser = useUserStore((state) => state.setUser);
     const [userProfilePictureURL, setUserProfilePictureURL] = useState<string | null>(null);
     const navigate = useNavigate();
-    const [setHeader] = useOutletContext<ShellOutletContext>();
+    const {setHeader} = useOutletContext<ShellOutletContext>();
 
     const form = useForm({
         initialValues: {

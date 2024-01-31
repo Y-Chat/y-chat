@@ -9,8 +9,9 @@ import {
 import {CallSignaling} from "../../calling/signaling";
 import {getMessaging, onMessage} from "firebase/messaging";
 import firebaseApp from "../../firebase/firebaseApp";
-import {useNavigate, useSearchParams} from "react-router-dom";
+import {useNavigate, useOutletContext, useSearchParams} from "react-router-dom";
 import {registerNotificationTypeHandler, unregisterNotificationTypeHandler} from "../../firebase/messaging";
+import {ShellOutletContext} from "../shell/ShellOutletContext";
 
 export default function ChatCall() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +23,7 @@ export default function ChatCall() {
         });
     }, [])
     const [microphoneOn, setMicrophoneOn] = useState(true);
+    const { setCollapseHeader } = useOutletContext<ShellOutletContext>();
 
     useEffect(() => {
         if(!searchParams.has("acceptCall") && !searchParams.has("callUser")) {
@@ -33,6 +35,13 @@ export default function ChatCall() {
     useEffect(() => {
         callSignaling.setOwnMedia(microphoneOn)
     }, [microphoneOn])
+
+    useEffect(() => {
+        setCollapseHeader(true)
+        return () => {
+            setCollapseHeader(false)
+        }
+    }, []);
 
     useEffect( () => {
         const messaging = getMessaging(firebaseApp);

@@ -7,7 +7,7 @@ import {HelloSVG} from "./HelloSVG";
 import {useUserStore} from "../../state/userStore";
 
 export function Welcome() {
-    const [setHeader] = useOutletContext<ShellOutletContext>();
+    const {setHeader} = useOutletContext<ShellOutletContext>();
     const user = useUserStore(state => state.user)!;
 
     useEffect(() => {
