@@ -18,7 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,7 +35,7 @@ public class MessagesController implements MessagesApi {
     }
 
     @Override
-    public ResponseEntity<GetMessages200Response> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize, MessageFetchDirection direction) {
+    public ResponseEntity<GetMessages200Response> getMessages(UUID chatId, OffsetDateTime fromDate, Integer page, Integer pageSize, MessageFetchDirection direction) {
         var requesterId = SecurityConfig.getRequesterUUID();
         // TODO Check with social service if user is allowed to access chat
         var res = messagingService.getMessages(chatId, fromDate, page, pageSize, direction);

@@ -13,6 +13,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -35,7 +36,7 @@ public class MessagingService {
         this.notificationServiceConnector = notificationServiceConnector;
     }
 
-    public Pair<Optional<List<Message>>, PageRequest> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize, MessageFetchDirection direction) {
+    public Pair<Optional<List<Message>>, PageRequest> getMessages(UUID chatId, OffsetDateTime fromDate, Integer page, Integer pageSize, MessageFetchDirection direction) {
         if(page == null) {
             page = 0;
         }
@@ -67,7 +68,7 @@ public class MessagingService {
                 UUID.randomUUID(),
                 senderId,
                 message.getChatId(),
-                LocalDateTime.now(),
+                OffsetDateTime.now(),
                 message.getMessage(),
                 message.getMediaPath(),
                 message.getTransactionId()

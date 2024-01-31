@@ -4,11 +4,12 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Document()
 public class Message {
-    public Message(UUID id, UUID senderId, UUID chatId, LocalDateTime sentTimestamp, String message, String mediaPath, UUID transactionId) {
+    public Message(UUID id, UUID senderId, UUID chatId, OffsetDateTime sentTimestamp, String message, String mediaPath, UUID transactionId) {
         this.id = id;
         this.senderId = senderId;
         this.chatId = chatId;
@@ -25,7 +26,7 @@ public class Message {
 
     private UUID chatId;
 
-    private LocalDateTime sentTimestamp;
+    private OffsetDateTime sentTimestamp;
 
     private String message;
 
@@ -49,7 +50,7 @@ public class Message {
         return chatId;
     }
 
-    public LocalDateTime getSentTimestamp() {
+    public OffsetDateTime getSentTimestamp() {
         return sentTimestamp;
     }
 
