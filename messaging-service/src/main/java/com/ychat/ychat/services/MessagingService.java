@@ -2,6 +2,7 @@ package com.ychat.ychat.services;
 
 import com.asyncapi.gen.notification.model.AnonymousSchema1;
 import com.asyncapi.gen.notification.model.Notification;
+import com.openapi.gen.messaging.dto.MessageFetchDirection;
 import com.ychat.ychat.repositories.ChatMessageRepository;
 import com.openapi.gen.messaging.dto.Message;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -34,7 +36,7 @@ public class MessagingService {
         this.notificationServiceConnector = notificationServiceConnector;
     }
 
-    public Pair<Optional<List<Message>>, PageRequest> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize) {
+    public Pair<Optional<List<Message>>, PageRequest> getMessages(UUID chatId, OffsetDateTime fromDate, Integer page, Integer pageSize, MessageFetchDirection direction) {
         if(page == null) {
             page = 0;
         }
@@ -42,9 +44,16 @@ public class MessagingService {
             pageSize = 20;
         }
 
+        if(direction == null) {
+            direction = MessageFetchDirection.FUTURE;
+        }
+
         PageRequest pageRequest = PageRequest.of(page, pageSize);
-        var res = messageRepository
-                .findByChatId(chatId, PageRequest.of(page, pageSize))
+        var res = (
+                direction.equals(MessageFetchDirection.FUTURE) ?
+                        messageRepository.findByChatIdAndSentTimestampAfterOrderBySentTimestampDesc(chatId, PageRequest.of(page, pageSize), fromDate) :
+                        messageRepository.findByChatIdAndSentTimestampBeforeOrderBySentTimestampDesc(chatId, PageRequest.of(page, pageSize), fromDate)
+                )
                 .stream()
                 .map(com.ychat.ychat.models.Message::toOpenAPI)
                 .collect(Collectors.toList());
@@ -59,7 +68,7 @@ public class MessagingService {
                 UUID.randomUUID(),
                 senderId,
                 message.getChatId(),
-                LocalDateTime.now(),
+                OffsetDateTime.now(),
                 message.getMessage(),
                 message.getMediaPath(),
                 message.getTransactionId()

@@ -4,6 +4,7 @@ import com.asyncapi.gen.notification.model.AnonymousSchema1;
 import com.asyncapi.gen.notification.model.Notification;
 import com.openapi.gen.messaging.api.MessagesApi;
 import com.openapi.gen.messaging.dto.GetMessages200Response;
+import com.openapi.gen.messaging.dto.MessageFetchDirection;
 import com.openapi.gen.messaging.dto.PageInfo;
 import com.ychat.ychat.SecurityConfig;
 import com.ychat.ychat.services.MessagingService;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,10 +35,10 @@ public class MessagesController implements MessagesApi {
     }
 
     @Override
-    public ResponseEntity<GetMessages200Response> getMessages(UUID chatId, LocalDateTime fromDate, Integer page, Integer pageSize) {
+    public ResponseEntity<GetMessages200Response> getMessages(UUID chatId, OffsetDateTime fromDate, Integer page, Integer pageSize, MessageFetchDirection direction) {
         var requesterId = SecurityConfig.getRequesterUUID();
         // TODO Check with social service if user is allowed to access chat
-        var res = messagingService.getMessages(chatId, fromDate, page, pageSize);
+        var res = messagingService.getMessages(chatId, fromDate, page, pageSize, direction);
         return ResponseEntity.ok(new GetMessages200Response(res.getFirst().orElse(List.of()), new PageInfo(res.getSecond().getPageNumber(), res.getSecond().getPageSize())));
     }
 }
