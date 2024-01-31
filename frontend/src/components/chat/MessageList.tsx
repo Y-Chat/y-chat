@@ -27,7 +27,7 @@ function MessageList({chatId}: MessageListProps) {
     }
 
     useEffect(() => {
-        fetchMoreMessagesByChat(chatId);
+        fetchMoreMessagesByChat(chatId, "past");
     }, []);
 
     return (
@@ -65,7 +65,7 @@ function MessageList({chatId}: MessageListProps) {
                 {messages ? <InfiniteScroll
                     scrollableTarget="scrollableDiv"
                     dataLength={messages.length} //This is important field to render the next data
-                    next={async () => await fetchMoreMessagesByChat(chatId)}
+                    next={async () => await fetchMoreMessagesByChat(chatId, "past")}
                     hasMore={true}
                     loader={<h4>Loading...</h4>}
                     endMessage={
@@ -89,6 +89,29 @@ function MessageList({chatId}: MessageListProps) {
                         <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
                     }
                 >
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
+                    <p>Test</p>
                     {messages.map((msg, i) =>
                         <MessageBubble key={i} message={msg}/>
                     )}

@@ -55,7 +55,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
                 width: "100%",
                 zIndex: 1
             }}>
-                <ChatTextArea/>
+                <ChatTextArea chatId={chat.id}/>
             </div>
         </>
     );

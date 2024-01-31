@@ -33,7 +33,6 @@ export function NewGroupChat() {
                 if (val.length <= 0) {
                     return null;
                 }
-                debugger
                 return val.every(memberMail => /^\S+@\S+$/.test(memberMail)) ? null : 'You can only enter valid email addresses.'
             }
             ,

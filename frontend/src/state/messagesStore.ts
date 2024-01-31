@@ -1,18 +1,16 @@
 import {create} from 'zustand'
-import {User} from "../model/User";
 import {persist, PersistStorage} from 'zustand/middleware'
 import superjson from "superjson";
-import {Message} from "../model/Message";
-import {useUserStore} from "./userStore";
-import {Chat} from "../model/Chat";
 import {api} from "../network/api";
-import getUuidByString from "uuid-by-string";
-import {debug} from "node:util";
+import {Message} from "../model/Message";
+import {Message as ApiMessage} from "../api-wrapper";
+import {useUserStore} from "./userStore";
+
 
 interface MessagesState {
     // maps chatId to its respective messages
     messages: { [key: string]: Message[] | undefined }
-    fetchMoreMessagesByChat: (chatId: string) => Promise<void>
+    fetchMoreMessagesByChat: (chatId: string, direction: "past" | "future") => Promise<void>
 }
 
 const local: PersistStorage<MessagesState> = {
@@ -79,21 +77,36 @@ export const useMessagesStore = create<MessagesState>()(
                 // always be aware that this state might not yet have an entry for a chat -> type is undefined, not an empty list!
                 // messages[<id>][0] is the newest message!
                 messages: {},
-                fetchMoreMessagesByChat: async (chatId: string) => {
-                    let oldMessages = get().messages[chatId];
-                    let latest = new Date(0);
+                fetchMoreMessagesByChat: async (chatId: string, direction: "past" | "future") => {
+                    try {
+                        let currentMessages = get().messages[chatId] || [];
+                        let d: Date;
 
-                    if (!oldMessages) {
-                        oldMessages = []
-                    } else {
-                        // if we have messages for this chat, get the latest date
-                        latest = oldMessages[0].date;
+                        if (currentMessages.length == 0) {
+                            d = new Date();
+                        } else {
+                            d = direction == "past" ? new Date(currentMessages[currentMessages.length - 1].date) : new Date(currentMessages[0].date);
+                        }
+
+                        const fetchedMessages = (await api.getMessages({
+                            chatId: chatId,
+                            fromDate: d,
+                            direction: direction,
+                            pageSize: 30
+                        })).messages.map(transformMessage)
+
+                        const updatedMessages = get().messages;
+
+                        if (direction === "past") {
+                            updatedMessages[chatId] = [...currentMessages, ...fetchedMessages];
+                        } else {
+                            updatedMessages[chatId] = [...fetchedMessages, ...currentMessages];
+                        }
+                        set({messages: updatedMessages});
+                    } catch (err) {
+                        console.log(err)
+                        // TODO catch error
                     }
-
-                    const updatedMessages = get().messages;
-                    updatedMessages[chatId] = [...oldMessages, ...[]]
-
-                    set({messages: updatedMessages});
                 }
             }
         ),
@@ -103,6 +116,30 @@ export const useMessagesStore = create<MessagesState>()(
         },
     ),
 )
+
+function transformMessage(msg: ApiMessage): Message {
+    const uid = useUserStore.getState().user?.id! // dangerous
+
+    let t: "text" | "payment" | "media" = "text"
+    if (msg.transactionId) {
+        t = "payment"
+    } else if (msg.mediaPath) {
+        t = "media"
+    }
+    return {
+        id: msg.id,
+        type: t,
+        message: msg.message,
+        amount: -1, // TODO payment not implemented
+        mediaUrl: msg.mediaPath,
+        fromMe: msg.senderId == uid,
+        status: "sent",
+        date: msg.sentTimestamp,
+
+
+    }
+
+}
 
 /*    const msgs: Message[] = [
         {type: "text", message: "Message1", fromMe: true, status: "read"},
