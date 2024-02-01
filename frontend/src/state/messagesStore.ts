@@ -10,7 +10,8 @@ import {useUserStore} from "./userStore";
 interface MessagesState {
     // maps chatId to its respective messages
     messages: { [key: string]: Message[] | undefined }
-    fetchMoreMessagesByChat: (chatId: string, direction: "past" | "future") => Promise<void>
+    // returns amount of fetched messages
+    fetchMoreMessagesByChat: (chatId: string, direction: "PAST" | "FUTURE") => Promise<number>
 }
 
 const local: PersistStorage<MessagesState> = {
@@ -25,51 +26,6 @@ const local: PersistStorage<MessagesState> = {
     removeItem: (name) => localStorage.removeItem(name),
 }
 
-interface temp {
-    chatId: string,
-    upwards: boolean,
-    date: Date
-}
-
-/*let allChats: Message[] = [] TODO remove!
-
-for (let i = 0; i < 50; i++) {
-    const message = `Message${i + 1}`;
-    const uuid = getUuidByString(message, 3);
-    const fromMe = false; // Randomly true or false
-    const object: Message = {
-        id: uuid,
-        type: 'text',
-        message,
-        fromMe,
-        status: 'read',
-        date: new Date(i * 31536000000)
-    };
-    allChats.push(object);
-}
-
-console.log(allChats)
-
-function getChatsFromDate(date: Date, n: number, newer = false) {
-    const sortedChats = allChats.sort((a, b) => b.date.getTime() - a.date.getTime());
-    const index = sortedChats.findIndex(chat => (newer ? chat.date > date : chat.date < date));
-
-    if (index !== -1) {
-        if (newer) {
-            return sortedChats.slice(index, index + 10);
-        } else {
-            return sortedChats.slice(index - n, index).reverse();
-        }
-    } else {
-        return [];
-    }
-}
-
-const b1 = getChatsFromDate(new Date(0), 10, true)
-console.log(b1);
-const b1 = getChatsFromDate(new Date(0), 10, true)*/
-
-
 export const useMessagesStore = create<MessagesState>()(
     persist(
         (set, get) => (
@@ -77,36 +33,37 @@ export const useMessagesStore = create<MessagesState>()(
                 // always be aware that this state might not yet have an entry for a chat -> type is undefined, not an empty list!
                 // messages[<id>][0] is the newest message!
                 messages: {},
-                fetchMoreMessagesByChat: async (chatId: string, direction: "past" | "future") => {
+                fetchMoreMessagesByChat: async (chatId: string, direction: "PAST" | "FUTURE") => {
+                    let currentMessages = get().messages[chatId] || [];
+                    let d: Date;
+
+                    if (currentMessages.length == 0) {
+                        d = new Date();
+                    } else {
+                        d = direction == "PAST" ? new Date(currentMessages[currentMessages.length - 1].date) : new Date(currentMessages[0].date);
+                    }
+
+                    let fetchedMessages: Message[] = []
                     try {
-                        let currentMessages = get().messages[chatId] || [];
-                        let d: Date;
-
-                        if (currentMessages.length == 0) {
-                            d = new Date();
-                        } else {
-                            d = direction == "past" ? new Date(currentMessages[currentMessages.length - 1].date) : new Date(currentMessages[0].date);
-                        }
-
-                        const fetchedMessages = (await api.getMessages({
+                        fetchedMessages = (await api.getMessages({
                             chatId: chatId,
                             fromDate: d,
-                            direction: undefined, //direction,
-                            pageSize: 30
-                        })).messages.map(transformMessage)
-
-                        const updatedMessages = get().messages;
-
-                        if (direction === "past") {
-                            updatedMessages[chatId] = [...currentMessages, ...fetchedMessages];
-                        } else {
-                            updatedMessages[chatId] = [...fetchedMessages, ...currentMessages];
-                        }
-                        set({messages: updatedMessages});
+                            direction: direction,
+                            pageSize: 10
+                        })).messages.map(transformMessage);
                     } catch (err) {
-                        console.log(err)
-                        // TODO catch error
+                        return 0;
                     }
+
+                    const updatedMessages = get().messages;
+
+                    if (direction === "PAST") {
+                        updatedMessages[chatId] = [...currentMessages, ...fetchedMessages];
+                    } else {
+                        updatedMessages[chatId] = [...fetchedMessages, ...currentMessages];
+                    }
+                    set({messages: updatedMessages});
+                    return fetchedMessages.length;
                 }
             }
         ),

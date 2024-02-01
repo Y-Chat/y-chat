@@ -31,12 +31,12 @@ function MessageBubble({message}: MessageBubbleProps) {
 
 
     return (
-        <Group justify={message.fromMe ? "flex-start" : "flex-end"}>
+        <Group justify={message.fromMe ? "flex-end" : "flex-start"}>
             <Paper
                 radius="md"
                 shadow="md"
                 p={10}
-                bg={message.fromMe ? theme.colors.dark[6] : theme.colors[theme.primaryColor][6]}
+                bg={message.fromMe ? theme.colors[theme.primaryColor][6] : theme.colors.dark[6]}
                 style={{
                     maxWidth: 300,
                     height: "100%",

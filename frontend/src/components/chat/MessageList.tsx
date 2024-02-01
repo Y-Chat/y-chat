@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {ActionIcon, Container, Flex, LoadingOverlay, rem, ScrollArea, Stack, useMantineTheme} from "@mantine/core";
+import {ActionIcon, Center, Loader, Text, useMantineTheme} from "@mantine/core";
 import MessageBubble from "./MessageBubble";
 import {IconCircleChevronDown} from "@tabler/icons-react";
 import InfiniteScroll from "react-infinite-scroll-component";
@@ -10,15 +10,12 @@ interface MessageListProps {
 }
 
 function MessageList({chatId}: MessageListProps) {
-    const gapBetweenMessages = 8;
+    const gapBetweenMessages = 16;
     const theme = useMantineTheme();
     const scrollableDiv = useRef<HTMLDivElement>(null);
     const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
-    const messages = useMessagesStore(state => state.messages[chatId]);
-
-    function sleep(ms: number) { // TODO remove
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    const messages = useMessagesStore(state => state.messages[chatId]) || [];
+    const [oldestLoaded, setOldestLoaded] = useState(false);
 
     function scrollToBottom() {
         if (scrollableDiv.current) {
@@ -27,7 +24,14 @@ function MessageList({chatId}: MessageListProps) {
     }
 
     useEffect(() => {
-        fetchMoreMessagesByChat(chatId, "past");
+        // do one initials load into the past if we have no messages for this chat
+        if (messages.length == 0) {
+            fetchMoreMessagesByChat(chatId, "PAST").then(n => {
+                if (n == 0) {
+                    setOldestLoaded(true);
+                }
+            });
+        }
     }, []);
 
     return (
@@ -62,26 +66,35 @@ function MessageList({chatId}: MessageListProps) {
                     flexDirection: 'column-reverse',
                 }}
             >
-                {messages ? <InfiniteScroll
+                <InfiniteScroll
                     scrollableTarget="scrollableDiv"
                     dataLength={messages.length} //This is important field to render the next data
-                    next={async () => await fetchMoreMessagesByChat(chatId, "past")}
-                    hasMore={true}
-                    loader={<h4>Loading...</h4>}
+                    next={async () => {
+                        const n = await fetchMoreMessagesByChat(chatId, "PAST");
+                        if (n == 0) {
+                            setOldestLoaded(true);
+                        }
+                    }}
+                    hasMore={!oldestLoaded}
+                    loader={
+                        <Center mt={"md"}>
+                            <Loader/>
+                        </Center>
+                    }
                     endMessage={
-                        <p style={{textAlign: 'center'}}>
-                            <b>Yay! You have seen it all</b>
-                        </p>
+                        <Center mt={"md"}>
+                            <Text>Conversation started</Text>
+                        </Center>
                     }
                     inverse={true}
                     style={{
                         display: 'flex',
                         flexDirection: 'column-reverse',
-                        gap: 16,
+                        gap: gapBetweenMessages,
                         paddingLeft: 16,
                         paddingRight: 16
                     }}
-                    // below props only if you need pull down functionality
+                    // TODO do we need pull down on phone?
                     refreshFunction={() => console.log("refresh")}
                     pullDownToRefresh
                     pullDownToRefreshThreshold={50}
@@ -89,33 +102,10 @@ function MessageList({chatId}: MessageListProps) {
                         <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
                     }
                 >
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
-                    <p>Test</p>
                     {messages.map((msg, i) =>
                         <MessageBubble key={i} message={msg}/>
                     )}
-                </InfiniteScroll> : <LoadingOverlay style={{backgroundOpacity: 0.5, blur: 4}} visible={true}/>}
+                </InfiniteScroll>
             </div>
         </>
     );
