@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {ActionIcon, Avatar, Divider, Group, Image, Paper, rem, Textarea} from "@mantine/core";
+import {ActionIcon, Avatar, Divider, Group, Image, Paper, rem, Textarea, useMantineTheme} from "@mantine/core";
 import {IconPhoto, IconSend, IconUpload, IconX} from "@tabler/icons-react";
 import {isMobile} from 'react-device-detect';
 import {api} from "../../network/api";
@@ -7,34 +7,42 @@ import {Dropzone, FileWithPath, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 import {Message} from "../../api-wrapper";
 import {uploadImage} from "../../network/media";
 import {showErrorNotification} from "../../notifications/notifications";
+import {useUserStore} from "../../state/userStore";
 
-function ChatTextArea() {
+interface ChatTextAreaProps {
+    chatId: string
+}
+
+function ChatTextArea({chatId}: ChatTextAreaProps) {
     const [message, setMessage] = useState("");
     const [image, setImage] = useState<{ file: FileWithPath | null, url: string }>({file: null, url: ""});
     const [messageSending, setMessageSending] = useState(false);
+    const theme = useMantineTheme();
+    const user = useUserStore(state => state.user)!;
 
     async function sendMessage() {
         setMessageSending(true);
         let msg: Message = {
-            id: "c7d5906b-df61-45bd-b44e-b3b8d4c8946a", // Is ignored by server, will be fixed so we don't need to pass a random uuid here
-            senderId: "c7d5906b-df61-45bd-b44e-b3b8d4c8946a",
-            chatId: "8e400639-1a6b-44f6-adf6-d4fd7d463e93", // TODO
+            id: "", // Is ignored by server
+            senderId: user.id,
+            chatId: chatId,
             sentTimestamp: new Date(),
             message: message
         }
 
-        if (image.file) {
-            try {
+
+        try {
+            if (image.file) {
                 //TODO insert chatID here!
-                msg.mediaPath = await uploadImage(image.file, `chats/testChat/${image.file.name}`);
-                const m = await api.sendMessage({message: msg});
-                // TODO add message to local storage
-                setMessage("");
-                resetImage()
-            } catch (err) {
-                setMessageSending(false);
-                return showErrorNotification("An error occurred sending your message.", "Sending Message Failed");
+                msg.mediaPath = await uploadImage(image.file, `chats/${chatId}/${image.file.name}`);
             }
+            const m = await api.sendMessage({message: msg});
+            // TODO add message to local storage
+            setMessage("");
+            resetImage()
+        } catch (err) {
+            setMessageSending(false);
+            return showErrorNotification("An error occurred sending your message.", "Sending Message Failed");
         }
         setMessageSending(false);
     }
@@ -141,11 +149,12 @@ function ChatTextArea() {
                         }/>
 
                     <ActionIcon
+                        color={theme.colors[theme.primaryColor][6]}
                         loading={messageSending}
                         size={42}
                         variant="filled"
                         aria-label="Send"
-                        disabled={!message.length && !image}
+                        disabled={!message && !image.file}
                         onClick={sendMessage}
                     >
                         <IconSend/>

@@ -1,5 +1,5 @@
 import React from "react";
-import {Group, Paper, Text} from "@mantine/core";
+import {Group, Paper, Text, useMantineTheme} from "@mantine/core";
 import {IconPackageImport} from "@tabler/icons-react";
 import {Message} from "../../model/Message";
 import {MediaMessage} from "./MediaMessage";
@@ -9,6 +9,7 @@ interface MessageBubbleProps {
 }
 
 function MessageBubble({message}: MessageBubbleProps) {
+    const theme = useMantineTheme();
 
     function messageContent() {
         if (message.type === "text") {
@@ -30,12 +31,12 @@ function MessageBubble({message}: MessageBubbleProps) {
 
 
     return (
-        <Group justify={message.fromMe ? "flex-start" : "flex-end"}>
+        <Group justify={message.fromMe ? "flex-end" : "flex-start"}>
             <Paper
                 radius="md"
                 shadow="md"
                 p={10}
-                bg={message.fromMe ? "dark.6" : "mainColors.6"}
+                bg={message.fromMe ? theme.colors[theme.primaryColor][6] : theme.colors.dark[6]}
                 style={{
                     maxWidth: 300,
                     height: "100%",
@@ -43,7 +44,7 @@ function MessageBubble({message}: MessageBubbleProps) {
                 }}
             >
                 {messageContent()}
-                <Group justify="flex-end" gap={5} c="dimmed">
+                <Group justify="flex-start" gap={5} c="dimmed">
                     <Text size="xs">{today.getHours() + ":" + today.getMinutes()}</Text>
                     {/*<IconHourglassEmpty size={10}/>*/}
                     {/*<IconPackage size={10}/>*/}

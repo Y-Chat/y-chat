@@ -8,22 +8,20 @@ import {NotFound} from "../404/NotFound";
 
 // This component serves as a wrapper for the actual chat Window. It takes makes sure the chat is available and loaded.
 function ChatLoader() {
-    const selectedChatId = useChatsStore(state => state.selectedChatId);
     const getChat = useChatsStore(state => state.getChat);
-    const user = useUserStore(state => state.user)!;
     const [chat, setChat] = useState<Chat | null>(null);
     const { chatId } = useParams();
 
 
     useEffect(() => {
         if (chatId){
-            getChat(chatId, user.id).then(c => {
+            getChat(chatId).then(c => {
                 if (c) {
                     setChat(c);
                 }
             })
         }
-    }, [selectedChatId]);
+    }, []);
 
     return (
         <>

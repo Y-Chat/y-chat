@@ -51,8 +51,8 @@ public class MessagingService {
         PageRequest pageRequest = PageRequest.of(page, pageSize);
         var res = (
                 direction.equals(MessageFetchDirection.FUTURE) ?
-                        messageRepository.findByChatIdAndSentTimestampAfterOrderBySentTimestampDesc(chatId, PageRequest.of(page, pageSize), fromDate) :
-                        messageRepository.findByChatIdAndSentTimestampBeforeOrderBySentTimestampDesc(chatId, PageRequest.of(page, pageSize), fromDate)
+                        messageRepository.findByChatIdAndSentTimestampAfterOrderBySentTimestampDesc(chatId, PageRequest.of(page, pageSize), fromDate.toInstant()) :
+                        messageRepository.findByChatIdAndSentTimestampBeforeOrderBySentTimestampDesc(chatId, PageRequest.of(page, pageSize), fromDate.toInstant())
                 )
                 .stream()
                 .map(com.ychat.ychat.models.Message::toOpenAPI)
@@ -68,7 +68,7 @@ public class MessagingService {
                 UUID.randomUUID(),
                 senderId,
                 message.getChatId(),
-                OffsetDateTime.now(),
+                OffsetDateTime.now().toInstant(),
                 message.getMessage(),
                 message.getMediaPath(),
                 message.getTransactionId()

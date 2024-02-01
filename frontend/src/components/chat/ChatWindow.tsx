@@ -6,6 +6,7 @@ import {ActionIcon, Avatar, Container, Group, Text} from "@mantine/core";
 import {IconVideo} from "@tabler/icons-react";
 import MessageList from "./MessageList";
 import ChatTextArea from "./ChatTextArea";
+import {useChatsStore} from "../../state/chatsStore";
 
 interface ChatWindowProps {
     chat: Chat
@@ -49,7 +50,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
 
     return (
         <>
-            <MessageList/>
+            <MessageList chatId={chat.id}/>
             <div style={{
                 position: "fixed",
                 bottom: 0,
@@ -57,7 +58,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
                 width: "100%",
                 zIndex: 1
             }}>
-                <ChatTextArea/>
+                <ChatTextArea chatId={chat.id}/>
             </div>
         </>
     );

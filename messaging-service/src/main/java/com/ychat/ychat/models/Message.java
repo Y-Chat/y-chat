@@ -3,13 +3,14 @@ package com.ychat.ychat.models;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Document()
 public class Message {
-    public Message(UUID id, UUID senderId, UUID chatId, OffsetDateTime sentTimestamp, String message, String mediaPath, UUID transactionId) {
+    public Message(UUID id, UUID senderId, UUID chatId, Instant sentTimestamp, String message, String mediaPath, UUID transactionId) {
         this.id = id;
         this.senderId = senderId;
         this.chatId = chatId;
@@ -26,7 +27,7 @@ public class Message {
 
     private UUID chatId;
 
-    private OffsetDateTime sentTimestamp;
+    private Instant sentTimestamp;
 
     private String message;
 
@@ -50,7 +51,7 @@ public class Message {
         return chatId;
     }
 
-    public OffsetDateTime getSentTimestamp() {
+    public Instant getSentTimestamp() {
         return sentTimestamp;
     }
 
@@ -71,7 +72,7 @@ public class Message {
                 this.id,
                 this.senderId,
                 this.chatId,
-                this.sentTimestamp,
+                OffsetDateTime.ofInstant(this.sentTimestamp, OffsetDateTime.now().getOffset()),
                 this.message
         );
     }
@@ -81,7 +82,7 @@ public class Message {
                 message.getId(),
                 message.getSenderId(),
                 message.getChatId(),
-                message.getSentTimestamp(),
+                message.getSentTimestamp().toInstant(),
                 message.getMessage(),
                 message.getMediaPath(),
                 message.getTransactionId()

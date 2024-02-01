@@ -9,13 +9,14 @@ import {useUserStore} from "../../state/userStore";
 export function Welcome() {
     const {setHeader} = useOutletContext<ShellOutletContext>();
     const user = useUserStore(state => state.user)!;
+    const theme = useMantineTheme();
 
     useEffect(() => {
         setHeader(
             <Center>
                 <Group gap={5}>
                     <Text size="xl" fz="lg">Hey</Text>
-                    <Text fw={600} c={"mainColors.6"}>{user.firstName}</Text>
+                    <Text fw={600} size="xl" fz="lg" c={theme.colors[theme.primaryColor][6]}>{user.firstName}</Text>
                     <Text size="xl" fz="lg">!</Text>
                 </Group>
             </Center>

@@ -23,16 +23,18 @@ import {api} from "../network/api";
 import {getMessaging, getToken} from "firebase/messaging";
 import firebaseApp from "../firebase/firebaseApp";
 import {vapidKey} from "../firebase/messaging";
+import {useSettingsStore} from "../state/settingsStore";
 
 function App() {
 
     const [firebaseUser, loading] = useAuthState(auth);
     const user = useUserStore((state) => state.user);
+    const primaryColor = useSettingsStore((state) => state.primaryColor);
 
     // otherwise show how to install instruction
-    const showApp = (window.matchMedia('(display-mode: standalone)').matches && isMobile) || process.env.NODE_ENV == "development"
+    const showApp = (window.matchMedia('(display-mode: standalone)').matches && isMobile) || process.env.NODE_ENV == "development" || true // TODO remove true when actually in prod
 
-    useEffect(() => {
+	useEffect(() => {
         const messaging = getMessaging(firebaseApp);
 
         if(auth.currentUser === null) return;
@@ -56,32 +58,13 @@ function App() {
             console.log('An error occurred while retrieving token. ', err);
         })
     }, [auth.currentUser]);
-
-    const theme: MantineThemeOverride = {
-        primaryColor: "mainColors",
-        primaryShade: 6,
-        colors: {
-            "mainColors": [
-                "#f3edff",
-                "#e0d7fa",
-                "#beabf0",
-                "#9a7ce6",
-                "#7c56de",
-                "#683dd9",
-                "#5f2fd8",
-                "#4f23c0",
-                "#451eac",
-                "#3a1899"
-            ]
-        }
-    }
-
+    
     return (
-        <MantineProvider theme={theme} defaultColorScheme="dark">
+        <MantineProvider theme={{primaryColor}} defaultColorScheme="dark" forceColorScheme="dark">
             {showApp ?
                 <>
                     <PermissionsModal/>
-                    <Notifications autoClose={5000} position="top-right" zIndex={2001}/>
+                    <Notifications zIndex={10000} autoClose={5000} position="top-right"/>
                     <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
                     <Router>
                         {user && firebaseUser ?
