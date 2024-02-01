@@ -91,7 +91,7 @@ export const useMessagesStore = create<MessagesState>()(
                         const fetchedMessages = (await api.getMessages({
                             chatId: chatId,
                             fromDate: d,
-                            direction: direction,
+                            direction: undefined, //direction,
                             pageSize: 30
                         })).messages.map(transformMessage)
 
