@@ -25,6 +25,7 @@ import firebaseApp from "../firebase/firebaseApp";
 import {vapidKey} from "../firebase/messaging";
 import {useSettingsStore} from "../state/settingsStore";
 import {useCallingStore} from "../state/callingStore";
+import CallingWrapper from "./shell/CallingWrapper";
 
 function App() {
 
@@ -70,13 +71,15 @@ function App() {
                     <Router>
                         {user && firebaseUser ?
                             <Routes>
-                                <Route path="/" element={<Shell/>}>
-                                    <Route path="/" element={<Welcome/>}/>
-                                    <Route path="/account" element={<AccountMain/>}/>
-                                    <Route path="/newGroup" element={<NewGroupChat/>}/>
-                                    <Route path="/chat/:chatId" element={<ChatLoader/>}/>
-                                    <Route path={"/call"} element={<ChatCall/>}/>
-                                    <Route path="/*" element={<NotFound/>}/>
+                                <Route path={"/"} element={<CallingWrapper/>}>
+                                    <Route path="/" element={<Shell/>}>
+                                        <Route path="/" element={<Welcome/>}/>
+                                        <Route path="/account" element={<AccountMain/>}/>
+                                        <Route path="/newGroup" element={<NewGroupChat/>}/>
+                                        <Route path="/chat/:chatId" element={<ChatLoader/>}/>
+                                        <Route path={"/call"} element={<ChatCall/>}/>
+                                        <Route path="/*" element={<NotFound/>}/>
+                                    </Route>
                                 </Route>
                             </Routes>
                             :

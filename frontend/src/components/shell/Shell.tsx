@@ -13,24 +13,12 @@ function Shell() {
     const [opened, {toggle}] = useDisclosure();
     const [header, setHeader] = useState(<></>);
     const [collapseHeader, setCollapseHeader] = useState(false);
-    const callSignaling = useCallingStore((state) => state.signaling);
-    const navigate = useNavigate()
 
     // this just exists to guarantee type safety for ShellOutletContext
     const outletContext: ShellOutletContext = {
         setHeader,
         setCollapseHeader
     }
-
-    useEffect(() => {
-        console.log("signaling changed", callSignaling, window.location.pathname)
-        if(callSignaling && !window.location.pathname.startsWith("/call")) {
-            navigate("/call")
-        }
-        if(!callSignaling && window.location.pathname.startsWith("/call")) {
-            navigate("/")
-        }
-    }, [callSignaling]);
 
     return (
         <AppShell
