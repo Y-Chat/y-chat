@@ -68,7 +68,7 @@ public class MessagingService {
                 UUID.randomUUID(),
                 senderId,
                 message.getChatId(),
-                OffsetDateTime.now(),
+                OffsetDateTime.now().toInstant(),
                 message.getMessage(),
                 message.getMediaPath(),
                 message.getTransactionId()
