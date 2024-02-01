@@ -2,7 +2,7 @@ import {Notifications} from "@mantine/notifications";
 import {IconExclamationCircle, IconPhone, IconPhoneOff, IconCircleCheck} from "@tabler/icons-react";
 import {ActionIcon, Group, rem, Text} from "@mantine/core";
 import React from "react";
-import {useNavigate} from "react-router-dom";
+import IncomingCallNotification from "../components/notifications/IncomingCallNotification";
 
 function codeToError(errorCode: string): string {
     const errorMap = new Map<string, string>([
@@ -41,46 +41,13 @@ export function showSuccessNotification(message: string, title: string = "Notifi
 }
 
 export function showCallNotification(callId: string, callerId: string) {
+    const notificationId = `callNotification-callId-${callId}`
     Notifications.show({
+        id: notificationId,
         withBorder: true,
         title: "Incoming Call",
         autoClose: false,
         withCloseButton: false,
-        message: <Group style={{width: "100%"}} justify={"center"}>
-            <Group>
-                <Text>Accept Call</Text>
-                <ActionIcon
-                    size={"4vh"}
-                    color={"white"}
-                    style={{
-                        backgroundColor: "green",
-                        padding: "5px",
-                        borderRadius: 100
-                    }}
-                    onClick={() => {
-                        // navigate(`/call?accept=${callId}`)
-                    }}
-                >
-                    <IconPhone/>
-                </ActionIcon>
-            </Group>
-            <Group>
-                <ActionIcon
-                    size={"4vh"}
-                    color={"white"}
-                    style={{
-                        backgroundColor: "red",
-                        padding: "5px",
-                        borderRadius: 100
-                    }}
-                    onClick={() => {
-                        // TODO
-                    }}
-                >
-                    <IconPhoneOff/>
-                </ActionIcon>
-                <Text>Deny Call</Text>
-            </Group>
-        </Group>,
+        message: <IncomingCallNotification callId={callId} notificationId={notificationId} callerId={callerId}/>,
     })
 }

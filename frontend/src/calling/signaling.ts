@@ -44,7 +44,7 @@ export class CallSignaling {
     remoteStream: MediaStream;
     webcamVideo: HTMLVideoElement | null;
     remoteVideo: HTMLVideoElement | null;
-    acceptCallId: string | undefined;
+    callId: string | undefined;
     callUserId: string | undefined;
     callState: CallState;
 
@@ -54,7 +54,7 @@ export class CallSignaling {
         this.localStream = new MediaStream();
         this.webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
         this.remoteVideo = null;
-        this.acceptCallId = acceptCall;
+        this.callId = acceptCall;
         this.callUserId = callUser;
         this.callState = "STARTING";
         this.setOwnMedia(true)
@@ -98,7 +98,9 @@ export class CallSignaling {
         await api.createCall({createCallRequest: {
             calleeId: this.callUserId,
             offer: offer
-        }}).catch((err) => console.error(err));
+        }}).then((call) => {
+            this.callId = call.id;
+        }).catch((err) => console.error(err));
     }
 
     handleNotifications(payload: MessagePayload) {
@@ -106,7 +108,7 @@ export class CallSignaling {
     }
 
     async acceptCall() {
-        if(this.acceptCallId === undefined) return;
+        if(this.callId === undefined) return;
 
         this.localStream.getTracks().forEach((track) => {
             this.peerConnection.addTrack(track, this.localStream);
@@ -130,6 +132,6 @@ export class CallSignaling {
     }
 
     async endCall() {
-
+        api.endCall({endCallRequest: {callId: this.callId}})
     }
 }

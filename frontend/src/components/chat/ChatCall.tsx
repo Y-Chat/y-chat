@@ -12,28 +12,21 @@ import firebaseApp from "../../firebase/firebaseApp";
 import {useNavigate, useOutletContext, useSearchParams} from "react-router-dom";
 import {registerNotificationTypeHandler, unregisterNotificationTypeHandler} from "../../firebase/messaging";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
+import {api} from "../../network/api";
+import {useCallingStore} from "../../state/callingStore";
 
 export default function ChatCall() {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
-    const callSignaling = useMemo(() => {
-        return new CallSignaling({
-            callUser: searchParams.get("callUser") ?? undefined,
-            acceptCall: searchParams.get("acceptCall") ?? undefined,
-        });
-    }, [])
     const [microphoneOn, setMicrophoneOn] = useState(true);
     const { setCollapseHeader } = useOutletContext<ShellOutletContext>();
 
-    useEffect(() => {
-        if(!searchParams.has("acceptCall") && !searchParams.has("callUser")) {
-            callSignaling.endCall();
-            navigate("/")
-        }
-    }, [searchParams]);
+    const endCall = useCallingStore((state) => state.endCall);
+    const startCall = useCallingStore((state) => state.startCall);
+    const setOwnWebcamStream = useCallingStore((state) => state.setOwnWebcamStream);
 
     useEffect(() => {
-        callSignaling.setOwnMedia(microphoneOn)
+        setOwnWebcamStream(microphoneOn)
     }, [microphoneOn])
 
     useEffect(() => {
@@ -43,17 +36,14 @@ export default function ChatCall() {
         }
     }, []);
 
-    useEffect( () => {
+    /*useEffect( () => {
         const messaging = getMessaging(firebaseApp);
-        registerNotificationTypeHandler(["SIGNALING_NEW_ANSWER", "SIGNALING_NEW_CANDIDATE", "CALL_ENDED"], callSignaling.handleNotifications)
-
-        console.log("helper1")
-        callSignaling.createCall();
+        registerNotificationTypeHandler(["SIGNALING_NEW_ANSWER", "SIGNALING_NEW_CANDIDATE", "CALL_ENDED"], handleNotifications)
 
         return () => {
             unregisterNotificationTypeHandler(["SIGNALING_NEW_ANSWER", "SIGNALING_NEW_CANDIDATE", "CALL_ENDED"])
         };
-    }, [])
+    }, [])*/
 
     return (
         <div>
@@ -80,6 +70,11 @@ export default function ChatCall() {
                             backgroundColor: "red",
                             padding: "10px",
                             borderRadius: 100
+                        }}
+                        onClick={() => {
+                            endCall().then((x) => {
+
+                            })
                         }}
                     />
                     {microphoneOn ? <IconMicrophoneOff

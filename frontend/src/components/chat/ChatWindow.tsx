@@ -7,6 +7,7 @@ import {IconVideo} from "@tabler/icons-react";
 import MessageList from "./MessageList";
 import ChatTextArea from "./ChatTextArea";
 import {useChatsStore} from "../../state/chatsStore";
+import {useCallingStore} from "../../state/callingStore";
 
 interface ChatWindowProps {
     chat: Chat
@@ -14,7 +15,7 @@ interface ChatWindowProps {
 
 export function ChatWindow({chat}: ChatWindowProps) {
     const {setHeader} = useOutletContext<ShellOutletContext>();
-    const navigate = useNavigate();
+    const startCall = useCallingStore((state) => state.startCall);
 
     useEffect(() => {
         setHeader(
@@ -40,7 +41,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
                 <Container style={{flexGrow: 0}}>
                     <ActionIcon variant="transparent" c="lightgray">
                         {chat?.email ? <IconVideo onClick={() => {
-                            navigate("/call?callUser=e7fc5ad0-d2e1-3436-b937-d256198b7d72")
+                            startCall("e7fc5ad0-d2e1-3436-b937-d256198b7d72")
                         }}/> : undefined}
                     </ActionIcon>
                 </Container>

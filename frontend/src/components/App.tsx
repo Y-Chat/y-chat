@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes, useNavigate} from "react-router-dom";
 import {LoadingOverlay, MantineProvider} from "@mantine/core";
 import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
 import {useUserStore} from "../state/userStore";
@@ -24,6 +24,7 @@ import {getMessaging, getToken} from "firebase/messaging";
 import firebaseApp from "../firebase/firebaseApp";
 import {vapidKey} from "../firebase/messaging";
 import {useSettingsStore} from "../state/settingsStore";
+import {useCallingStore} from "../state/callingStore";
 
 function App() {
 
@@ -58,7 +59,7 @@ function App() {
             console.log('An error occurred while retrieving token. ', err);
         })
     }, [auth.currentUser]);
-    
+
     return (
         <MantineProvider theme={{primaryColor}} defaultColorScheme="dark" forceColorScheme="dark">
             {showApp ?

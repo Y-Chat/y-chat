@@ -1,23 +1,36 @@
-import React, {useState} from "react";
-import {Outlet} from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {Outlet, useNavigate} from "react-router-dom";
 import {AppShell, Burger, Container, Divider, Group, ScrollArea} from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
 import {ShellOutletContext} from "./ShellOutletContext";
 import AccountBtn from "./AccountBtn";
 import {ContactList} from "./ContactList";
 import {IconBar} from "./IconBar";
+import {useCallingStore} from "../../state/callingStore";
 
 
 function Shell() {
     const [opened, {toggle}] = useDisclosure();
     const [header, setHeader] = useState(<></>);
     const [collapseHeader, setCollapseHeader] = useState(false);
+    const callSignaling = useCallingStore((state) => state.signaling);
+    const navigate = useNavigate()
 
     // this just exists to guarantee type safety for ShellOutletContext
     const outletContext: ShellOutletContext = {
         setHeader,
         setCollapseHeader
     }
+
+    useEffect(() => {
+        console.log("signaling changed", callSignaling, window.location.pathname)
+        if(callSignaling && !window.location.pathname.startsWith("/call")) {
+            navigate("/call")
+        }
+        if(!callSignaling && window.location.pathname.startsWith("/call")) {
+            navigate("/")
+        }
+    }, [callSignaling]);
 
     return (
         <AppShell
