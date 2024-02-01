@@ -17,15 +17,21 @@ public abstract class Chat extends TimestampEntity {
     private UUID id;
 
     public Chat() {
+        super();
         id = UUID.randomUUID();
     }
 
     public abstract boolean toDeleteIfUserRemoved(User user);
 
+    public abstract boolean isMember(User user);
+
+    public abstract void removeMember(User user);
+
+    public abstract ChatMember getMember(User user);
+
     public UUID getId() {
         return id;
     }
-
 
     @Override
     public boolean equals(Object o) {

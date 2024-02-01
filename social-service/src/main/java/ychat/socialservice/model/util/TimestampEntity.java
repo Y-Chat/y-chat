@@ -1,5 +1,6 @@
 package ychat.socialservice.model.util;
 
+import jakarta.persistence.Lob;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -15,18 +16,17 @@ public abstract class TimestampEntity {
 
     private LocalDateTime modified;
 
+    public TimestampEntity() {
+        this.created = LocalDateTime.now();
+        this.modified = created;
+    }
+
     public LocalDateTime getCreated() {
         return created;
     }
 
     public LocalDateTime getModified() {
         return modified;
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        this.created = LocalDateTime.now();
-        this.modified = this.created;
     }
 
     @PreUpdate

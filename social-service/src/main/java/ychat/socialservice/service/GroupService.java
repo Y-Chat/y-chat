@@ -1,12 +1,17 @@
 package ychat.socialservice.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import ychat.socialservice.model.group.Group;
 import ychat.socialservice.model.group.GroupMember;
 import ychat.socialservice.model.group.GroupProfile;
 import ychat.socialservice.model.user.User;
+import ychat.socialservice.model.util.CreateDTO;
+import ychat.socialservice.model.util.UpdateDTO;
 import ychat.socialservice.repository.GroupMemberRepository;
 import ychat.socialservice.service.dto.ChatMemberDTO;
 import ychat.socialservice.service.dto.DTOConverter;
@@ -24,7 +29,9 @@ import java.util.UUID;
  * be simple and readable, not performant. The code will be optimized when we discover
  * bottlenecks.
  */
+@Validated
 @Service
+@Transactional(readOnly = true)
 public class GroupService {
     private final UserService userService;
     private final GroupRepository groupRepo;
@@ -38,26 +45,26 @@ public class GroupService {
         this.groupMemberRepo = groupMemberRepo;
     }
 
-    public Group findGroupByIdOrThrow(UUID groupId) {
-        Optional<Group> optionalGroup = groupRepo.findById(groupId);
-        if (optionalGroup.isEmpty())
-            throw new EntityNotFoundException("Group does not exist: " + groupId);
-        return optionalGroup.get();
-    }
-
-    public Optional<GroupMember> findGroupMemberByIdsOrThrow(UUID groupId, UUID userId) {
-        Group group = findGroupByIdOrThrow(groupId);
-        User user = userService.findUserByIdOrThrow(userId);
-        return groupMemberRepo.findByUserAndChat(user, group);
+    public GroupMember findGroupMemberByIdsOrThrow(UUID userId, UUID groupId) {
+        Optional<GroupMember> optionalGroupMember =
+            groupMemberRepo.findByUserIdAndChatId(userId, groupId);
+        if (optionalGroupMember.isEmpty())
+            throw new IllegalUserInputException(userId + " is not a member of " + groupId + ".");
+        return optionalGroupMember.get();
     }
 
     // Group start ---------------------------------------------------------------------------------
-    public GroupDTO getGroup(UUID groupId) {
-        Group group = findGroupByIdOrThrow(groupId);
+    public GroupDTO getGroup(@NotNull UUID groupId, @NotNull UUID requestUserId) {
+        GroupMember groupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
+        Group group = groupMember.getGroup();
         return DTOConverter.convertToDTO(group);
     }
 
-    public GroupDTO createGroup(UUID userId, GroupProfileDTO groupProfileDTO) {
+    @Transactional
+    public GroupDTO createGroup(
+        @NotNull UUID userId,
+        @NotNull @Validated(CreateDTO.class) GroupProfileDTO groupProfileDTO
+    ) {
         User user = userService.findUserByIdOrThrow(userId);
         GroupProfile groupProfile = DTOConverter.convertToEntity(groupProfileDTO);
         Group group = new Group(user, groupProfile);
@@ -67,73 +74,109 @@ public class GroupService {
     // Group end -----------------------------------------------------------------------------------
 
     // Profiles start ------------------------------------------------------------------------------
-    public GroupProfileDTO getGroupProfile(UUID groupId) {
-        Group group = findGroupByIdOrThrow(groupId);
+    public GroupProfileDTO getGroupProfile(@NotNull UUID groupId, @NotNull UUID requestUserId) {
+        GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
+        Group group = requestGroupMember.getGroup();
         return DTOConverter.convertToDTO(group.getGroupProfile());
     }
 
-    public GroupProfileDTO updateGroupProfile(UUID groupId, GroupProfileDTO groupProfileDTO) {
-        Group group = findGroupByIdOrThrow(groupId);
+    @Transactional
+    public GroupProfileDTO updateGroupProfile(
+        @NotNull UUID groupId,
+        @RequestBody @Validated(UpdateDTO.class) GroupProfileDTO groupProfileDTO,
+        @NotNull UUID requestUserId
+    ) {
+        if (groupProfileDTO.removeProfilePictureId() != null
+                && groupProfileDTO.profilePictureId() != null) {
+            throw new IllegalUserInputException(
+                "It is not allowed to set both profilePictureId and removeProfilePicture."
+            );
+        }
+        GroupMember groupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
+        if (groupMember.getGroupRole() != GroupRole.GROUP_ADMIN) {
+            throw new IllegalUserInputException(
+                requestUserId + " is not a admin of " + groupId + "."
+            );
+        }
+        Group group = groupMember.getGroup();
         GroupProfile groupProfile = group.getGroupProfile();
         groupProfile.setGroupName(groupProfileDTO.groupName());
-        if (groupProfileDTO.removeProfilePictureId())
+        if (groupProfileDTO.removeProfilePictureId() != null
+                && groupProfileDTO.removeProfilePictureId())
             groupProfile.removeProfilePictureId();
         else
             groupProfile.setProfilePictureId(groupProfileDTO.profilePictureId());
         groupProfile.setProfileDescription(groupProfileDTO.profileDescription());
-        groupRepo.save(group);
         return DTOConverter.convertToDTO(group.getGroupProfile());
     }
     // Profiles end --------------------------------------------------------------------------------
 
     // Members start -------------------------------------------------------------------------------
-    public ChatMemberDTO addGroupMember(UUID groupId, UUID userId) {
-        Group group = findGroupByIdOrThrow(groupId);
+    @Transactional
+    public ChatMemberDTO addGroupMember(@NotNull UUID groupId, @NotNull UUID userId,
+                                        @NotNull UUID requestUserId) {
+        GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
+        if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
+            throw new IllegalUserInputException(userId + " is not a admin of " + groupId + ".");
+        Group group = requestGroupMember.getGroup();
         User user = userService.findUserByIdOrThrow(userId);
-        if (group.isGroupMember(user)) {
+        if (group.isMember(user)) {
             throw new IllegalUserInputException(
                 group + " already has " + user + " as member."
             );
         }
         GroupMember groupMember = group.addGroupMember(user);
-        groupRepo.save(group);
         return DTOConverter.convertToDTO(groupMember);
     }
 
-    public void removeGroupMember(UUID groupId, UUID userId) {
-        Group group = findGroupByIdOrThrow(groupId);
+    @Transactional
+    public void removeGroupMember(@NotNull UUID groupId, @NotNull UUID userId,
+                                  @NotNull UUID requestUserId) {
+        GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
+        if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
+            throw new IllegalUserInputException(userId + " is not a admin of " + groupId + ".");
+        Group group = requestGroupMember.getGroup();
         User user = userService.findUserByIdOrThrow(userId);
-        if (!group.isGroupMember(user)) {
+        if (!group.isMember(user)) {
             throw new IllegalUserInputException(
                 group + " does not have " + user + " as member."
             );
         }
-        if (group.toDeleteIfUserRemoved(user)) {
+        if (group.toDeleteIfUserRemoved(user))
             // Deletes chat membership via cascading as well
             groupRepo.delete(group);
-        } else {
-            group.removeGroupMember(user);
-            groupRepo.save(group);
-        }
+        else
+            group.removeMember(user);
     }
 
-    public GroupRole getGroupRole(UUID groupId, UUID userId) {
-        Optional<GroupMember> optionalGroupMember = findGroupMemberByIdsOrThrow(groupId, userId);
+    public GroupRole getGroupRole(@NotNull UUID groupId, @NotNull UUID userId,
+                                  @NotNull UUID requestUserId) {
+        findGroupMemberByIdsOrThrow(requestUserId, groupId);
+        Optional<GroupMember> optionalGroupMember =
+            groupMemberRepo.findByUserIdAndChatId(userId, groupId);
         if (optionalGroupMember.isEmpty())
             return GroupRole.NOT_A_MEMBER;
         GroupMember groupMember = optionalGroupMember.get();
         return groupMember.getGroupRole();
     }
 
-    public GroupRole updateGroupRole(UUID groupId, UUID userId, GroupRole groupRole) {
+    @Transactional
+    public GroupRole updateGroupRole(@NotNull UUID groupId, @NotNull UUID userId,
+                                     @NotNull GroupRole groupRole, @NotNull UUID requestUserId) {
         if (groupRole == GroupRole.NOT_A_MEMBER)
             throw new IllegalUserInputException("NOT_A_MEMBER is not allowed for updateGroupRole.");
-        Optional<GroupMember> optionalGroupMember = findGroupMemberByIdsOrThrow(groupId, userId);
-        if (optionalGroupMember.isEmpty())
-            throw new IllegalUserInputException(userId + " not a member of group " + groupId);
-        GroupMember groupMember = optionalGroupMember.get();
+        GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
+        if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
+            throw new IllegalUserInputException(userId + " is not a admin of " + groupId + ".");
+        GroupMember groupMember = findGroupMemberByIdsOrThrow(userId, groupId);
+        if (groupRole != GroupRole.GROUP_ADMIN && groupMember.getGroup().getNumberOfAdmins() == 1
+            && userId == requestUserId) {
+            throw new IllegalUserInputException(
+                requestUserId + " cannot demote yourself, when you are the last admin of "
+                + groupId + "."
+            );
+        }
         groupMember.setGroupRole(groupRole);
-        groupMemberRepo.save(groupMember);
         return groupMember.getGroupRole();
     }
     // Members end ---------------------------------------------------------------------------------

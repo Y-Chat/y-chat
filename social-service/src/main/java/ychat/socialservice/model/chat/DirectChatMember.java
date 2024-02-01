@@ -19,7 +19,7 @@ public class DirectChatMember extends ChatMember {
 
     public DirectChatMember(User user, DirectChat directChat, @NonNull UUID otherUserId) {
         super(user, directChat);
-        this.otherUserId = otherUserId;
+        setOtherUserId(otherUserId);
     }
 
     public UUID getOtherUserId() {
@@ -35,6 +35,6 @@ public class DirectChatMember extends ChatMember {
     @Override
     public String toString() {
         return "DirectChatMember{" + "user=" + getUser() + "directChat=" + getChat()
-                + ", chatStatus=" + getChatStatus() + '}';
+                + ", chatStatus=" + getChatStatus() + ", otherUserId=" + otherUserId + "}";
     }
 }

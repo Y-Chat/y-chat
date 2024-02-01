@@ -28,8 +28,6 @@
 
 ## ER-Diagram
 ### Current Schema
-- TODO does not have the newest element of DirectChatMember
-- TODO and not the renamed keys
 ![Social DB ERD](social-db-erd.png)
 ### How to create an ER-Diagram in pgAdmin
 1. Open pgAdmin

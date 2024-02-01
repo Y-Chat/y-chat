@@ -13,13 +13,8 @@ public abstract class Profile {
 
     private String profileDescription;
 
-    protected Profile() {} // Required by JPA
-
-    public Profile(String profileDescription) {
-        if (profileDescription == null)
-            defaultProfileDescription();
-        else
-            this.profileDescription = profileDescription;
+    public Profile() {
+        defaultProfileDescription();
     }
 
     protected abstract void defaultProfileDescription();

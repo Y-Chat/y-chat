@@ -16,12 +16,12 @@ public abstract class ChatMember extends TimestampEntity {
     @EmbeddedId
     protected ChatMemberId chatMemberId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
     @JoinColumn
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("chatId")
     @JoinColumn
     private Chat chat;
@@ -32,6 +32,7 @@ public abstract class ChatMember extends TimestampEntity {
     protected ChatMember() {} // Required by JPA
 
     public ChatMember(@NonNull User user, @NonNull Chat chat) {
+        super();
         this.chatMemberId = new ChatMemberId(user.getId(), chat.getId());
         this.user = user;
         this.chat = chat;

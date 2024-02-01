@@ -15,8 +15,8 @@ public class UserProfile extends Profile {
 
     protected UserProfile() {} // Required by JPA
 
-    public UserProfile(String firstName, String lastName, String profileDescription) {
-        super(profileDescription);
+    public UserProfile(String firstName, String lastName) {
+        super();
         this.firstName = firstName;
         this.lastName = lastName;
     }

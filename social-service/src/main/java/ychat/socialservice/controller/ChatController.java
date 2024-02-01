@@ -2,25 +2,22 @@ package ychat.socialservice.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ychat.socialservice.config.SecurityConfig;
 import ychat.socialservice.model.chat.ChatStatus;
 import ychat.socialservice.service.dto.ChatDTO;
 import ychat.socialservice.service.dto.ChatMemberDTO;
 import ychat.socialservice.service.ChatService;
-import ychat.socialservice.util.IllegalUserInputException;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/chats")
 @ResponseStatus(HttpStatus.OK)
-@Validated
 @Tag(
     name = "Chats Endpoint",
     description = "Manage chats, an abstraction over group and direct chats. Specifically, all " +
@@ -45,7 +42,8 @@ public class ChatController {
                       "not exist anymore, it will still return the id of the other user but no " +
                       "longer the user profile."
     )
-    public ChatDTO getChat(@PathVariable @NotNull UUID chatId, @RequestParam @NotNull UUID userId) {
+    public ChatDTO getChat(@PathVariable UUID chatId, @RequestParam UUID userId) {
+        SecurityConfig.verifyUserAccess(userId);
         return chatService.getChat(chatId, userId);
     }
 
@@ -53,16 +51,10 @@ public class ChatController {
     @Operation(
         summary = "Fetch all chats which a user is part of.",
         description = "Returns a page of the same objects that getChat returns. Page size is not " +
-                      "allowed to exceed 1000."
+                      "allowed to exceed " + ChatService.MAX_CHAT_PAGE_SIZE + "."
     )
-    public Page<ChatDTO> getAllChats(@RequestParam @NotNull UUID userId,
-                                     @NotNull Pageable pageable) {
-        if (pageable.getPageSize() > ChatService.MAX_CHAT_PAGE_SIZE) {
-            throw new IllegalUserInputException(
-                "Page size for Chats is not allowed to be larger than " +
-                ChatService.MAX_CHAT_PAGE_SIZE + "."
-            );
-        }
+    public Page<ChatDTO> getAllChats(@RequestParam UUID userId, Pageable pageable) {
+        SecurityConfig.verifyUserAccess(userId);
         return chatService.getAllChats(userId, pageable);
     }
 
@@ -75,8 +67,8 @@ public class ChatController {
                       "UserId refers to the user in relation to which the ChatDTO should be " +
                       "returned."
     )
-    public ChatDTO createDirectChat(@RequestParam @NotNull UUID userId,
-                                    @RequestParam @NotNull UUID otherUserId) {
+    public ChatDTO createDirectChat(@RequestParam UUID userId, @RequestParam UUID otherUserId) {
+        SecurityConfig.verifyUserAccess(userId);
         return chatService.createDirectChat(userId, otherUserId);
     }
     // Chats end -----------------------------------------------------------------------------------
@@ -86,17 +78,13 @@ public class ChatController {
     @Operation(
         summary = "Fetch all members of a chat.",
         description = "Returns the user ids, profiles, and if it is a group chat, also the roles " +
-                      "of each member. Page size is not allowed to exceed 1000."
+                      "of each member. Page size is not allowed to exceed " +
+                      ChatService.MAX_CHAT_MEMBER_PAGE_SIZE + "."
     )
-    public Page<ChatMemberDTO> getChatMembers(@PathVariable @NotNull UUID chatId,
-                                              @NotNull Pageable pageable) {
-        if (pageable.getPageSize() > ChatService.MAX_CHAT_MEMBER_PAGE_SIZE) {
-            throw new IllegalUserInputException(
-                "Page size for Chat Members is not allowed to be larger than " +
-                ChatService.MAX_CHAT_MEMBER_PAGE_SIZE + "."
-            );
-        }
-        return chatService.getChatMembers(chatId, pageable);
+    public Page<ChatMemberDTO> getChatMembers(@PathVariable UUID chatId, @RequestParam UUID userId,
+                                              Pageable pageable) {
+        SecurityConfig.verifyUserAccess(userId);
+        return chatService.getChatMembers(chatId, userId, pageable);
     }
 
     @GetMapping("/{chatId}/members/{userId}/status")
@@ -104,8 +92,8 @@ public class ChatController {
         summary = "Fetch the chat status for a given chat and user.",
         description = "If the user is not part of the chat, NOT_A_MEMBER is returned."
     )
-    public ChatStatus getChatStatus(@PathVariable @NotNull UUID chatId,
-                                    @PathVariable @NotNull UUID userId) {
+    public ChatStatus getChatStatus(@PathVariable UUID chatId, @PathVariable UUID userId) {
+        SecurityConfig.verifyUserAccess(userId);
         return chatService.getChatStatus(chatId, userId);
     }
 
@@ -118,9 +106,9 @@ public class ChatController {
                       "endpoint cannot be used to exit a group. When both members of a direct " +
                       "chat have the chat as DELETED, then the chat will be deleted."
     )
-    public ChatStatus setChatStatus(@PathVariable @NotNull UUID chatId,
-                              @PathVariable @NotNull UUID userId,
-                              @RequestBody @NotNull ChatStatus chatStatus) {
+    public ChatStatus setChatStatus(@PathVariable UUID chatId, @PathVariable UUID userId,
+                                    @RequestBody ChatStatus chatStatus) {
+        SecurityConfig.verifyUserAccess(userId);
         return chatService.setChatStatus(chatId, userId, chatStatus);
     }
     // Members end ---------------------------------------------------------------------------------

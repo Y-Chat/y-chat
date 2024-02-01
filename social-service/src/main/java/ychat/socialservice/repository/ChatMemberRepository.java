@@ -10,12 +10,13 @@ import ychat.socialservice.model.chat.ChatMemberId;
 import ychat.socialservice.model.user.User;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface ChatMemberRepository extends JpaRepository<ChatMember, ChatMemberId> {
-    Page<ChatMember> findAllByChat(Chat chat, Pageable pageable);
+    Page<ChatMember> findAllByChatId(UUID chatId, Pageable pageable);
 
-    Page<ChatMember> findAllByUser(User user, Pageable pageable);
+    Page<ChatMember> findAllByUserId(UUID userId, Pageable pageable);
 
-    Optional<ChatMember> findByUserAndChat(User user, Chat chat);
+    Optional<ChatMember> findByUserIdAndChatId(UUID userId, UUID chatid);
 }

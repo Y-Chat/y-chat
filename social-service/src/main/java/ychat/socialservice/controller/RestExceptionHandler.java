@@ -6,10 +6,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import ychat.socialservice.util.IllegalUserInputException;
 import ychat.socialservice.util.LimitReachedException;
 
@@ -52,6 +54,15 @@ public class RestExceptionHandler {
         @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
     })
     public String handleLimitReachedException(LimitReachedException e) {
+        return e.getMessage();
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ApiResponse(description = "Access denied", responseCode = "403", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+    })
+    public String handleAccessDeniedException(AccessDeniedException e) {
         return e.getMessage();
     }
 
