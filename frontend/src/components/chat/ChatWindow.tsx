@@ -1,19 +1,21 @@
 import React, {useEffect} from "react";
 import {Chat} from "../../model/Chat";
-import {useOutletContext} from "react-router-dom";
+import {useNavigate, useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
 import {ActionIcon, Avatar, Container, Group, Text} from "@mantine/core";
 import {IconVideo} from "@tabler/icons-react";
 import MessageList from "./MessageList";
 import ChatTextArea from "./ChatTextArea";
 import {useChatsStore} from "../../state/chatsStore";
+import {useCallingStore} from "../../state/callingStore";
 
 interface ChatWindowProps {
     chat: Chat
 }
 
 export function ChatWindow({chat}: ChatWindowProps) {
-    const [setHeader] = useOutletContext<ShellOutletContext>();
+    const {setHeader} = useOutletContext<ShellOutletContext>();
+    const startCall = useCallingStore((state) => state.startCall);
 
     useEffect(() => {
         setHeader(
@@ -38,7 +40,9 @@ export function ChatWindow({chat}: ChatWindowProps) {
 
                 <Container style={{flexGrow: 0}}>
                     <ActionIcon variant="transparent" c="lightgray">
-                        {chat?.email ? <IconVideo/> : undefined}
+                        {chat?.email ? <IconVideo onClick={() => {
+                            startCall("e7fc5ad0-d2e1-3436-b937-d256198b7d72")
+                        }}/> : undefined}
                     </ActionIcon>
                 </Container>
             </>

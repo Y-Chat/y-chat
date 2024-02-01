@@ -37,7 +37,7 @@ export function AccountMain() {
     const setPrimaryColor = useSettingsStore((state) => state.setPrimaryColor);
     const [userProfilePictureURL, setUserProfilePictureURL] = useState<string | null>(null);
     const navigate = useNavigate();
-    const [setHeader] = useOutletContext<ShellOutletContext>();
+    const {setHeader} = useOutletContext<ShellOutletContext>();
     const theme = useMantineTheme();
 
     const form = useForm({

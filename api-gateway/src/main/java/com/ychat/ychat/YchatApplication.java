@@ -32,6 +32,9 @@ public class YchatApplication {
 	@Value("${ychat.gateway.redirect.target.media}")
 	private String mediaServiceURL;
 
+	@Value("${ychat.gateway.redirect.target.calling}")
+	private String callingServiceURL;
+
 	@Bean
 	public RouteLocator myRoutes(RouteLocatorBuilder builder) {
 		return builder.routes()
@@ -59,6 +62,10 @@ public class YchatApplication {
 						.path("/media/**")
 						.filters(f -> f.rewritePath("/media/(?<segment>.*)", "/${segment}"))
 						.uri(mediaServiceURL))
+				.route(p -> p
+						.path("/calling/**")
+						.filters(f -> f.rewritePath("/calling/(?<segment>.*)", "/${segment}"))
+						.uri(callingServiceURL))
 				.build();
 	}
 }

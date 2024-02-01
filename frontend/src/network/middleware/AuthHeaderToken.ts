@@ -6,15 +6,16 @@ export class AuthHeaderToken implements Middleware {
     public async pre(context: ResponseContext): Promise<FetchParams | void> {
         const accessToken = await auth.currentUser?.getIdToken()
         console.log("jwt: " + accessToken) // TODO only print in dev environment
+
         return {
             url: context.url,
-            init: {
+            init: accessToken ? {
                 ...context.init,
                 headers: new Headers({
                     ...context.init.headers,
                     Authorization: `Bearer ${accessToken}`,
                 }),
-            },
+            } : context.init,
         };
     }
 
