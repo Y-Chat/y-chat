@@ -1,10 +1,10 @@
 import {getMessaging, getToken, onMessage, isSupported, MessagePayload} from "firebase/messaging";
 import firebaseApp from "./firebaseApp";
 import {showCallNotification, showErrorNotification, showNotification} from "../notifications/notifications";
-import {api, setApiAccessToken} from "../network/api";
 
-const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
+export const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
 const hasPermission = 'Notification' in window && Notification.permission == "granted"
+const notificationTypeHandlers: { [type: string]:(payload: MessagePayload) => void; } = {}
 
 // if permission already granted -> generate token
 if (hasPermission) {
@@ -30,7 +30,6 @@ export async function requestNotificationPermissions() {
 }
 
 async function setupNotifications() {
-    await generateToken();
     setupNotificationHandler();
 
     registerNotificationTypeHandler("SIGNALING_NEW_OFFER", (payload: MessagePayload) => {
@@ -54,8 +53,6 @@ async function setupNotifications() {
         showErrorNotification(payload.notification?.body || "", payload.notification?.title)
     });
 }
-
-const notificationTypeHandlers: { [type: string]:(payload: MessagePayload) => void; } = {}
 
 export function registerNotificationTypeHandler(type: string | string[] | null, callback: (payload: MessagePayload) => void) {
     if(type === null) {
@@ -94,23 +91,4 @@ function setupNotificationHandler() {
 
         console.error(`Received notification of type ${type} but no handler was registered`, payload)
     });
-}
-
-async function generateToken() {
-    try {
-        const messaging = getMessaging(firebaseApp);
-
-        let currentToken = await getToken(messaging, {vapidKey: vapidKey})
-
-        if (!currentToken)
-            console.log('No registration token available. Request permission to generate one.');
-
-        if (process.env.NODE_ENV === "development") {
-            console.log("FBC token: " + currentToken);
-        }
-        setApiAccessToken(currentToken)
-    } catch (e) {
-        console.log('An error occurred while retrieving token. ', e);
-        return false;
-    }
 }

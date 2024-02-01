@@ -9,13 +9,13 @@ export class AuthHeaderToken implements Middleware {
 
         return {
             url: context.url,
-            init: {
+            init: accessToken ? {
                 ...context.init,
                 headers: new Headers({
                     ...context.init.headers,
                     Authorization: `Bearer ${accessToken}`,
                 }),
-            },
+            } : context.init,
         };
     }
 

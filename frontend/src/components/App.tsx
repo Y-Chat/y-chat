@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import {LoadingOverlay, MantineProvider} from "@mantine/core";
 import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
@@ -19,6 +19,10 @@ import {NotFound} from "./404/NotFound";
 import {Welcome} from "./common/Welcome";
 import {isMobile} from "react-device-detect";
 import {HowToInstall} from "./common/HowToInstall";
+import {api} from "../network/api";
+import {getMessaging, getToken} from "firebase/messaging";
+import firebaseApp from "../firebase/firebaseApp";
+import {vapidKey} from "../firebase/messaging";
 
 function App() {
 
@@ -27,6 +31,31 @@ function App() {
 
     // otherwise show how to install instruction
     const showApp = (window.matchMedia('(display-mode: standalone)').matches && isMobile) || process.env.NODE_ENV == "development"
+
+    useEffect(() => {
+        const messaging = getMessaging(firebaseApp);
+
+        if(auth.currentUser === null) return;
+
+        auth.currentUser?.getIdToken().then((accessToken) => {
+            return accessToken;
+        }).then(async (accessToken) => {
+            const notificationToken = await getToken(messaging, {vapidKey: vapidKey});
+
+            if (!notificationToken)
+                console.log('No registration token available. Request permission to generate one.');
+
+            if (process.env.NODE_ENV === "development") {
+                console.log("FBC token: " + notificationToken);
+            }
+
+            return {notificationToken: notificationToken, accessToken: accessToken};
+        }).then((tokens) => {
+            api.updateToken({notificationToken: tokens.notificationToken}, {headers: new Headers({Authorization: `Bearer ${tokens.accessToken}`})})
+        }).catch((err) => {
+            console.log('An error occurred while retrieving token. ', err);
+        })
+    }, [auth.currentUser]);
 
     const theme: MantineThemeOverride = {
         primaryColor: "mainColors",
@@ -52,7 +81,7 @@ function App() {
             {showApp ?
                 <>
                     <PermissionsModal/>
-                    <Notifications autoClose={5000} position="top-right"/>
+                    <Notifications autoClose={5000} position="top-right" zIndex={2001}/>
                     <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
                     <Router>
                         {user && firebaseUser ?
