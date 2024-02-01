@@ -18,40 +18,22 @@ import {NotFound} from "./404/NotFound";
 import {Welcome} from "./common/Welcome";
 import {isMobile} from "react-device-detect";
 import {HowToInstall} from "./common/HowToInstall";
+import {useSettingsStore} from "../state/settingsStore";
 
 function App() {
 
     const [firebaseUser, loading] = useAuthState(auth);
     const user = useUserStore((state) => state.user);
+    const primaryColor = useSettingsStore((state) => state.primaryColor);
 
     // otherwise show how to install instruction
-    const showApp = (window.matchMedia('(display-mode: standalone)').matches && isMobile) || process.env.NODE_ENV == "development"
-
-    const theme: MantineThemeOverride = {
-        primaryColor: "mainColors",
-        primaryShade: 6,
-        colors: {
-            "mainColors": [
-                "#f3edff",
-                "#e0d7fa",
-                "#beabf0",
-                "#9a7ce6",
-                "#7c56de",
-                "#683dd9",
-                "#5f2fd8",
-                "#4f23c0",
-                "#451eac",
-                "#3a1899"
-            ]
-        }
-    }
-
+    const showApp = (window.matchMedia('(display-mode: standalone)').matches && isMobile) || process.env.NODE_ENV == "development" || true // TODO remove true when actually in prod
     return (
-        <MantineProvider theme={theme} defaultColorScheme="dark">
+        <MantineProvider theme={{primaryColor}} defaultColorScheme="dark" forceColorScheme="dark">
             {showApp ?
                 <>
                     <PermissionsModal/>
-                    <Notifications autoClose={5000} position="top-right"/>
+                    <Notifications zIndex={10000} autoClose={5000} position="top-right"/>
                     <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
                     <Router>
                         {user && firebaseUser ?

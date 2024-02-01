@@ -12,12 +12,12 @@ import {
     Container,
     Button,
     rem,
-    ColorPicker
+    ColorPicker, useMantineTheme, ActionIcon, Tooltip
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {TextInput} from "@mantine/core";
 import {useUserStore} from "../../state/userStore";
-import {IconLogout, IconUpload, IconX} from "@tabler/icons-react";
+import {IconCheck, IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 import {signOut} from "firebase/auth";
 import auth from "../../firebase/auth";
@@ -25,16 +25,20 @@ import {getImageUrl, uploadImage} from "../../network/media";
 import {api} from "../../network/api";
 import {useNavigate, useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
+import {useSettingsStore} from "../../state/settingsStore";
+import {showErrorNotification} from "../../notifications/notifications";
 
 export function AccountMain() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
-    const [accentColor, setAccentColor] = useState('#fff');
+    const [updatingUser, setUpdatingUser] = useState(false);
     const [logoutLoading, setLogoutLoading] = useState(false);
     const user = useUserStore((state) => state.user)!; // this view can only be rendered if user is not null!
     const setUser = useUserStore((state) => state.setUser);
+    const setPrimaryColor = useSettingsStore((state) => state.setPrimaryColor);
     const [userProfilePictureURL, setUserProfilePictureURL] = useState<string | null>(null);
     const navigate = useNavigate();
     const [setHeader] = useOutletContext<ShellOutletContext>();
+    const theme = useMantineTheme();
 
     const form = useForm({
         initialValues: {
@@ -44,8 +48,6 @@ export function AccountMain() {
         },
 
         validate: {
-            // TODO
-            //email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
             //password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
         },
     });
@@ -66,9 +68,26 @@ export function AccountMain() {
         );
     }, []);
 
+    async function updateUser() {
+        setUpdatingUser(true);
+        try {
+            await api.updateUserProfile({
+                userId: user.id, userProfileDTO: {
+                    firstName: form.values.firstName,
+                    lastName: form.values.lastName,
+                }
+            });
+        } catch (err) {
+            showErrorNotification("An error occurred while updating your user details.", "Error Updating Details");
+            setUpdatingUser(false);
+        }
+        setUpdatingUser(false);
+    }
+
     return (
         <Container p='md'>
-            <form onSubmit={form.onSubmit(() => {
+            <form onSubmit={form.onSubmit(async () => {
+                await updateUser();
             })}>
                 <Stack justify="flex-start" align="stretch">
                     <Center mb={10}>
@@ -140,7 +159,7 @@ export function AccountMain() {
                                 <Dropzone.Idle>
                                     <Avatar
                                         src={userProfilePictureURL}
-                                        size={120} color={accentColor}/>
+                                        size={120}/>
                                 </Dropzone.Idle>
                             </Group>
                         </Dropzone>
@@ -148,17 +167,35 @@ export function AccountMain() {
                     </Center>
                     <Group grow>
                         <TextInput
+                            rightSection={
+                                <Button
+                                    rightSection={<IconCheck/>}
+                                    type="submit"
+                                    variant={"transparent"}
+                                    loading={updatingUser}
+                                />}
+                            disabled={updatingUser}
                             size="md"
                             label="First Name"
                             placeholder="Max"
+                            required
                             value={form.values.firstName}
                             onChange={(event) => form.setFieldValue('firstName', event.currentTarget.value)}
                             radius="md"
                         />
                         <TextInput
+                            rightSection={
+                                <Button
+                                    rightSection={<IconCheck/>}
+                                    type="submit"
+                                    variant={"transparent"}
+                                    loading={updatingUser}
+                                />}
+                            disabled={updatingUser}
                             size="md"
                             label="Last Name"
                             placeholder="Mustermann"
+                            required
                             value={form.values.lastName}
                             onChange={(event) => form.setFieldValue('lastName', event.currentTarget.value)}
                             radius="md"
@@ -166,6 +203,7 @@ export function AccountMain() {
                     </Group>
                     <TextInput
                         size="md"
+                        disabled
                         label="Email"
                         placeholder="max@mustermann.com"
                         value={form.values.email}
@@ -177,7 +215,9 @@ export function AccountMain() {
                         size="md"
                         label="Your Balance"
                     >
-                        <Center><Text size="md" c="green">{user?.balance}€</Text></Center>
+                        <Center>
+                            <Text size="md" c={theme.primaryColor}>{user?.balance}€</Text>
+                        </Center>
                     </Input.Wrapper>
                     <SimpleGrid cols={3} verticalSpacing="sm">
                         {["+5€", "+10€", "+50€"].map(e =>
@@ -194,12 +234,11 @@ export function AccountMain() {
                         <Center pt={"md"}>
                             <ColorPicker
                                 format="hex"
-                                value={accentColor}
-                                onChange={setAccentColor}
+                                onChange={setPrimaryColor}
                                 withPicker={false}
                                 fullWidth
                                 swatches={[
-                                    "white", "#6BD731", "#0969FF", "#4C5897", "#8931B2", "#F01879", "#C91A25"
+                                    "gray", "yellow", "lime", "violet", "red", "blue", "indigo"
                                 ]}
                             />
                         </Center>
@@ -216,7 +255,7 @@ export function AccountMain() {
                                 setUser(null);
                                 navigate("/");
                             }).catch(() => {
-                                setLogoutLoading(false)
+                                setLogoutLoading(false);
                                 // TODO maybe handle error
                             })
                         }}

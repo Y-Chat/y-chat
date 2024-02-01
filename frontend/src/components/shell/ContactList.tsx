@@ -50,7 +50,7 @@ export function ContactList({toggleNav}: ContactListProps) {
     }
 
     useEffect(() => {
-        fetchChats(user.id);
+        fetchChats();
     }, []);
 
     useEffect(() => {

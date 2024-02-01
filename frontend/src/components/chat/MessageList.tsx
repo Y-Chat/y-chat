@@ -1,80 +1,44 @@
-import React, {useRef} from "react";
-import {ActionIcon, ScrollArea, Stack} from "@mantine/core";
+import React, {useEffect, useRef, useState} from "react";
+import {ActionIcon, Center, Loader, Text, useMantineTheme} from "@mantine/core";
 import MessageBubble from "./MessageBubble";
 import {IconCircleChevronDown} from "@tabler/icons-react";
-import {Message} from "../../model/Message";
+import InfiniteScroll from "react-infinite-scroll-component";
+import {useMessagesStore} from "../../state/messagesStore";
 
-function MessageList() {
-    const gapBetweenMessages = "md";
+interface MessageListProps {
+    chatId: string
+}
 
-    const messages: Message[] = [
-        {type: "text", message: "Message1", fromMe: true, status: "read"},
-        {type: "text", message: "Message2", fromMe: false, status: "read"},
-        {
-            type: "text",
-            message: "Message3 Message3 Message3 Message3 Message3 Message3 Message3 Message3 Message3Message3Message3 Message3 Message3 Message3 Message3",
-            fromMe: true,
-            status: "read"
-        },
-        {type: "text", message: "Message4", fromMe: true, status: "read"},
-        {type: "text", message: "Message5", fromMe: false, status: "read"},
-        {type: "text", message: "Message6", fromMe: false, status: "read"},
-        {type: "text", message: "Message7Message7Message7", fromMe: false, status: "read"},
-        {type: "text", message: "Message8", fromMe: true, status: "read"},
-        {type: "text", message: "Message10", fromMe: true, status: "read"},
-        {type: "text", message: "Message11", fromMe: false, status: "read"},
-        {type: "text", message: "Message9", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {
-            type: "media",
-            mediaUrl: "https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg?size=626&ext=jpg&ga=GA1.1.1546980028.1703635200&semt=sph",
-            message: "Look at this view. Wow!",
-            fromMe: true,
-            status: "read"
-        },
-        {type: "text", message: "Message12", fromMe: true, status: "read"},
-        {
-            type: "text",
-            message: "Message13 Message13 Message13 Message13 Message13 Message13 Message13 Message13",
-            fromMe: true,
-            status: "read"
-        },
-    ];
+function MessageList({chatId}: MessageListProps) {
+    const gapBetweenMessages = 16;
+    const theme = useMantineTheme();
+    const scrollableDiv = useRef<HTMLDivElement>(null);
+    const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
+    const messages = useMessagesStore(state => state.messages[chatId]) || [];
+    const [oldestLoaded, setOldestLoaded] = useState(false);
 
-    const viewport = useRef<HTMLDivElement>(null);
+    function scrollToBottom() {
+        if (scrollableDiv.current) {
+            scrollableDiv.current.scroll({top: scrollableDiv.current.scrollHeight, behavior: 'smooth'})
+        }
+    }
 
-    const scrollToBottom = () => viewport.current!.scrollTo({top: viewport.current!.scrollHeight, behavior: 'smooth'});
+    useEffect(() => {
+        // do one initials load into the past if we have no messages for this chat
+        if (messages.length == 0) {
+            fetchMoreMessagesByChat(chatId, "PAST").then(n => {
+                if (n == 0) {
+                    setOldestLoaded(true);
+                }
+            });
+        }
+    }, []);
 
     return (
-        <ScrollArea type="scroll" scrollbarSize={2} scrollHideDelay={500} viewportRef={viewport} pl={"md"} pr={"md"}
-                    pb={90}>
+        <>
             <ActionIcon
                 color={"dark"}
-                c={"mainColors.6"}
+                c={theme.colors[theme.primaryColor][6]}
                 onClick={scrollToBottom}
                 size={50}
                 variant="filled"
@@ -85,22 +49,65 @@ function MessageList() {
                     marginBottom: 20,
                     marginRight: 20,
                     zIndex: 1
-                }}>
-                <IconCircleChevronDown size={40}/>
-            </ActionIcon>
-            <Stack
-                pt={gapBetweenMessages}
-                pb={gapBetweenMessages}
-                gap={gapBetweenMessages}
-                m={0}
-                align="stretch"
-                justify="flex-start"
+                }}
             >
-                {messages.map((msg, i) =>
-                    <MessageBubble message={msg}/>
-                )}
-            </Stack>
-        </ScrollArea>
+                <IconCircleChevronDown
+                    size={40}
+                />
+            </ActionIcon>
+            <div
+                ref={scrollableDiv}
+                id="scrollableDiv"
+                style={{
+                    // header and message bar are 90 each = 180. not very beautiful but necessary
+                    height: " calc(100vh - 180px)",
+                    overflow: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column-reverse',
+                }}
+            >
+                <InfiniteScroll
+                    scrollableTarget="scrollableDiv"
+                    dataLength={messages.length} //This is important field to render the next data
+                    next={async () => {
+                        const n = await fetchMoreMessagesByChat(chatId, "PAST");
+                        if (n == 0) {
+                            setOldestLoaded(true);
+                        }
+                    }}
+                    hasMore={!oldestLoaded}
+                    loader={
+                        <Center mt={"md"}>
+                            <Loader/>
+                        </Center>
+                    }
+                    endMessage={
+                        <Center mt={"md"}>
+                            <Text>Conversation started</Text>
+                        </Center>
+                    }
+                    inverse={true}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column-reverse',
+                        gap: gapBetweenMessages,
+                        paddingLeft: 16,
+                        paddingRight: 16
+                    }}
+                    // TODO do we need pull down on phone?
+                    refreshFunction={() => console.log("refresh")}
+                    pullDownToRefresh
+                    pullDownToRefreshThreshold={50}
+                    releaseToRefreshContent={
+                        <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
+                    }
+                >
+                    {messages.map((msg, i) =>
+                        <MessageBubble key={i} message={msg}/>
+                    )}
+                </InfiniteScroll>
+            </div>
+        </>
     );
 }
 
