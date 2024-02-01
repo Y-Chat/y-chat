@@ -33,7 +33,6 @@ export function ContactList({toggleNav}: ContactListProps) {
     const chats = useChatsStore((state) => state.chats);
     const [sortedChats, setSortedChats] = useState<Chat[]>(chats);
     const fetchChats = useChatsStore((state) => state.fetchChats);
-    const setSelectedChat = useChatsStore((state) => state.setSelectedChat);
 
     function filterData() {
         const query = search.toLowerCase().trim();
@@ -64,7 +63,6 @@ export function ContactList({toggleNav}: ContactListProps) {
 
     const rows = sortedChats.map((row, i) => (
         <UnstyledButton key={i} onClick={() => {
-            setSelectedChat(row.id);
             navigate(`/chat/${row.id}`);
             toggleNav();
         }}>

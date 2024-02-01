@@ -12,7 +12,7 @@ interface NewDirectChatProps {
 
 export function NewDirectChat({email}: NewDirectChatProps) {
     const [isLoading, setIsLoading] = useState(false)
-    const isValidEmail = /^\S+@\S+$/.test(email)
+    const isValidEmail = /^\S+@\S+$/.test(email) || true // TODO enable valid mail check again if social service endpoint ist fixed.
     const user = useUserStore(state => state.user)!
     const fetchChats = useChatsStore(state => state.fetchChats)
     return (

@@ -15,7 +15,7 @@ function MessageList({chatId}: MessageListProps) {
     const scrollableDiv = useRef<HTMLDivElement>(null);
     const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
     const messages = useMessagesStore(state => state.messages[chatId]) || [];
-    const [oldestLoaded, setOldestLoaded] = useState(false);
+    const [moreMessagesToLoad, setMoreMessagesToLoad] = useState(true);
 
     function scrollToBottom() {
         if (scrollableDiv.current) {
@@ -23,14 +23,13 @@ function MessageList({chatId}: MessageListProps) {
         }
     }
 
+    async function getNewMessages() {
+    }
+
     useEffect(() => {
         // do one initials load into the past if we have no messages for this chat
         if (messages.length == 0) {
-            fetchMoreMessagesByChat(chatId, "PAST").then(n => {
-                if (n == 0) {
-                    setOldestLoaded(true);
-                }
-            });
+            fetchMoreMessagesByChat(chatId, "PAST", false).then(hasMore => setMoreMessagesToLoad(hasMore));
         }
     }, []);
 
@@ -70,12 +69,10 @@ function MessageList({chatId}: MessageListProps) {
                     scrollableTarget="scrollableDiv"
                     dataLength={messages.length} //This is important field to render the next data
                     next={async () => {
-                        const n = await fetchMoreMessagesByChat(chatId, "PAST");
-                        if (n == 0) {
-                            setOldestLoaded(true);
-                        }
+                        const hasMore = await fetchMoreMessagesByChat(chatId, "PAST", false);
+                        setMoreMessagesToLoad(hasMore);
                     }}
-                    hasMore={!oldestLoaded}
+                    hasMore={moreMessagesToLoad}
                     loader={
                         <Center mt={"md"}>
                             <Loader/>
