@@ -21,6 +21,8 @@ import {useNavigate} from "react-router-dom";
 import {useChatsStore} from "../../state/chatsStore";
 import {Chat} from "../../model/Chat";
 import {NewDirectChat} from "../newChat/NewDirectChat";
+import {useMessagesStore} from "../../state/messagesStore";
+import {ContactListEntry} from "./ContactListEntry";
 
 interface ContactListProps {
     toggleNav: () => void
@@ -28,21 +30,14 @@ interface ContactListProps {
 
 export function ContactList({toggleNav}: ContactListProps) {
     const [search, setSearch] = useState('');
-    const navigate = useNavigate();
-    const user = useUserStore((state) => state.user)!;
     const chats = useChatsStore((state) => state.chats);
     const [sortedChats, setSortedChats] = useState<Chat[]>(chats);
     const fetchChats = useChatsStore((state) => state.fetchChats);
-    const setSelectedChat = useChatsStore((state) => state.setSelectedChat);
 
     function filterData() {
         const query = search.toLowerCase().trim();
         const filtered = chats.filter((item) => {
                 return (item.name + item.email).toLowerCase().includes(query)
-                // return Object.values(item).some(val => {
-                //     if (typeof val == "string")
-                //         return val.toString().toLowerCase().includes(query)
-                // })
             }
         );
         filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -55,44 +50,9 @@ export function ContactList({toggleNav}: ContactListProps) {
 
     useEffect(() => {
         filterData();
-    }, [search])
+    }, [search, chats]);
 
-
-    useEffect(() => {
-        filterData();
-    }, [chats]);
-
-    const rows = sortedChats.map((row, i) => (
-        <UnstyledButton key={i} onClick={() => {
-            setSelectedChat(row.id);
-            navigate(`/chat/${row.id}`);
-            toggleNav();
-        }}>
-            <Group justify="space-between" gap={0}>
-                <Group gap="sm">
-                    <Indicator disabled={!row.newMessages} style={{flexGrow: 0}}>
-                        <Avatar size={40} src={row.avatar} radius={40}/>
-                    </Indicator>
-                    <div style={{marginLeft: 5}}>
-                        <Text fz="sm" fw={500}>
-                            {`${row.name}`}
-                        </Text>
-                        <Text c="dimmed" fz="xs" style={{
-                            height: "1.5em",
-                            width: 220,
-                            overflow: "hidden",
-                            whiteSpace: "nowrap",
-                            textOverflow: "ellipsis"
-                        }}>
-                            {`${row.lastMessage}`}
-                        </Text>
-                    </div>
-                </Group>
-                <Text c="dimmed"
-                      fz="xs">{`${row.date.getDate()}.${row.date.getMonth()}.${row.date.getFullYear()}`}</Text>
-            </Group>
-        </UnstyledButton>
-    ));
+    const rows = sortedChats.map(chat => <ContactListEntry toggleNav={toggleNav} chat={chat}/>)
 
     return (
         <Stack

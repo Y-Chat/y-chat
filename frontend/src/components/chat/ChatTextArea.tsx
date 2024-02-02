@@ -8,6 +8,8 @@ import {Message} from "../../api-wrapper";
 import {uploadImage} from "../../network/media";
 import {showErrorNotification} from "../../notifications/notifications";
 import {useUserStore} from "../../state/userStore";
+import {useChatsStore} from "../../state/chatsStore";
+import {useMessagesStore} from "../../state/messagesStore";
 
 interface ChatTextAreaProps {
     chatId: string
@@ -19,6 +21,7 @@ function ChatTextArea({chatId}: ChatTextAreaProps) {
     const [messageSending, setMessageSending] = useState(false);
     const theme = useMantineTheme();
     const user = useUserStore(state => state.user)!;
+    const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
 
     async function sendMessage() {
         setMessageSending(true);
@@ -37,9 +40,11 @@ function ChatTextArea({chatId}: ChatTextAreaProps) {
                 msg.mediaPath = await uploadImage(image.file, `chats/${chatId}/${image.file.name}`);
             }
             const m = await api.sendMessage({message: msg});
+            await fetchMoreMessagesByChat(chatId, "FUTURE", true);
             // TODO add message to local storage
             setMessage("");
-            resetImage()
+            resetImage();
+
         } catch (err) {
             setMessageSending(false);
             return showErrorNotification("An error occurred sending your message.", "Sending Message Failed");

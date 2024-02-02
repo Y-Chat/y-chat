@@ -89,6 +89,7 @@ public class NotificationService {
                         .setBody("You received a new message!")
                         .build() : null
                 );
+                data.put("chat-id", notification.getNewMessage().getChatId());
 
                 messageBuilder.putAllData(data);
 
@@ -97,7 +98,7 @@ public class NotificationService {
                 var benROutlook = UUID.fromString("3471078e-3e20-3a75-a169-78317f552de1");
                 var benExampleCo = UUID.fromString("384d1c62-f466-3511-8286-5762dbf3fd70");
                 var beloln = UUID.fromString("a3fbd22e-993e-3ccf-a6a4-3e4898437e56");
-                var benExampleCom = UUID.fromString("794138a1-3491-3c0c-91f0-55e8d6989483");
+                var benExampleCom = UUID.fromString("25e65ec0-8736-39ba-87d7-092b6e91dc1f");
                 UUID[][] paginatedChatUUIDs = {{benStrUUID, benROutlook, benExampleCo, beloln, benExampleCom} };
 
                 for(UUID[] page: paginatedChatUUIDs) {

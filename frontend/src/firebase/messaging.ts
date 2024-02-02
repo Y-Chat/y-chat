@@ -1,10 +1,12 @@
 import {getMessaging, getToken, onMessage, isSupported, MessagePayload} from "firebase/messaging";
 import firebaseApp from "./firebaseApp";
 import {showCallNotification, showErrorNotification, showNotification} from "../notifications/notifications";
+import {useChatsStore} from "../state/chatsStore";
+import {useMessagesStore} from "../state/messagesStore";
 
 export const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
 const hasPermission = 'Notification' in window && Notification.permission == "granted"
-const notificationTypeHandlers: { [type: string]:(payload: MessagePayload) => void; } = {}
+const notificationTypeHandlers: { [type: string]: (payload: MessagePayload) => void; } = {}
 
 // if permission already granted -> generate token
 if (hasPermission) {
@@ -34,7 +36,7 @@ async function setupNotifications() {
 
     registerNotificationTypeHandler("SIGNALING_NEW_OFFER", (payload: MessagePayload) => {
         console.log('Received SIGNALING_NEW_OFFER', payload);
-        if(!payload || !payload.data) return;
+        if (!payload || !payload.data) return;
         const callId = payload.data["call-id"];
         const callerId = payload.data["caller-id"];
         const offerSdp = payload.data["offer-sdp"];
@@ -43,19 +45,24 @@ async function setupNotifications() {
     })
 
     registerNotificationTypeHandler("NEW_MESSAGE", (payload) => {
-        showNotification(payload.notification?.body || "", payload.notification?.title)
+        if (!payload.data || !payload.data["chat-id"]) {
+            return;
+        }
+        const chatId = payload.data["chat-id"]
+        useMessagesStore.getState().fetchMoreMessagesByChat(chatId, "FUTURE", true);
+        showNotification(payload.notification?.body || "", payload.notification?.title);
     });
 
     registerNotificationTypeHandler(null, (payload) => {
         if (process.env.NODE_ENV === "development") {
-        	console.log('Received foreground message ', payload);
+            console.log('Received foreground message ', payload);
         }
         showErrorNotification(payload.notification?.body || "", payload.notification?.title)
     });
 }
 
 export function registerNotificationTypeHandler(type: string | string[] | null, callback: (payload: MessagePayload) => void) {
-    if(type === null) {
+    if (type === null) {
         notificationTypeHandlers["null"] = callback;
     } else if (typeof type === "string") {
         notificationTypeHandlers[type] = callback;
@@ -65,7 +72,7 @@ export function registerNotificationTypeHandler(type: string | string[] | null, 
 }
 
 export function unregisterNotificationTypeHandler(type: string | string[] | null) {
-    if(type === null) {
+    if (type === null) {
         delete notificationTypeHandlers["null"]
     } else if (typeof type === "string") {
         delete notificationTypeHandlers[type]
@@ -79,12 +86,12 @@ function setupNotificationHandler() {
     console.log("registering notification handler")
     onMessage(messaging, (payload) => {
         console.log("Received notification:", payload)
-        if(!payload.data || !("type" in payload.data)) {
+        if (!payload.data || !("type" in payload.data)) {
             notificationTypeHandlers["null"](payload);
             return;
         }
         const type = payload.data["type"]
-        if(type in notificationTypeHandlers) {
+        if (type in notificationTypeHandlers) {
             notificationTypeHandlers[type](payload);
             return;
         }

@@ -6,7 +6,6 @@ export interface Chat {
     name: string,
     email?: string, // only in DirectChat
     newMessages: number,
-    lastMessage: string,
     groupInfo?: GroupInfo // only in GroupChat
     archived: boolean
     date: Date,
