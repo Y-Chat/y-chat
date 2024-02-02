@@ -95,7 +95,6 @@ function transformChat(apiChat: ChatDTO): Chat {
         avatar: null,
         name: name,
         email: apiChat.chatType == "DIRECT_CHAT" ? "email@user.com" : undefined,
-        lastMessage: "Hey whad up? I was sondering how to do something lol i am just writitng words!",
         newMessages: 1,
         groupInfo: apiChat.groupProfileDTO ? {description: apiChat.groupProfileDTO.profileDescription || ""} : undefined,
         archived: false,

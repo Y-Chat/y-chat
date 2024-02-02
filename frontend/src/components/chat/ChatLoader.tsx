@@ -22,6 +22,8 @@ function ChatLoader() {
         }
     }, [chatId]);
 
+    console.log("lol")
+
     return (
         <>
             {chat ? <ChatWindow chat={chat}/> : <NotFound/>}
