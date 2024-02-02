@@ -41,7 +41,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
                 <Container style={{flexGrow: 0}}>
                     <ActionIcon variant="transparent" c="lightgray">
                         {chat?.email ? <IconVideo onClick={() => {
-                            startCall("e7fc5ad0-d2e1-3436-b937-d256198b7d72")
+                            startCall("2e0c5f8f-c782-394f-9388-52000aae64cf")
                         }}/> : undefined}
                     </ActionIcon>
                 </Container>

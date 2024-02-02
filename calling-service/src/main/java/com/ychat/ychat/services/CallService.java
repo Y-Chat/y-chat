@@ -63,11 +63,7 @@ public class CallService {
             Notification notification = new Notification();
             AnonymousSchema33 callEnded = new AnonymousSchema33();
             callEnded.setCallId(call.get().getId().toString());
-            callEnded.setReceiverId(
-                requesterId.equals(call.get().getCalleeId()) ?
-                    call.get().getCallerId().toString() :
-                    call.get().getCalleeId().toString()
-            );
+            callEnded.setReceiverId(call.get().getCallerId().toString());
             notification.setCallEnded(callEnded);
             notificationServiceConnector.onNotification(random.nextInt(), notification);
 

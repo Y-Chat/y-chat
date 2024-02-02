@@ -40,14 +40,18 @@ export function showSuccessNotification(message: string, title: string = "Notifi
     });
 }
 
-export function showCallNotification(callId: string, callerId: string) {
-    const notificationId = `callNotification-callId-${callId}`
+export function showCallNotification(callId: string, callerId: string, offerSdp: string, offerType: string) {
+    const notificationId = callIdToCallNotificationId(callId)
     Notifications.show({
         id: notificationId,
         withBorder: true,
         title: "Incoming Call",
         autoClose: false,
         withCloseButton: false,
-        message: <IncomingCallNotification callId={callId} notificationId={notificationId} callerId={callerId}/>,
+        message: <IncomingCallNotification callId={callId} notificationId={notificationId} callerId={callerId} offerSdp={offerSdp} offerType={offerType}/>,
     })
+}
+
+export function callIdToCallNotificationId(callId: string) {
+    return `callNotification-callId-${callId}`;
 }

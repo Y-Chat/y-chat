@@ -6,13 +6,8 @@ import {
     IconMicrophoneOff,
     IconPhoneOff
 } from "@tabler/icons-react";
-import {CallSignaling} from "../../calling/signaling";
-import {getMessaging, onMessage} from "firebase/messaging";
-import firebaseApp from "../../firebase/firebaseApp";
 import {useNavigate, useOutletContext, useSearchParams} from "react-router-dom";
-import {registerNotificationTypeHandler, unregisterNotificationTypeHandler} from "../../firebase/messaging";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
-import {api} from "../../network/api";
 import {useCallingStore} from "../../state/callingStore";
 
 export default function ChatCall() {
@@ -36,20 +31,12 @@ export default function ChatCall() {
         }
     }, []);
 
-    /*useEffect( () => {
-        const messaging = getMessaging(firebaseApp);
-        registerNotificationTypeHandler(["SIGNALING_NEW_ANSWER", "SIGNALING_NEW_CANDIDATE", "CALL_ENDED"], handleNotifications)
-
-        return () => {
-            unregisterNotificationTypeHandler(["SIGNALING_NEW_ANSWER", "SIGNALING_NEW_CANDIDATE", "CALL_ENDED"])
-        };
-    }, [])*/
-
     return (
-        <div>
-            <div style={{position: "absolute", width: "100%", height: "100%"}}>
-                <Flex style={{height: "100%"}} justify={"center"}>
-                    <img src={"/call-selfie-placeholder.jpg"} style={{height: "100%"}}/>
+        <div style={{width: "100vw", height: "100%"}}>
+            <div style={{position: "absolute", width: "100vw", height: "100%"}}>
+                <Flex style={{height: "100vh", width: "100vw"}} justify={"center"}>
+                    {/*<img src={"/call-selfie-placeholder.jpg"} style={{height: "100%", maxWidth: "100vw"}}/>*/}
+                    <video id={"remoteVideo"} autoPlay playsInline style={{height: "100%", maxWidth: "100vw"}}/>
                 </Flex>
             </div>
             <div style={{position: "absolute", bottom: "5%", width: "100%"}}>
@@ -59,7 +46,7 @@ export default function ChatCall() {
                         color={"black"}
                         style={{
                             backgroundColor: "white",
-                            padding: "25px",
+                            padding: "10px",
                             borderRadius: 100
                         }}
                     />
@@ -68,7 +55,7 @@ export default function ChatCall() {
                         color={"white"}
                         style={{
                             backgroundColor: "red",
-                            padding: "10px",
+                            padding: "8px",
                             borderRadius: 100
                         }}
                         onClick={() => {
@@ -82,7 +69,7 @@ export default function ChatCall() {
                         color={"black"}
                         style={{
                             backgroundColor: "white",
-                            padding: "25px",
+                            padding: "10px",
                             borderRadius: 100
                         }}
                         onClick={() => {
@@ -93,7 +80,7 @@ export default function ChatCall() {
                         color={"black"}
                         style={{
                             backgroundColor: "white",
-                            padding: "25px",
+                            padding: "10px",
                             borderRadius: 100
                         }}
                         onClick={() => {
@@ -104,7 +91,6 @@ export default function ChatCall() {
             </div>
             <div style={{position: "absolute", top: "3vh", right: "3vh"}}>
                 <video id={"webcamVideo"} autoPlay playsInline style={{maxHeight: "20vh", maxWidth: "40vw"}}/>
-                {/*<img src={"/call-selfie-placeholder-2.jpg"} style={{maxHeight: "20vh", maxWidth: "40vw"}}/>*/}
             </div>
         </div>
     )

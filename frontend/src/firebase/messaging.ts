@@ -1,6 +1,7 @@
 import {getMessaging, getToken, onMessage, isSupported, MessagePayload} from "firebase/messaging";
 import firebaseApp from "./firebaseApp";
 import {showCallNotification, showErrorNotification, showNotification} from "../notifications/notifications";
+import {useCallingStore} from "../state/callingStore";
 import {useChatsStore} from "../state/chatsStore";
 import {useMessagesStore} from "../state/messagesStore";
 
@@ -41,7 +42,7 @@ async function setupNotifications() {
         const callerId = payload.data["caller-id"];
         const offerSdp = payload.data["offer-sdp"];
         const offerType = payload.data["offer-type"];
-        showCallNotification(callId, callerId);
+        showCallNotification(callId, callerId, offerSdp, offerType);
     })
 
     registerNotificationTypeHandler("NEW_MESSAGE", (payload) => {

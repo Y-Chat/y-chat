@@ -90,7 +90,6 @@ public class NotificationService {
                         .build() : null
                 );
                 data.put("chat-id", notification.getNewMessage().getChatId());
-
                 messageBuilder.putAllData(data);
 
                 // TODO Remove mock - Query all users for the chat from social service until social service is ready
@@ -139,7 +138,7 @@ public class NotificationService {
 
                 messageBuilder.putAllData(data);
                 sendNotificationToUser(
-                        UUID.fromString(notification.getSignalingNewAnswer().getCalleeId()),
+                        UUID.fromString(notification.getSignalingNewAnswer().getCallerId()),
                         messageBuilder,
                         staleTokens
                 );
