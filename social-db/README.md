@@ -28,7 +28,9 @@
 
 ## ER-Diagram
 ### Current Schema
+- TODO newest version does not have updated strings for profile pictures
 ![Social DB ERD](social-db-erd.png)
+
 ### How to create an ER-Diagram in pgAdmin
 1. Open pgAdmin
 2. Navigate to `social-db-group` -> `social-db` -> `Databases` -> `social-db` -> `Schemas`

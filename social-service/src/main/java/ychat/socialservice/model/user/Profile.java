@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 @MappedSuperclass
 public abstract class Profile {
-    private UUID profilePictureId;
+    private String profilePictureId;
 
     private String profileDescription;
 
@@ -19,11 +19,11 @@ public abstract class Profile {
 
     protected abstract void defaultProfileDescription();
 
-    public UUID getProfilePictureId() {
+    public String getProfilePictureId() {
         return profilePictureId;
     }
 
-    public void setProfilePictureId(UUID profilePictureId) {
+    public void setProfilePictureId(String profilePictureId) {
         if (profilePictureId == null) return;
         this.profilePictureId = profilePictureId;
     }

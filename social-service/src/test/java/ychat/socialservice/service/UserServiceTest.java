@@ -176,7 +176,7 @@ class UserServiceTest {
     void UpdateUserProfile_InvalidPartialUpdate_Throws() {
         UUID userId = new UUID(0,0);
         UserProfileDTO userProfileDTO = new UserProfileDTO(
-            null, null, new UUID(0,0),
+            null, null, "newid",
             true, null
         );
 
@@ -194,7 +194,7 @@ class UserServiceTest {
         UserProfile userProfile = user.getUserProfile();
         userProfile.setFirstName("firstname");
         userProfile.setLastName("lastname");
-        userProfile.setProfilePictureId(new UUID(0,0));
+        userProfile.setProfilePictureId("newid");
         UserProfileDTO userProfileDTO = new UserProfileDTO(
             "firstname_changed", null, null,
             true, null

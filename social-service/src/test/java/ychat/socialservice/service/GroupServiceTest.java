@@ -153,7 +153,7 @@ class GroupServiceTest {
         UUID userId = new UUID(0,0);
         UUID groupId = new UUID(0,1);
         GroupProfileDTO groupProfileDTO = new GroupProfileDTO(
-            null, new UUID(0,2),
+            null, "newId",
             true, null
         );
 
@@ -172,9 +172,9 @@ class GroupServiceTest {
         Group group = groupMember.getGroup();
         GroupProfile groupProfile = group.getGroupProfile();
         groupProfile.setGroupName("group_name");
-        groupProfile.setProfilePictureId(new UUID(0,0));
+        groupProfile.setProfilePictureId("oldid");
         GroupProfileDTO groupProfileDTO = new GroupProfileDTO(
-            "group_name_changed", new UUID(0,1),
+            "group_name_changed", "updatedid",
             null, null
         );
 

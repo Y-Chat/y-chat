@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS "user" (
     -- Profile
     first_name VARCHAR(32) COLLATE pg_catalog."default" NOT NULL,
     last_name VARCHAR(32) COLLATE pg_catalog."default" NOT NULL,
-    profile_picture_id UUID NULL,
+    profile_picture_id VARCHAR(1024) NULL,
     profile_description VARCHAR(128) COLLATE pg_catalog."default" NOT NULL,
     --Settings
     read_receipts BOOLEAN NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS "group" (
     id UUID NOT NULL,
     -- Profile
     group_name VARCHAR(32) COLLATE pg_catalog."default" NOT NULL,
-    profile_picture_id UUID NULL,
+    profile_picture_id VARCHAR(1024) NULL,
     profile_description VARCHAR(128) COLLATE pg_catalog."default" NOT NULL,
 
     CONSTRAINT pk_group PRIMARY KEY (id),

@@ -27,21 +27,15 @@ public class SecurityConfig {
 
     // https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter
 
-    private static final String[] AUTH_WHITELIST = {
-        "/api-docs",
-        "/api-docs.yaml",
-        "/swagger-ui/**",
-    };
-
     @Bean
     public SecurityFilterChain configureJWT(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(AbstractHttpConfigurer::disable) // Is handled by api gateway
-            .authorizeHttpRequests(
-                (auth) -> auth.requestMatchers(AUTH_WHITELIST).permitAll()
+            .authorizeHttpRequests((auth) ->
+                auth.requestMatchers("/internal/**").permitAll().
+                anyRequest().authenticated()
             )
-            .authorizeHttpRequests((auth) -> auth.anyRequest().authenticated())
             .httpBasic(Customizer.withDefaults())
             .oauth2ResourceServer(config -> config.jwt((jwt) -> jwt.decoder(getDecoder())));
         return http.build();
@@ -68,9 +62,9 @@ public class SecurityConfig {
     }
 
     public static UUID getRequesterUUID() {
-        return UUID.fromString(new String(
+        return UUID.nameUUIDFromBytes(
             SecurityContextHolder.getContext().getAuthentication().getName().getBytes()
-        ));
+        );
     }
 
     public static void verifyUserAccess(UUID userId) {

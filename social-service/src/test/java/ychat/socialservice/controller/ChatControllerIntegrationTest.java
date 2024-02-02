@@ -48,9 +48,9 @@ class ChatControllerIntegrationTest {
     private ChatMemberRepository chatMemberRepo;
 
     // State start ---------------------------------------------------------------------------------
-    private final String userId1 = "00000000-0000-0000-0000-000000000001";
-    private final String userId2 = "00000000-0000-0000-0000-000000000002";
-    private final String userId3 = "00000000-0000-0000-0000-000000000003";
+    private final String username1 = "username1";
+    private final String username2 = "username2";
+    private final String username3 = "username3";
     private User user1;
     private User user2;
     private User user3;
@@ -59,9 +59,9 @@ class ChatControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        user1 = new UserBuilder().withId(UUID.fromString(userId1)).build();
-        user2 = new UserBuilder().withId(UUID.fromString(userId2)).build();
-        user3 = new UserBuilder().withId(UUID.fromString(userId3)).build();
+        user1 = new UserBuilder().withId(UUID.nameUUIDFromBytes(username1.getBytes())).build();
+        user2 = new UserBuilder().withId(UUID.nameUUIDFromBytes(username2.getBytes())).build();
+        user3 = new UserBuilder().withId(UUID.nameUUIDFromBytes(username3.getBytes())).build();
         userRepo.save(user1);
         userRepo.save(user2);
         userRepo.save(user3);
@@ -76,27 +76,27 @@ class ChatControllerIntegrationTest {
 
     // Chat start ----------------------------------------------------------------------------------
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void GetChat_Ok_ReturnChat() throws Exception {
         mockMvc.perform(get("/chats/{chatId}", directChat.getId())
-            .param("userId", userId1))
+            .param("userId", user1.getId().toString()))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.chatId").value(directChat.getId().toString()))
             .andExpect(jsonPath("$.chatType").value("DIRECT_CHAT"))
             .andExpect(jsonPath("$.groupProfileDTO").value(nullValue()))
-            .andExpect(jsonPath("$.userId").value(userId3));
+            .andExpect(jsonPath("$.userId").value(user3.getId().toString()));
     }
 
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void GetAllChats_Ok_ReturnPage() throws Exception {
         List<String> resultIds = new ArrayList<>();
         resultIds.add(group.getId().toString());
         resultIds.add(directChat.getId().toString());
 
         mockMvc.perform(get("/chats")
-                .param("userId", userId1)
+                .param("userId", user1.getId().toString())
                 .param("page", "0")
                 .param("size", "10")
             )
@@ -112,16 +112,16 @@ class ChatControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void CreateDirectChat_Created_ReturnChat() throws Exception {
         MvcResult mvcResult = mockMvc.perform(post("/chats/directChats")
-            .param("userId", userId1)
-            .param("otherUserId", userId2))
+            .param("userId", user1.getId().toString())
+            .param("otherUserId", user2.getId().toString()))
             .andExpect(status().isCreated())
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.chatType").value("DIRECT_CHAT"))
             .andExpect(jsonPath("$.groupProfileDTO").value(nullValue()))
-            .andExpect(jsonPath("$.userId").value(userId2))
+            .andExpect(jsonPath("$.userId").value(user2.getId().toString()))
             .andReturn();
 
         String response = mvcResult.getResponse().getContentAsString();
@@ -133,16 +133,15 @@ class ChatControllerIntegrationTest {
     // Chat end ------------------------------------------------------------------------------------
 
     // Members start -------------------------------------------------------------------------------
-    // TODO check state for each function
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void GetChatMembers_Ok_ReturnPage() throws Exception {
         List<String> resultIds = new ArrayList<>();
-        resultIds.add(userId1);
-        resultIds.add(userId3);
+        resultIds.add(user1.getId().toString());
+        resultIds.add(user3.getId().toString());
 
         mockMvc.perform(get("/chats/{chatId}/members", directChat.getId())
-            .param("userId", userId1)
+            .param("userId", user1.getId().toString())
             .param("page", "0")
             .param("size", "10"))
             .andExpect(status().isOk())
@@ -157,7 +156,7 @@ class ChatControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void GetChatStatus_Ok_ReturnStatus() throws Exception {
         mockMvc.perform(get("/chats/{chatid}/members/{userId}/status",
                 directChat.getId(), user1.getId()))
@@ -167,7 +166,7 @@ class ChatControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void SetChatStatus_Ok_ReturnStatus() throws Exception {
         mockMvc.perform(patch("/chats/{chatid}/members/{userId}/status",
                 directChat.getId(), user1.getId())

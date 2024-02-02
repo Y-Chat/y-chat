@@ -26,7 +26,7 @@ public record UserProfileDTO (
     @Size(min = 1, max = 32, groups = {CreateDTO.class, UpdateDTO.class})
     String lastName,
 
-    UUID profilePictureId,
+    String profilePictureId,
 
     @Null(groups = {CreateDTO.class})
     Boolean removeProfilePictureId,

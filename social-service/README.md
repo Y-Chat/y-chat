@@ -1,7 +1,6 @@
 # Social Service
 ## TODO
-- how to access the swagger-ui with spring security
-- update openapi file
+- update openapi file after the changes
 
 ## About
 - The Social service manages users, groups, and chats and their relationships
@@ -14,9 +13,9 @@
 - It is auto-generated from the service which has some limitations, especially for the validation,
   as the documentation does not differentiate between update and creation although the service does;
   for these special cases extra documentation can be found at the endpoints
-- One can find the JSON file at the `/api-docs` endpoint and the
-  YAML version at `/api-docs.yaml`
-- A visualization of the API can be accessed at `/swagger-ui`
+- One can find the JSON file at the `/internal/api-docs` endpoint and the
+  YAML version at `/internal/api-docs.yaml`
+- A visualization of the API can be accessed at `/internal/swagger-ui`
 
 ## Implementation
 ### Technologies

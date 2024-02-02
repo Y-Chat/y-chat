@@ -46,9 +46,9 @@ class GroupControllerIntegrationTest {
     private GroupMemberRepository groupMemberRepo;
 
     // State start ---------------------------------------------------------------------------------
-    private final String userId1 = "00000000-0000-0000-0000-000000000001";
-    private final String userId2 = "00000000-0000-0000-0000-000000000002";
-    private final String userId3 = "00000000-0000-0000-0000-000000000003";
+    private final String username1 = "username1";
+    private final String username2 = "username2";
+    private final String username3 = "username3";
     private User user1;
     private User user2;
     private User user3;
@@ -56,9 +56,9 @@ class GroupControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        user1 = new UserBuilder().withId(UUID.fromString(userId1)).build();
-        user2 = new UserBuilder().withId(UUID.fromString(userId2)).build();
-        user3 = new UserBuilder().withId(UUID.fromString(userId3)).build();
+        user1 = new UserBuilder().withId(UUID.nameUUIDFromBytes(username1.getBytes())).build();
+        user2 = new UserBuilder().withId(UUID.nameUUIDFromBytes(username2.getBytes())).build();
+        user3 = new UserBuilder().withId(UUID.nameUUIDFromBytes(username3.getBytes())).build();
         userRepo.save(user1);
         userRepo.save(user2);
         userRepo.save(user3);
@@ -71,7 +71,7 @@ class GroupControllerIntegrationTest {
 
     // Group start ---------------------------------------------------------------------------------
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void GetGroup_Ok_ReturnGroup() throws Exception {
         mockMvc.perform(get("/groups/{groupId}", group.getId()))
             .andExpect(status().isOk())
@@ -82,10 +82,10 @@ class GroupControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void CreateGroup_Created_ReturnGroup() throws Exception {
         MvcResult mvcResult = mockMvc.perform(post("/groups")
-            .param("userId", userId1)
+            .param("userId", user1.getId().toString())
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"groupName\": \"groopgroop\"}"))
             .andExpect(status().isCreated())
@@ -103,7 +103,7 @@ class GroupControllerIntegrationTest {
 
     // Profile start -------------------------------------------------------------------------------
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void GetGroupProfile_Ok_ReturnGroupProfile() throws Exception {
         mockMvc.perform(get("/groups/{groupId}/profile", group.getId()))
             .andExpect(status().isOk())
@@ -113,7 +113,7 @@ class GroupControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void UpdateGroupProfile_Ok_ReturnGroupProfile() throws Exception {
         String newProfileDescription = "hihihi";
         String oldGroupName = group.getGroupProfile().getGroupName();
@@ -136,23 +136,23 @@ class GroupControllerIntegrationTest {
 
     // Members start -------------------------------------------------------------------------------
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void AddGroupMember_Ok_ReturnGroupMember() throws Exception {
         mockMvc.perform(post("/groups/{groupId}/members", group.getId())
-            .param("userId", userId3))
+            .param("userId", user3.getId().toString()))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
-            .andExpect(jsonPath("$.userId").value(userId3))
+            .andExpect(jsonPath("$.userId").value(user3.getId().toString()))
             .andExpect(jsonPath("$.groupRole").value("GROUP_MEMBER"));
 
         assertTrue(groupMemberRepo.existsById(new ChatMemberId(user3.getId(), group.getId())));
     }
 
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void RemoveGroupMember_NoContent_PromotesOtherUser() throws Exception {
         mockMvc.perform(delete("/groups/{groupId}/members", group.getId())
-            .param("userId", userId1))
+            .param("userId", user1.getId().toString()))
             .andExpect(status().isNoContent());
 
         assertFalse(groupMemberRepo.existsById(new ChatMemberId(user1.getId(), group.getId())));
@@ -163,7 +163,7 @@ class GroupControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void GetGroupRole_Ok_ReturnGroupRole() throws Exception {
         mockMvc.perform(
             get("/groups/{groupId}/members/{userId}/role", group.getId(), user2.getId()))
@@ -173,7 +173,7 @@ class GroupControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = userId1)
+    @WithMockUser(username = username1)
     void UpdateGroupRole_Ok_ReturnGroupRole() throws Exception {
         mockMvc.perform(
             patch("/groups/{groupId}/members/{userId}/role", group.getId(), user2.getId())
