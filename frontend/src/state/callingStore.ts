@@ -4,6 +4,7 @@ import {Call} from "../api-wrapper";
 import {Notifications} from "@mantine/notifications";
 import {MessagePayload} from "firebase/messaging";
 import {callIdToCallNotificationId} from "../notifications/notifications";
+import adapter from "webrtc-adapter"
 
 const servers = {
     iceServers: [
@@ -56,7 +57,7 @@ interface CallingState {
     handleNotifications: (payload: MessagePayload) => void
 }
 
-
+console.log("WebRTC Adapter detected browser: " + adapter.browserDetails.browser);
 
 // Is intentionally not persisted
 export const useCallingStore = create<CallingState>((set,get) => ({

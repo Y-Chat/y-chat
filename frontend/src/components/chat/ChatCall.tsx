@@ -69,7 +69,7 @@ export default function ChatCall() {
                         color={"black"}
                         style={{
                             backgroundColor: "white",
-                            padding: "25px",
+                            padding: "10px",
                             borderRadius: 100
                         }}
                         onClick={() => {
