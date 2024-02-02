@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {BrowserRouter as Router, Route, Routes, useNavigate} from "react-router-dom";
 import {LoadingOverlay, MantineProvider} from "@mantine/core";
-import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
 import {useUserStore} from "../state/userStore";
 import AuthMain from "./auth/AuthMain";
 import Shell from "./shell/Shell";
@@ -24,7 +23,6 @@ import {getMessaging, getToken} from "firebase/messaging";
 import firebaseApp from "../firebase/firebaseApp";
 import {vapidKey} from "../firebase/messaging";
 import {useSettingsStore} from "../state/settingsStore";
-import {useCallingStore} from "../state/callingStore";
 import CallingWrapper from "./shell/CallingWrapper";
 
 function App() {

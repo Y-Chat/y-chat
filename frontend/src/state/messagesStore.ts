@@ -6,12 +6,12 @@ import {Message} from "../model/Message";
 import {Message as ApiMessage} from "../api-wrapper";
 import {useUserStore} from "./userStore";
 
-
 interface MessagesState {
     // maps chatId to its respective messages
     messages: { [key: string]: Message[] | undefined }
-    // returns amount of fetched messages
-    fetchMoreMessagesByChat: (chatId: string, direction: "PAST" | "FUTURE") => Promise<number>
+    // fetches messages for specified chat in specified direction. Until end = true -> fetches all possible chat in specified direction. Not recommended for direction "PAST".
+    // returns false if no more messages in that direction are to come
+    fetchMoreMessagesByChat: (chatId: string, direction: "PAST" | "FUTURE", untilEnd: boolean) => Promise<boolean>
 }
 
 const local: PersistStorage<MessagesState> = {
@@ -33,9 +33,10 @@ export const useMessagesStore = create<MessagesState>()(
                 // always be aware that this state might not yet have an entry for a chat -> type is undefined, not an empty list!
                 // messages[<id>][0] is the newest message!
                 messages: {},
-                fetchMoreMessagesByChat: async (chatId: string, direction: "PAST" | "FUTURE") => {
+                fetchMoreMessagesByChat: async (chatId: string, direction: "PAST" | "FUTURE", untilEnd: boolean) => {
                     let currentMessages = get().messages[chatId] || [];
                     let d: Date;
+                    const pageSize = 10;
 
                     if (currentMessages.length == 0) {
                         d = new Date();
@@ -45,25 +46,35 @@ export const useMessagesStore = create<MessagesState>()(
 
                     let fetchedMessages: Message[] = []
                     try {
-                        fetchedMessages = (await api.getMessages({
-                            chatId: chatId,
-                            fromDate: d,
-                            direction: direction,
-                            pageSize: 10
-                        })).messages.map(transformMessage);
+                        do {
+                            const n = (await api.getMessages({
+                                chatId: chatId,
+                                fromDate: d,
+                                direction: direction,
+                                pageSize: pageSize
+                            })).messages.map(transformMessage);
+                            fetchedMessages = fetchedMessages.concat(n);
+                            if (n.length < pageSize) {
+                                break;
+                            }
+                        } while (untilEnd)
                     } catch (err) {
-                        return 0;
+                        return true;
                     }
 
-                    const updatedMessages = get().messages;
+                    if (fetchedMessages.length > 0) {
+                        const updatedMessages = get().messages;
 
-                    if (direction === "PAST") {
-                        updatedMessages[chatId] = [...currentMessages, ...fetchedMessages];
+                        if (direction === "PAST") {
+                            updatedMessages[chatId] = [...currentMessages, ...fetchedMessages];
+                        } else {
+                            updatedMessages[chatId] = [...fetchedMessages, ...currentMessages];
+                        }
+                        set({messages: updatedMessages});
+                        return fetchedMessages.length % pageSize == 0
                     } else {
-                        updatedMessages[chatId] = [...fetchedMessages, ...currentMessages];
+                        return false;
                     }
-                    set({messages: updatedMessages});
-                    return fetchedMessages.length;
                 }
             }
         ),

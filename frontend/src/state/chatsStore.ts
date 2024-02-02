@@ -9,8 +9,6 @@ import {Message} from "../model/Message";
 
 interface ChatsState {
     chats: Chat[],
-    selectedChatId: string
-    setSelectedChat: (chatId: string) => void
     getChat: (chatId: string) => Promise<Chat | null>
     fetchChats: () => Promise<void>
 }
@@ -32,13 +30,6 @@ export const useChatsStore = create<ChatsState>()(
         (set, get) => (
             {
                 chats: [],
-                selectedChatId: "",
-                setSelectedChat: (chatId: string) => {
-                    const chat = get().chats.find((chat) => chat.id == chatId);
-                    if (chat) {
-                        set({selectedChatId: chatId});
-                    }
-                },
                 getChat: async (chatId: string) => {
                     const userId = useUserStore.getState().user?.id;
                     if (!userId) {
@@ -104,7 +95,6 @@ function transformChat(apiChat: ChatDTO): Chat {
         avatar: null,
         name: name,
         email: apiChat.chatType == "DIRECT_CHAT" ? "email@user.com" : undefined,
-        lastMessage: "Hey whad up? I was sondering how to do something lol i am just writitng words!",
         newMessages: 1,
         groupInfo: apiChat.groupProfileDTO ? {description: apiChat.groupProfileDTO.profileDescription || ""} : undefined,
         archived: false,

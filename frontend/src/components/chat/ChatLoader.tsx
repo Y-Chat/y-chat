@@ -12,7 +12,6 @@ function ChatLoader() {
     const [chat, setChat] = useState<Chat | null>(null);
     const { chatId } = useParams();
 
-
     useEffect(() => {
         if (chatId){
             getChat(chatId).then(c => {
@@ -21,7 +20,9 @@ function ChatLoader() {
                 }
             })
         }
-    }, []);
+    }, [chatId]);
+
+    console.log("lol")
 
     return (
         <>
