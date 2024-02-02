@@ -67,6 +67,16 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         const webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
         navigator.mediaDevices.getUserMedia({ video: true, audio: withAudio }).then((x) => {
             const localStream = x;
+
+            const peerConnection = get().signaling?.peerConnection;
+
+            if(peerConnection) {
+                peerConnection.getSenders().forEach(x => peerConnection.removeTrack(x))
+                localStream.getTracks().forEach((track) => {
+                    peerConnection.addTrack(track, localStream)
+                })
+            }
+
             console.log("webcamVideo: ", signaling.webcamVideo)
             if(webcamVideo) {
                 webcamVideo.srcObject = localStream;
@@ -82,12 +92,35 @@ export const useCallingStore = create<CallingState>((set,get) => ({
            await get().endCall()
         }
 
-        const peerConnection = new RTCPeerConnection();
+        const peerConnection = new RTCPeerConnection(servers);
         const localStream = new MediaStream();
         const remoteStream = new MediaStream();
         const webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
-        const remoteVideo = null;
+        const remoteVideo = document.getElementById("remoteVideo") as HTMLVideoElement | null;
         const callStatus: CallStatus = "PENDING";
+
+        localStream.getTracks().forEach((track) => {
+            peerConnection.addTrack(track, localStream)
+        })
+
+        peerConnection.ontrack = (event) => {
+            event.streams[0].getTracks().forEach((track) => {
+                remoteStream.addTrack(track);
+            })
+        }
+
+        peerConnection.onconnectionstatechange = (event) => {
+            console.log("onconnectionstatechange", peerConnection.connectionState)
+        }
+        peerConnection.oniceconnectionstatechange = (event) => {
+            console.log("oniceconnectionstatechange", peerConnection.iceConnectionState)
+        }
+        peerConnection.onsignalingstatechange = (event) => {
+            console.log("onsignalingstatechange", peerConnection.signalingState)
+        }
+        peerConnection.onicegatheringstatechange = (event) => {
+            console.log("onicegatheringstatechange", peerConnection.iceGatheringState)
+        }
 
         const offerDescription = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offerDescription);
@@ -96,6 +129,7 @@ export const useCallingStore = create<CallingState>((set,get) => ({
             sdp: offerDescription.sdp,
             type: offerDescription.type,
         };
+        console.log("created offer", offer)
 
         // TODO Change to chatId instead of calleeId (blocked by social service)
         const call = await api.createCall({createCallRequest: {
@@ -116,6 +150,20 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                 webcamVideo: webcamVideo,
                 remoteVideo: remoteVideo
             }})
+
+            peerConnection.onicecandidate = (event) => {
+                console.log("onicecandidate", event)
+                if(!event.candidate) return;
+                api.postNewSignalingCandidate({postNewSignalingCandidateRequest: {
+                        callId: call.id,
+                        candidate: {
+                            candidate: event.candidate.candidate,
+                            sdpMid: event.candidate.sdpMid ?? undefined,
+                            sdpMLineIndex: event.candidate.sdpMLineIndex ?? undefined,
+                            usernameFragment: event.candidate.usernameFragment ?? undefined
+                        }
+                    }})
+            }
         }
     },
     acceptCall: async (callId: string, offerSdp: string, offerType: string) => {
@@ -124,26 +172,69 @@ export const useCallingStore = create<CallingState>((set,get) => ({
             await get().endCall()
         }
 
-        const peerConnection = new RTCPeerConnection();
+        const peerConnection = new RTCPeerConnection(servers);
         const localStream = new MediaStream();
         const remoteStream = new MediaStream();
         const webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
-        const remoteVideo = null;
-        const callStatus: CallStatus = "PENDING";
+        const remoteVideo = document.getElementById("remoteVideo") as HTMLVideoElement | null;
+        const callStatus: CallStatus = "ONGOING";
+
+        localStream.getTracks().forEach((track) => {
+            peerConnection.addTrack(track, localStream)
+        })
+
+        peerConnection.onconnectionstatechange = (event) => {
+            console.log("onconnectionstatechange", peerConnection.connectionState)
+        }
+        peerConnection.oniceconnectionstatechange = (event) => {
+            console.log("oniceconnectionstatechange", peerConnection.iceConnectionState)
+        }
+        peerConnection.onsignalingstatechange = (event) => {
+            console.log("onsignalingstatechange", peerConnection.signalingState)
+        }
+        peerConnection.onicegatheringstatechange = (event) => {
+            console.log("onicegatheringstatechange", peerConnection.iceGatheringState)
+        }
+
+        peerConnection.ontrack = (event) => {
+            event.streams[0].getTracks().forEach((track) => {
+                remoteStream.addTrack(track);
+            })
+        }
+
+        peerConnection.onicecandidate = (event) => {
+            console.log("onicecandidate", event)
+            if(!event.candidate) return;
+            api.postNewSignalingCandidate({postNewSignalingCandidateRequest: {
+                callId: callId,
+                candidate: {
+                    candidate: event.candidate.candidate,
+                    sdpMid: event.candidate.sdpMid ?? undefined,
+                    sdpMLineIndex: event.candidate.sdpMLineIndex ?? undefined,
+                    usernameFragment: event.candidate.usernameFragment ?? undefined
+                }
+            }})
+        }
 
         const offer: RTCSessionDescriptionInit = {
             sdp: offerSdp,
             type: offerType as RTCSdpType
         }
 
+        console.log("received offer", offer)
+
         await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+        console.log("after setting offer", JSON.stringify(peerConnection.localDescription), JSON.stringify(peerConnection.remoteDescription))
         const answerDescription = await peerConnection.createAnswer();
+        console.log("after generating answer", JSON.stringify(peerConnection.localDescription), JSON.stringify(peerConnection.remoteDescription))
         await peerConnection.setLocalDescription(answerDescription);
+        console.log("after setting answer", JSON.stringify(peerConnection.localDescription), JSON.stringify(peerConnection.remoteDescription))
 
         const answer = {
             sdp: answerDescription.sdp,
             type: answerDescription.type,
         };
+        console.log("created answer", answer)
 
         api.answerCall({answerCallRequest: {
             callId: callId,
@@ -185,8 +276,22 @@ export const useCallingStore = create<CallingState>((set,get) => ({
             const answerType = payload.data["answer-type"];
             console.log("Got new SIGNALING_NEW_ANSWER")
 
-            if(!get().signaling) return;
-            // TODO
+            const signaling = get().signaling;
+            if(!signaling || signaling.callState !== "PENDING") return;
+
+            const answerDescription = new RTCSessionDescription({
+                type: answerType as RTCSdpType,
+                sdp: answerSdp
+            });
+            signaling.peerConnection.setRemoteDescription(answerDescription)
+
+            set((state) => ({
+                ...state,
+                signaling: state.signaling ? {
+                    ...state.signaling,
+                    callState: "ONGOING"
+                } : null,
+            }))
         } else if(type === "SIGNALING_NEW_CANDIDATE") {
             const callId = payload.data["call-id"];
             const candidate = payload.data["candidate-candidate"];
@@ -195,8 +300,15 @@ export const useCallingStore = create<CallingState>((set,get) => ({
             const sdpMLineIndex = payload.data["candidate-sdp-m-line-index"];
             console.log("Got new SIGNALING_NEW_CANDIDATE")
 
-            if(!get().signaling) return;
-            // TODO
+            const signaling = get().signaling;
+            if(!signaling) return;
+            const iceCandidate = new RTCIceCandidate({
+                candidate: candidate,
+                sdpMid: sdpMid,
+                sdpMLineIndex: Number.parseInt(sdpMLineIndex),
+                usernameFragment: usernameFragment
+            })
+            signaling.peerConnection.addIceCandidate(iceCandidate)
         } else if(type === "CALL_ENDED") {
             const callId = payload.data["call-id"];
             Notifications.hide(callIdToCallNotificationId(callId))

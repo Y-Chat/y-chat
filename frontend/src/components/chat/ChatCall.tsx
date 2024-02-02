@@ -35,7 +35,8 @@ export default function ChatCall() {
         <div style={{width: "100vw", height: "100%"}}>
             <div style={{position: "absolute", width: "100vw", height: "100%"}}>
                 <Flex style={{height: "100vh", width: "100vw"}} justify={"center"}>
-                    <img src={"/call-selfie-placeholder.jpg"} style={{height: "100%", maxWidth: "100vw"}}/>
+                    {/*<img src={"/call-selfie-placeholder.jpg"} style={{height: "100%", maxWidth: "100vw"}}/>*/}
+                    <video id={"remoteVideo"} autoPlay playsInline style={{height: "100%", maxWidth: "100vw"}}/>
                 </Flex>
             </div>
             <div style={{position: "absolute", bottom: "5%", width: "100%"}}>
@@ -90,7 +91,6 @@ export default function ChatCall() {
             </div>
             <div style={{position: "absolute", top: "3vh", right: "3vh"}}>
                 <video id={"webcamVideo"} autoPlay playsInline style={{maxHeight: "20vh", maxWidth: "40vw"}}/>
-                {/*<img src={"/call-selfie-placeholder-2.jpg"} style={{maxHeight: "20vh", maxWidth: "40vw"}}/>*/}
             </div>
         </div>
     )

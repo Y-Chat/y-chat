@@ -138,7 +138,7 @@ public class NotificationService {
 
                 messageBuilder.putAllData(data);
                 sendNotificationToUser(
-                        UUID.fromString(notification.getSignalingNewAnswer().getCalleeId()),
+                        UUID.fromString(notification.getSignalingNewAnswer().getCallerId()),
                         messageBuilder,
                         staleTokens
                 );
