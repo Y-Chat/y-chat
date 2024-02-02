@@ -2,6 +2,8 @@ import {create} from "zustand";
 import {api} from "../network/api";
 import {Call} from "../api-wrapper";
 import {Notifications} from "@mantine/notifications";
+import {MessagePayload} from "firebase/messaging";
+import {callIdToCallNotificationId} from "../notifications/notifications";
 
 const servers = {
     iceServers: [
@@ -40,7 +42,7 @@ interface CallState {
     remoteStream: MediaStream;
     webcamVideo: HTMLVideoElement | null;
     remoteVideo: HTMLVideoElement | null;
-    call: Call;
+    callId: string;
     callState: CallStatus;
 }
 
@@ -48,10 +50,13 @@ interface CallingState {
     signaling: CallState | null,
     setOwnWebcamStream: (withAudio: boolean) => void,
     startCall: (calleeId: string) => Promise<void>,
-    acceptCall: (callId: string) => Promise<void>,
+    acceptCall: (callId: string, offerSdp: string, offerType: string) => Promise<void>,
     denyCall: (callId: string) => Promise<void>,
-    endCall: () => Promise<void>
+    endCall: () => Promise<void>,
+    handleNotifications: (payload: MessagePayload) => void
 }
+
+
 
 // Is intentionally not persisted
 export const useCallingStore = create<CallingState>((set,get) => ({
@@ -92,6 +97,7 @@ export const useCallingStore = create<CallingState>((set,get) => ({
             type: offerDescription.type,
         };
 
+        // TODO Change to chatId instead of calleeId (blocked by social service)
         const call = await api.createCall({createCallRequest: {
             calleeId: calleeId,
             offer: offer
@@ -102,7 +108,7 @@ export const useCallingStore = create<CallingState>((set,get) => ({
 
         if(call) {
             set({signaling: {
-                call: call,
+                callId: call.id,
                 callState: callStatus,
                 peerConnection: peerConnection,
                 localStream: localStream,
@@ -112,20 +118,90 @@ export const useCallingStore = create<CallingState>((set,get) => ({
             }})
         }
     },
-    acceptCall: async (callId) => {},
-    denyCall: async (callId) => {
-        const notificationId = `callNotification-callId-${callId}`
+    acceptCall: async (callId: string, offerSdp: string, offerType: string) => {
+        const oldSignaling = get().signaling;
+        if(oldSignaling){
+            await get().endCall()
+        }
 
-        const signaling = get().signaling;
-        if(!signaling) return;
-        api.answerCall({answerCallRequest: {callId: callId, accept: false}})
+        const peerConnection = new RTCPeerConnection();
+        const localStream = new MediaStream();
+        const remoteStream = new MediaStream();
+        const webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
+        const remoteVideo = null;
+        const callStatus: CallStatus = "PENDING";
+
+        const offer: RTCSessionDescriptionInit = {
+            sdp: offerSdp,
+            type: offerType as RTCSdpType
+        }
+
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+        const answerDescription = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answerDescription);
+
+        const answer = {
+            sdp: answerDescription.sdp,
+            type: answerDescription.type,
+        };
+
+        api.answerCall({answerCallRequest: {
+            callId: callId,
+            accept: true,
+            answer: answer
+        }}).then(() => {
+            set({signaling: {
+                callId: callId,
+                callState: callStatus,
+                peerConnection: peerConnection,
+                localStream: localStream,
+                remoteStream: remoteStream,
+                webcamVideo: webcamVideo,
+                remoteVideo: remoteVideo
+        }})
+        }).catch((err) => console.error(err))
+    },
+    denyCall: async (callId) => {
+        const notificationId = callIdToCallNotificationId(callId)
+
+        api.answerCall({answerCallRequest: {callId: callId, accept: false}}).catch((err) => console.error(err))
         Notifications.hide(notificationId)
         set({signaling: null})
     },
     endCall: async () => {
-        const callId = get().signaling?.call?.id;
+        const callId = get().signaling?.callId;
         if(!callId) return;
-        api.endCall({endCallRequest: {callId: callId}})
+        api.endCall({endCallRequest: {callId: callId}}).catch((err) => console.error(err))
         set({signaling: null})
+    },
+    handleNotifications: (payload) => {
+        if(!payload.data || !("type" in payload.data)) return;
+        const type = payload.data["type"]
+
+        if(type === "SIGNALING_NEW_ANSWER") {
+            const callId = payload.data["call-id"];
+            const calleeId = payload.data["callee-id"];
+            const answerSdp = payload.data["answer-sdp"];
+            const answerType = payload.data["answer-type"];
+            console.log("Got new SIGNALING_NEW_ANSWER")
+
+            if(!get().signaling) return;
+            // TODO
+        } else if(type === "SIGNALING_NEW_CANDIDATE") {
+            const callId = payload.data["call-id"];
+            const candidate = payload.data["candidate-candidate"];
+            const sdpMid = payload.data["candidate-sdp-mid"];
+            const usernameFragment = payload.data["candidate-username-fragment"];
+            const sdpMLineIndex = payload.data["candidate-sdp-m-line-index"];
+            console.log("Got new SIGNALING_NEW_CANDIDATE")
+
+            if(!get().signaling) return;
+            // TODO
+        } else if(type === "CALL_ENDED") {
+            const callId = payload.data["call-id"];
+            Notifications.hide(callIdToCallNotificationId(callId))
+            if(!get().signaling || get().signaling?.callId !== callId) return;
+            get().endCall()
+        }
     }
 }))

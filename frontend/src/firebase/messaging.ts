@@ -1,6 +1,8 @@
 import {getMessaging, getToken, onMessage, isSupported, MessagePayload} from "firebase/messaging";
 import firebaseApp from "./firebaseApp";
 import {showCallNotification, showErrorNotification, showNotification} from "../notifications/notifications";
+import {useCallingStore} from "../state/callingStore";
+import {useChatsStore} from "../state/chatsStore";
 
 export const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
 const hasPermission = 'Notification' in window && Notification.permission == "granted"
@@ -39,7 +41,7 @@ async function setupNotifications() {
         const callerId = payload.data["caller-id"];
         const offerSdp = payload.data["offer-sdp"];
         const offerType = payload.data["offer-type"];
-        showCallNotification(callId, callerId);
+        showCallNotification(callId, callerId, offerSdp, offerType);
     })
 
     registerNotificationTypeHandler("NEW_MESSAGE", (payload) => {

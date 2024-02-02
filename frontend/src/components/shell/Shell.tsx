@@ -27,7 +27,7 @@ function Shell() {
             navbar={{
                 width: 300,
                 breakpoint: 'xl',
-                collapsed: {mobile: !opened},
+                collapsed: {mobile: !opened || collapseHeader, desktop: collapseHeader},
             }}
             padding={0}
         >

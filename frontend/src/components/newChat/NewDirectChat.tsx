@@ -31,7 +31,7 @@ export function NewDirectChat({email}: NewDirectChatProps) {
                 setIsLoading(false);
             }}
             variant="transparent"
-            disabled={!isValidEmail}
+            //disabled={!isValidEmail}
         >
             <IconUserPlus/>
         </ActionIcon>

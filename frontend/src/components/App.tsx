@@ -55,7 +55,7 @@ function App() {
 
             return {notificationToken: notificationToken, accessToken: accessToken};
         }).then((tokens) => {
-            api.updateToken({notificationToken: tokens.notificationToken}, {headers: new Headers({Authorization: `Bearer ${tokens.accessToken}`})})
+            return api.updateToken({notificationToken: tokens.notificationToken}, {headers: new Headers({Authorization: `Bearer ${tokens.accessToken}`})})
         }).catch((err) => {
             console.log('An error occurred while retrieving token. ', err);
         })

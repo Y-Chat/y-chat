@@ -89,7 +89,7 @@ public class NotificationService {
                         .setBody("You received a new message!")
                         .build() : null
                 );
-
+                data.put("chat-id", notification.getNewMessage().getChatId());
                 messageBuilder.putAllData(data);
 
                 // TODO Remove mock - Query all users for the chat from social service until social service is ready
