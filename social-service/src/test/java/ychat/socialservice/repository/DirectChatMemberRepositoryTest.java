@@ -30,9 +30,9 @@ class DirectChatMemberRepositoryTest {
     @BeforeEach
     @Transactional
     void setUp() {
-        User user1 = new UserBuilder().withId(new UUID(0,0)).build();
-        User user2 = new UserBuilder().withId(new UUID(0,1)).build();
-        User user3 = new UserBuilder().withId(new UUID(0,2)).build();
+        User user1 = new UserBuilder().withId(new UUID(0,1)).build();
+        User user2 = new UserBuilder().withId(new UUID(0, 2)).build();
+        User user3 = new UserBuilder().withId(new UUID(0,3)).build();
         entityManager.persist(user1);
         entityManager.persist(user2);
         entityManager.persist(user3);

@@ -197,8 +197,8 @@ class GroupServiceTest {
     // Members start -------------------------------------------------------------------------------
     @Test
     void AddGroupMember_NotAdmin_Throws() {
-        User user = new UserBuilder().withId(new UUID(0, 0)).build();
-        User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 1)).build();
+        User requestUser = new UserBuilder().withId(new UUID(0, 2)).build();
         Group group = new GroupBuilder().withInitUser(user).build();
         GroupMember groupMember = group.addGroupMember(requestUser);
 
@@ -217,8 +217,8 @@ class GroupServiceTest {
 
     @Test
     void AddGroupMember_AlreadyMember_Throws() {
-        User requestUser = new UserBuilder().withId(new UUID(0, 0)).build();
-        User user = new UserBuilder().withId(new UUID(0, 1)).build();
+        User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 2)).build();
         GroupMember groupMember = new GroupMemberBuilder().withUser(requestUser).build();
         groupMember.setGroupRole(GroupRole.GROUP_ADMIN);
         Group group = groupMember.getGroup();
@@ -242,8 +242,8 @@ class GroupServiceTest {
 
     @Test
     void AddGroupMember_NotAlreadyMember_ReturnChatMember() {
-        User requestUser = new UserBuilder().withId(new UUID(0, 0)).build();
-        User user = new UserBuilder().withId(new UUID(0, 1)).build();
+        User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 2)).build();
         GroupMember groupMember = new GroupMemberBuilder().withUser(requestUser).build();
         groupMember.setGroupRole(GroupRole.GROUP_ADMIN);
         Group group = groupMember.getGroup();
@@ -268,8 +268,8 @@ class GroupServiceTest {
 
     @Test
     void RemoveGroupMember_NotAdmin_Throws() {
-        User user = new UserBuilder().withId(new UUID(0, 0)).build();
         User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 2)).build();
         Group group = new GroupBuilder().withInitUser(user).build();
         GroupMember groupMember = group.addGroupMember(requestUser);
 
@@ -288,8 +288,8 @@ class GroupServiceTest {
 
     @Test
     void RemoveGroupMember_NotGroupMember_Throws() {
-        User requestUser = new UserBuilder().withId(new UUID(0, 0)).build();
-        User user = new UserBuilder().withId(new UUID(0, 1)).build();
+        User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 2)).build();
         GroupMember groupMember = new GroupMemberBuilder().withUser(requestUser).build();
         groupMember.setGroupRole(GroupRole.GROUP_ADMIN);
         Group group = groupMember.getGroup();
@@ -312,8 +312,8 @@ class GroupServiceTest {
 
     @Test
     void RemoveGroupMember_MultipleGroupMemberAndLastAdmin_RemoveAndPromote() {
-        User requestUser = new UserBuilder().withId(new UUID(0, 0)).build();
-        User user = new UserBuilder().withId(new UUID(0, 1)).build();
+        User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 2)).build();
         GroupMember groupMember = new GroupMemberBuilder().withUser(requestUser).build();
         groupMember.setGroupRole(GroupRole.GROUP_ADMIN);
         Group group = groupMember.getGroup();
@@ -379,8 +379,8 @@ class GroupServiceTest {
 
     @Test
     void GetGroupRole_UserNotMember_ReturnsNotAMember() {
-        User requestUser = new UserBuilder().withId(new UUID(0, 0)).build();
-        User user = new UserBuilder().withId(new UUID(0, 1)).build();
+        User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 2)).build();
         GroupMember requestGroupMember = new GroupMemberBuilder().withUser(requestUser).build();
         Group group = requestGroupMember.getGroup();
 
@@ -404,8 +404,8 @@ class GroupServiceTest {
 
     @Test
     void GetGroupRole_BothMember_ReturnsGroupRole() {
-        User requestUser = new UserBuilder().withId(new UUID(0, 0)).build();
-        User user = new UserBuilder().withId(new UUID(0, 1)).build();
+        User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 2)).build();
         GroupMember requestGroupMember = new GroupMemberBuilder().withUser(requestUser).build();
         Group group = requestGroupMember.getGroup();
         GroupMember groupMember = group.addGroupMember(user);
@@ -446,8 +446,8 @@ class GroupServiceTest {
 
     @Test
     void UpdateGroupRole_NotAdmin_Throws() {
-        User user = new UserBuilder().withId(new UUID(0, 0)).build();
         User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 2)).build();
         Group group = new GroupBuilder().withInitUser(user).build();
         GroupMember groupMember = group.addGroupMember(requestUser);
 
@@ -468,8 +468,8 @@ class GroupServiceTest {
 
     @Test
     void UpdateGroupRole_Admin_ReturnsGroupRole() {
-        User requestUser = new UserBuilder().withId(new UUID(0, 0)).build();
-        User user = new UserBuilder().withId(new UUID(0, 1)).build();
+        User requestUser = new UserBuilder().withId(new UUID(0, 1)).build();
+        User user = new UserBuilder().withId(new UUID(0, 2)).build();
         GroupMember requestGroupMember = new GroupMemberBuilder().withUser(requestUser).build();
         Group group = requestGroupMember.getGroup();
         GroupMember groupMember = group.addGroupMember(user);

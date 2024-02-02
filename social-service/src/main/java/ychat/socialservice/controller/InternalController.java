@@ -2,12 +2,11 @@ package ychat.socialservice.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ychat.socialservice.service.ChatService;
+import ychat.socialservice.service.InternalService;
 
 import java.util.UUID;
 
@@ -21,18 +20,18 @@ import java.util.UUID;
                   "from outside the API gateway and does not require authentication."
 )
 public class InternalController {
-    private final ChatService chatService;
+    private final InternalService internalService;
 
-    public InternalController(@NonNull ChatService chatService) {
-        this.chatService = chatService;
+    public InternalController(@NonNull InternalService internalService) {
+        this.internalService = internalService;
     }
 
-    @GetMapping("/canReceive")
+    @GetMapping("/{userId}/shouldReceive/{chatId}")
     @Operation(
-        summary = "TODO",
-        description = "TODO define what it returns exactly"
+        summary = "Check for a given user if they should receive a message sent to the given chat.",
+        description = "Returns a boolean value which responds to the action."
     )
-    public void canReceive(@PathVariable @NotNull UUID groupId) {
-        return; // TODO define
+    public boolean shouldReceive(@PathVariable UUID userId, @PathVariable UUID chatId) {
+        return internalService.shouldReceive(userId, chatId);
     }
 }

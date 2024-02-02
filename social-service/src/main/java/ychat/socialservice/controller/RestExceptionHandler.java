@@ -1,5 +1,6 @@
 package ychat.socialservice.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.NoHandlerFoundException;
 import ychat.socialservice.util.IllegalUserInputException;
 import ychat.socialservice.util.LimitReachedException;
 
@@ -21,7 +21,11 @@ import ychat.socialservice.util.LimitReachedException;
  */
 @RestControllerAdvice
 public class RestExceptionHandler {
-    @ExceptionHandler({IllegalUserInputException.class, MethodArgumentNotValidException.class})
+    @ExceptionHandler({
+        IllegalUserInputException.class,
+        MethodArgumentNotValidException.class,
+        FirebaseAuthException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ApiResponse(description = "Illegal user input", responseCode = "400", content = {
         @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))

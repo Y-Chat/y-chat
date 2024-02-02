@@ -1,7 +1,4 @@
 # Social Service
-## TODO
-- update openapi file after the changes
-
 ## About
 - The Social service manages users, groups, and chats and their relationships
 - It enables the frontend and the other services to not worry about the consistency and business
@@ -40,6 +37,8 @@
 - Complex queries are tested as integration tests against a real database on the repository level
 - The service layer is tested as unit tests with a mocked out repository layer
 - Finally, there are integration tests for each endpoint which load the whole application context
+- Each part of the model has a builder class to decouple the tests from the domain model and make
+  state management in tests easier
 - For brevity, we left out the unit tests for the controller layer and the DTO converter
 
 ## Deployment

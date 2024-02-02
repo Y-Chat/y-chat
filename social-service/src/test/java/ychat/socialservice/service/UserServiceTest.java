@@ -129,8 +129,8 @@ class UserServiceTest {
     // This would need to be extended to check whether the page iteration is correct
     @Test
     void DeleteUser_Valid_Success() {
-        User fstUser = new UserBuilder().withId(new UUID(0,0)).build();
-        User sndUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User fstUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User sndUser = new UserBuilder().withId(new UUID(0,2)).build();
         GroupMember groupMember = new GroupMemberBuilder().withUser(fstUser).build();
         DirectChatMember directChatMember =
             new DirectChatMemberBuilder().withFstuser(fstUser).withSndUser(sndUser).build();
@@ -196,8 +196,8 @@ class UserServiceTest {
         userProfile.setLastName("lastname");
         userProfile.setProfilePictureId("newid");
         UserProfileDTO userProfileDTO = new UserProfileDTO(
-            "firstname_changed", null, null,
-            true, null
+            "firstname", null,
+            null, true, null
         );
 
         when(userRepo.findById(eq(user.getId()))).thenReturn(Optional.of(user));

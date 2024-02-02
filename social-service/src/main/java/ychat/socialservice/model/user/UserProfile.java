@@ -1,5 +1,6 @@
 package ychat.socialservice.model.user;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.util.Objects;

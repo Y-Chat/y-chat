@@ -45,8 +45,8 @@ class ChatServiceTest {
 
     @Test
     void FindChatMemberByIdsOrThrow_NotExists_Throws() {
-        UUID userId = new UUID(0,0);
-        UUID chatId = new UUID(0,1);
+        UUID userId = new UUID(0,1);
+        UUID chatId = new UUID(0,2);
 
         when(chatMemberRepo.findByUserIdAndChatId(eq(userId), eq(chatId)))
             .thenReturn(Optional.empty());
@@ -63,8 +63,8 @@ class ChatServiceTest {
 
     @Test
     void FindChatMemberByIdsOrThrow_Exists_ReturnsChatMember() {
-        User fstUser = new UserBuilder().withId(new UUID(0,0)).build();
-        User sndUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User fstUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User sndUser = new UserBuilder().withId(new UUID(0,2)).build();
         DirectChatMember directChatMember =
             new DirectChatMemberBuilder().withFstuser(fstUser).withSndUser(sndUser).build();
         Chat chat = directChatMember.getChat();
@@ -86,8 +86,8 @@ class ChatServiceTest {
     // Chats start ---------------------------------------------------------------------------------
     @Test
     void GetChat_IsDirectChatMember_ReturnChat() {
-        User fstUser = new UserBuilder().withId(new UUID(0,0)).build();
-        User sndUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User fstUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User sndUser = new UserBuilder().withId(new UUID(0,2)).build();
         DirectChatMember directChatMember =
             new DirectChatMemberBuilder().withFstuser(fstUser).withSndUser(sndUser).build();
         Chat chat = directChatMember.getChat();
@@ -134,8 +134,8 @@ class ChatServiceTest {
 
     @Test
     void GetAllChats_ReturnsChats() {
-        User fstUser = new UserBuilder().withId(new UUID(0,0)).build();
-        User sndUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User fstUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User sndUser = new UserBuilder().withId(new UUID(0,2)).build();
         GroupMember groupMember = new GroupMemberBuilder().withUser(fstUser).build();
         DirectChatMember directChatMember =
             new DirectChatMemberBuilder().withFstuser(fstUser).withSndUser(sndUser).build();
@@ -198,8 +198,8 @@ class ChatServiceTest {
 
     @Test
     void CreateDirectChat_NotExistsAlready_ReturnChat() {
-        User fstUser = new UserBuilder().withId(new UUID(0,0)).build();
-        User sndUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User fstUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User sndUser = new UserBuilder().withId(new UUID(0,2)).build();
 
         when(userService.findUserByIdOrThrow(eq(fstUser.getId())))
             .thenReturn(fstUser);
@@ -229,8 +229,8 @@ class ChatServiceTest {
     // Members start -------------------------------------------------------------------------------
     @Test
     void GetChatMembers_Unpaged_Throws() {
-        UUID chatId = new UUID(0,0);
-        UUID userId = new UUID(0,1);
+        UUID chatId = new UUID(0,1);
+        UUID userId = new UUID(0,2);
         Pageable pageable = Pageable.unpaged();
 
         assertThrows(
@@ -243,8 +243,8 @@ class ChatServiceTest {
 
     @Test
     void GetChatMembers_PageSizeTooLarge_Throws() {
-        UUID chatId = new UUID(0,0);
-        UUID userId = new UUID(0,1);
+        UUID chatId = new UUID(0,1);
+        UUID userId = new UUID(0,2);
         int tooLargePageSize = ChatService.MAX_CHAT_MEMBER_PAGE_SIZE + 1;
         Pageable pageable = PageRequest.of(0, tooLargePageSize);
 
@@ -258,8 +258,8 @@ class ChatServiceTest {
 
     @Test
     void GetChatMembers_NotDirectChatMember_Throws() {
-        UUID userId = new UUID(0,0);
-        UUID chatId = new UUID(0,1);
+        UUID userId = new UUID(0,1);
+        UUID chatId = new UUID(0,2);
         Pageable pageable = PageRequest.of(0, ChatService.MAX_CHAT_MEMBER_PAGE_SIZE);
 
         when(chatMemberRepo.findByUserIdAndChatId(eq(userId), eq(chatId)))
@@ -277,8 +277,8 @@ class ChatServiceTest {
 
     @Test
     void GetChatMembers_DirectChatMember_ReturnChatMembers() {
-        User fstUser = new UserBuilder().withId(new UUID(0,0)).build();
-        User sndUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User fstUser = new UserBuilder().withId(new UUID(0,1)).build();
+        User sndUser = new UserBuilder().withId(new UUID(0,2)).build();
         DirectChat directChat =
             new DirectChatBuilder().withFstUser(fstUser).withSndUser(sndUser).build();
         ChatMember fstMember = directChat.getMember(fstUser);

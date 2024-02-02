@@ -1,7 +1,9 @@
 package ychat.socialservice.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
@@ -40,7 +42,8 @@ public class UserController {
         summary = "Create a user with an initial profile.",
         description = "One cannot create a user which exists already. If the profile description " +
                       "is empty, a default value is used. ProfilePictureId is optional. The " +
-                      "other fields are required. RemoveProfilePicture must be null."
+                      "other fields are required. RemoveProfilePicture must be null. The email " +
+                      "must not exist in the system yet."
     )
     public UserDTO createUser(@RequestParam UUID userId,
                               @RequestBody UserProfileDTO userProfileDTO) {
@@ -56,6 +59,16 @@ public class UserController {
     public UserDTO getUser(@PathVariable UUID userId) {
         SecurityConfig.verifyUserAccess(userId);
         return userService.getUser(userId);
+    }
+
+    // TODO write integration test
+    @GetMapping("/byEmail")
+    @Operation(
+        summary = "Get the user id for an email.",
+        description = "Returns the user id if it exists."
+    )
+    public UUID getUserIdByEmail(String email) throws FirebaseAuthException {
+        return userService.getUserIdByEmail(email);
     }
 
     @DeleteMapping("/{userId}")

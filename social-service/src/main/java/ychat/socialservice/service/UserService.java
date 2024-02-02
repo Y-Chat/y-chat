@@ -1,7 +1,11 @@
 package ychat.socialservice.service;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.UserRecord;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
@@ -72,6 +76,12 @@ public class UserService {
     public UserDTO getUser(@NotNull UUID userId) {
         User user = findUserByIdOrThrow(userId);
         return DTOConverter.convertToDTO(user);
+    }
+
+    // TODO what's left to do here?
+    public UUID getUserIdByEmail(@NotNull @Email String email) throws FirebaseAuthException {
+        UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(email);
+        return UUID.nameUUIDFromBytes(userRecord.getEmail().getBytes());
     }
 
     @Transactional

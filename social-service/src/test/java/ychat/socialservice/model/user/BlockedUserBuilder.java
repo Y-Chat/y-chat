@@ -3,8 +3,8 @@ package ychat.socialservice.model.user;
 import java.util.UUID;
 
 public class BlockedUserBuilder {
-    private User fromUser = new UserBuilder().withId(new UUID(0,0)).build();
-    private User toUser = new UserBuilder().withId(new UUID(0,1)).build();
+    private User fromUser = new UserBuilder().withId(new UUID(0,1)).build();
+    private User toUser = new UserBuilder().withId(new UUID(0,2)).build();
 
     public BlockedUserBuilder withFromUser(UserBuilder userBuilder) {
         this.fromUser = userBuilder.build();

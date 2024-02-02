@@ -28,7 +28,6 @@
 
 ## ER-Diagram
 ### Current Schema
-- TODO newest version does not have updated strings for profile pictures
 ![Social DB ERD](social-db-erd.png)
 
 ### How to create an ER-Diagram in pgAdmin
