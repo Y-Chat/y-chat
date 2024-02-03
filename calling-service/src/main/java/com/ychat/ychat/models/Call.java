@@ -1,10 +1,12 @@
 package com.ychat.ychat.models;
 
 import com.asyncapi.gen.notification.model.SignalingOffer;
+import com.openapi.gen.calling.dto.SignalingCandidate;
 import jakarta.validation.Valid;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -235,6 +237,15 @@ public class Call {
             candidate.setCandidate(this.candidate);
             candidate.setSdpMid(this.sdpMid);
             candidate.setSdpMLineIndex(this.sdpMLineIndex);
+            candidate.setUsernameFragment(this.usernameFragment);
+            return candidate;
+        }
+
+        public com.openapi.gen.calling.dto.SignalingCandidate toOpenAPI() {
+            var candidate = new com.openapi.gen.calling.dto.SignalingCandidate();
+            candidate.setCandidate(this.candidate);
+            candidate.setSdpMid(this.sdpMid);
+            candidate.setSdpMLineIndex(new BigDecimal(this.sdpMLineIndex));
             candidate.setUsernameFragment(this.usernameFragment);
             return candidate;
         }

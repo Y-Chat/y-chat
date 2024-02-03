@@ -9,8 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CallService {
@@ -94,23 +94,35 @@ public class CallService {
         if(call.isEmpty()) return ResponseEntity.status(404).build();
         if(!call.get().getCalleeId().equals(requesterId) && !call.get().getCallerId().equals(requesterId)) return ResponseEntity.status(403).build();
 
-        Notification notification = new Notification();
-        AnonymousSchema26 signalingNewCandidate = new AnonymousSchema26();
-        signalingNewCandidate.setCallId(call.get().getId().toString());
-        signalingNewCandidate.setReceiverId(requesterId.equals(call.get().getCalleeId()) ?
-            call.get().getCallerId().toString() :
-            call.get().getCalleeId().toString()
-        );
-
-        var candidate = new SignalingCandidate();
+        var candidate = new com.ychat.ychat.models.Call.SignalingCandidate();
         candidate.setCandidate(postNewSignalingCandidateRequest.getCandidate().getCandidate());
         candidate.setSdpMid(postNewSignalingCandidateRequest.getCandidate().getSdpMid());
         candidate.setSdpMLineIndex(postNewSignalingCandidateRequest.getCandidate().getSdpMLineIndex().doubleValue());
         candidate.setUsernameFragment(postNewSignalingCandidateRequest.getCandidate().getUsernameFragment());
 
-        signalingNewCandidate.setCandidate(candidate);
-        notification.setSignalingNewCandidate(signalingNewCandidate);
-        notificationServiceConnector.onNotification(random.nextInt(), notification);
+        if(call.get().getCallerId().equals(requesterId)) {
+            var offerCandidates = call.get().getOfferCandidates();
+            offerCandidates.add(candidate);
+            call.get().setOfferCandidates(offerCandidates);
+        } else {
+            var answerCandidates = call.get().getAnswerCandidates();
+            answerCandidates.add(candidate);
+            call.get().setAnswerCandidates(answerCandidates);
+        }
+        callMessageRepository.save(call.get());
+
+        if(call.get().getCallState().equals(com.ychat.ychat.models.Call.CallState.ONGOING)) {
+            Notification notification = new Notification();
+            AnonymousSchema26 signalingNewCandidate = new AnonymousSchema26();
+            signalingNewCandidate.setCallId(call.get().getId().toString());
+            signalingNewCandidate.setReceiverId(requesterId.equals(call.get().getCalleeId()) ?
+                    call.get().getCallerId().toString() :
+                    call.get().getCalleeId().toString()
+            );
+            signalingNewCandidate.setCandidate(candidate.toAsyncAPI());
+            notification.setSignalingNewCandidate(signalingNewCandidate);
+            notificationServiceConnector.onNotification(random.nextInt(), notification);
+        }
 
         return ResponseEntity.ok().build();
     }
@@ -134,6 +146,21 @@ public class CallService {
         notificationServiceConnector.onNotification(random.nextInt(), notification);
 
         return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<List<com.openapi.gen.calling.dto.SignalingCandidate>> getCandidates(UUID callId, UUID requesterId) {
+        var call = callMessageRepository.findById(callId);
+        if(call.isEmpty()) return ResponseEntity.status(404).build();
+        if(!call.get().getCalleeId().equals(requesterId) && !call.get().getCallerId().equals(requesterId)) return ResponseEntity.status(403).build();
+
+        Set<com.ychat.ychat.models.Call.SignalingCandidate> candidateSet =
+                call.get().getCallerId().equals(requesterId) ?
+                    call.get().getAnswerCandidates():
+                    call.get().getOfferCandidates();
+
+        List<com.openapi.gen.calling.dto.SignalingCandidate> candidateList = candidateSet.stream().map(com.ychat.ychat.models.Call.SignalingCandidate::toOpenAPI).toList();
+
+        return ResponseEntity.ok(candidateList);
     }
 
 }

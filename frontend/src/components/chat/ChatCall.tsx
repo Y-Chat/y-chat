@@ -6,23 +6,18 @@ import {
     IconMicrophoneOff,
     IconPhoneOff
 } from "@tabler/icons-react";
-import {useNavigate, useOutletContext, useSearchParams} from "react-router-dom";
+import {useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
 import {useCallingStore} from "../../state/callingStore";
 
 export default function ChatCall() {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const navigate = useNavigate();
     const [microphoneOn, setMicrophoneOn] = useState(true);
     const { setCollapseHeader } = useOutletContext<ShellOutletContext>();
 
     const endCall = useCallingStore((state) => state.endCall);
-    const startCall = useCallingStore((state) => state.startCall);
-    const setOwnWebcamStream = useCallingStore((state) => state.setOwnWebcamStream);
-
-    useEffect(() => {
-        setOwnWebcamStream(microphoneOn)
-    }, [microphoneOn])
+    const signaling = useCallingStore((state) => state.signaling);
+    const setMicState = useCallingStore((state) => state.setMicState);
+    const switchCamera = useCallingStore((state) => state.switchCamera);
 
     useEffect(() => {
         setCollapseHeader(true)
@@ -31,11 +26,37 @@ export default function ChatCall() {
         }
     }, []);
 
+    useEffect(() => {
+        const localStream = signaling?.localStream;
+        const remoteStream = signaling?.remoteStream;
+        const webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
+        const remoteVideo = document.getElementById("remoteVideo") as HTMLVideoElement | null;
+        if(localStream && webcamVideo) {
+            try {
+                webcamVideo.srcObject = localStream;
+            }
+            catch (err){
+                console.error(err)
+            }
+        }
+        if(remoteStream && remoteVideo) {
+            try {
+                remoteVideo.srcObject = remoteStream;
+            }
+            catch (err) {
+                console.error(err)
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        setMicState(microphoneOn)
+    }, [setMicState, microphoneOn]);
+
     return (
         <div style={{width: "100vw", height: "100%"}}>
             <div style={{position: "absolute", width: "100vw", height: "100%"}}>
                 <Flex style={{height: "100vh", width: "100vw"}} justify={"center"}>
-                    {/*<img src={"/call-selfie-placeholder.jpg"} style={{height: "100%", maxWidth: "100vw"}}/>*/}
                     <video id={"remoteVideo"} autoPlay playsInline style={{height: "100%", maxWidth: "100vw"}}/>
                 </Flex>
             </div>
@@ -48,6 +69,9 @@ export default function ChatCall() {
                             backgroundColor: "white",
                             padding: "10px",
                             borderRadius: 100
+                        }}
+                        onClick={() => {
+                            switchCamera()
                         }}
                     />
                     <IconPhoneOff
@@ -90,7 +114,9 @@ export default function ChatCall() {
                 </Group>
             </div>
             <div style={{position: "absolute", top: "3vh", right: "3vh"}}>
-                <video id={"webcamVideo"} autoPlay playsInline style={{maxHeight: "20vh", maxWidth: "40vw"}}/>
+                <video id={"webcamVideo"} autoPlay playsInline
+                       onLoadStart={(x) => x.currentTarget.volume = 0}
+                       style={{maxHeight: "20vh", maxWidth: "40vw"}}/>
             </div>
         </div>
     )

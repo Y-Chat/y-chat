@@ -38,7 +38,8 @@ public class SecurityConfig {
                     source.registerCorsConfiguration("/**", configuration);
                     cors.configurationSource(source);
                 })
-                .authorizeExchange((e) -> e.anyExchange().permitAll()); // TODO BST Has to be changed later when jwt authentification is enabled
+                // Is handled by each service
+                .authorizeExchange((e) -> e.anyExchange().permitAll());
 
         return http.build();
     }

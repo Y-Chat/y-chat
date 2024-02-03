@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
 public class CallingController implements CallApi {
 
@@ -39,5 +42,11 @@ public class CallingController implements CallApi {
    public ResponseEntity<Void> endCall(EndCallRequest endCallRequest) {
       var requesterId = SecurityConfig.getRequesterUUID();
       return callService.endCall(endCallRequest, requesterId);
+   }
+
+   @Override
+   public ResponseEntity<List<SignalingCandidate>> getSignalingCandidates(UUID callId) {
+      var requesterId = SecurityConfig.getRequesterUUID();
+      return callService.getCandidates(callId, requesterId);
    }
 }
