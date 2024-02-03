@@ -9,6 +9,7 @@ import com.openapi.gen.messaging.dto.PageInfo;
 import com.ychat.ychat.SecurityConfig;
 import com.ychat.ychat.services.MessagingService;
 import com.ychat.ychat.services.NotificationServiceConnector;
+import com.ychat.ychat.services.SocialServiceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +31,11 @@ public class MessagesController implements MessagesApi {
 
     private final MessagingService messagingService;
 
-    public MessagesController(@Autowired MessagingService messagingService) {
+    private final SocialServiceConnector socialServiceConnector;
+
+    public MessagesController(@Autowired MessagingService messagingService, @Autowired SocialServiceConnector socialServiceConnector) {
         this.messagingService = messagingService;
+        this.socialServiceConnector = socialServiceConnector;
     }
 
     @Override

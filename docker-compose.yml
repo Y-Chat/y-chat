@@ -96,6 +96,7 @@ services:
           - spring.kafka.consumer.auto-offset-reset=earliest
           - spring.kafka.listener.poll-timeout=3000
           - spring.kafka.listener.concurrency=3
+          - ychat.social.url=http://ychat-social:80
         ports:
           - "7503:8080"
     # Notification Service
