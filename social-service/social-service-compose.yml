@@ -5,7 +5,7 @@ services:
     container_name: "ychat-social-service"
     image: "yc-social"
     build:
-      context:  "./social-service"
+      context: ""
       dockerfile: "Dockerfile"
     environment:
       TZ: "UTC"

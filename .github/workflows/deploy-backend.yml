@@ -27,6 +27,7 @@ jobs:
           touch ./notification-service/src/main/resources/firebase-service-credentials.json
           echo "$FIREBASE_SERVICE_CREDENTIALS_JSON" >> ./notification-service/src/main/resources/firebase-service-credentials.json
           echo "$FIREBASE_SERVICE_CREDENTIALS_JSON" >> ./media-service/src/main/resources/firebase-service-credentials.json
+          echo "$FIREBASE_SERVICE_CREDENTIALS_JSON" >> ./social-service/src/main/resources/firebase-service-credentials.json
           ls -a ./notification-service/src/main/resources
           ls -a ./media-service/src/main/resources
 
@@ -39,4 +40,5 @@ jobs:
           docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-payment:latest ./payment-service
           docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-messaging:latest ./messaging-service
           docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-notification:latest ./notification-service
-          : # docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-social:latest ./social-service
+          docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-social:latest ./social-service
+          docker buildx build --push --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKERHUB_USERNAME }}/yc-calling:latest ./calling-service

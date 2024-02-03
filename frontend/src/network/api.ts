@@ -23,7 +23,9 @@ export function setApiAccessToken(token?: string) {
             accessToken: token,
             middleware: [new AuthHeaderToken()]
         }))
-        console.log("setting accessToken to " + token)
+        if(process.env.NODE_ENV === 'development'){
+            console.log("setting accessToken to " + token)
+        }
         accessToken = token;
     }
 }

@@ -1,11 +1,10 @@
-import React from 'react';
-import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
+import React, {useEffect} from 'react';
+import {BrowserRouter as Router, Route, Routes, useNavigate} from "react-router-dom";
 import {LoadingOverlay, MantineProvider} from "@mantine/core";
-import {MantineThemeOverride} from "@mantine/core/lib/core/MantineProvider/theme.types";
-import {useAppStore} from "../state/store";
+import {useUserStore} from "../state/userStore";
 import AuthMain from "./auth/AuthMain";
 import Shell from "./shell/Shell";
-import ChatMain from "./chat/ChatMain";
+import ChatLoader from "./chat/ChatLoader";
 import {AccountMain} from "./account/AccountMain";
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -13,62 +12,85 @@ import {Notifications} from "@mantine/notifications";
 import {PermissionsModal} from "./common/PermissionsModal";
 import {useAuthState} from "react-firebase-hooks/auth";
 import auth from "../firebase/auth";
+import ChatCall from "./chat/ChatCall";
+import {NewGroupChat} from "./newChat/NewGroupChat";
+import {NotFound} from "./404/NotFound";
+import {Welcome} from "./common/Welcome";
+import {isMobile} from "react-device-detect";
+import {HowToInstall} from "./common/HowToInstall";
+import {api} from "../network/api";
+import {getMessaging, getToken} from "firebase/messaging";
+import firebaseApp from "../firebase/firebaseApp";
+import {vapidKey} from "../firebase/messaging";
+import {useSettingsStore} from "../state/settingsStore";
+import CallingWrapper from "./shell/CallingWrapper";
 
 function App() {
 
     const [firebaseUser, loading] = useAuthState(auth);
-    const user = useAppStore((state) => state.user);
+    const user = useUserStore((state) => state.user);
+    const primaryColor = useSettingsStore((state) => state.primaryColor);
 
-    const theme: MantineThemeOverride = {
-        primaryColor: "mainColors",
-        primaryShade: 6,
-        colors: {
-            "mainColors": [
-                "#f3edff",
-                "#e0d7fa",
-                "#beabf0",
-                "#9a7ce6",
-                "#7c56de",
-                "#683dd9",
-                "#5f2fd8",
-                "#4f23c0",
-                "#451eac",
-                "#3a1899"
-            ]
-        }
+    // otherwise show how to install instruction
+    const showApp = (window.matchMedia('(display-mode: standalone)').matches && isMobile) || process.env.NODE_ENV == "development" || true // TODO remove true when actually in prod
 
-    }
+	useEffect(() => {
+        const messaging = getMessaging(firebaseApp);
+
+        if(auth.currentUser === null) return;
+
+        auth.currentUser?.getIdToken().then((accessToken) => {
+            return accessToken;
+        }).then(async (accessToken) => {
+            const notificationToken = await getToken(messaging, {vapidKey: vapidKey});
+
+            if (!notificationToken)
+                console.log('No registration token available. Request permission to generate one.');
+
+            if (process.env.NODE_ENV === "development") {
+                console.log("FBC token: " + notificationToken);
+            }
+
+            return {notificationToken: notificationToken, accessToken: accessToken};
+        }).then((tokens) => {
+            return api.updateToken({notificationToken: tokens.notificationToken}, {headers: new Headers({Authorization: `Bearer ${tokens.accessToken}`})})
+        }).catch((err) => {
+            console.log('An error occurred while retrieving token. ', err);
+        })
+    }, [auth.currentUser]);
 
     return (
-        <div>
-            {/*<BrowserView>*/}
-            {/*    <NotMobile/>*/}
-            {/*</BrowserView>*/}
-            {/*<MobileView>*/}
-            <MantineProvider theme={theme} defaultColorScheme="dark">
-                <PermissionsModal/>
-                <Notifications autoClose={5000} position="top-right"/>
-                <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
-                <Router>
-                    {user && firebaseUser ?
-                        <Routes>
-                            <Route path="/" element={<Shell/>}>
-                                <Route path="/" element={<ChatMain/>}/>
-                                <Route path="/account" element={<AccountMain/>}/>
-                            </Route>
-                            <Route path="/*" element={<p>This should not happen</p>}/>
-                        </Routes>
-                        :
-                        <Routes>
-                            <Route path="/" element={<AuthMain/>}/>
-                            <Route path="/*" element={<Navigate to={"/"} replace/>}/>
-                        </Routes>
-                    }
-                </Router>
-            </MantineProvider>
-            {/*</MobileView>*/
-            }
-        </div>
+        <MantineProvider theme={{primaryColor}} defaultColorScheme="dark" forceColorScheme="dark">
+            {showApp ?
+                <>
+                    <PermissionsModal/>
+                    <Notifications zIndex={10000} autoClose={5000} position="top-right"/>
+                    <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
+                    <Router>
+                        {user && firebaseUser ?
+                            <Routes>
+                                <Route path={"/"} element={<CallingWrapper/>}>
+                                    <Route path="/" element={<Shell/>}>
+                                        <Route path="/" element={<Welcome/>}/>
+                                        <Route path="/account" element={<AccountMain/>}/>
+                                        <Route path="/newGroup" element={<NewGroupChat/>}/>
+                                        <Route path="/chat/:chatId" element={<ChatLoader/>}/>
+                                        <Route path={"/call"} element={<ChatCall/>}/>
+                                        <Route path="/*" element={<NotFound/>}/>
+                                    </Route>
+                                </Route>
+                            </Routes>
+                            :
+                            <Routes>
+                                <Route path="/" element={<AuthMain/>}/>
+                                <Route path="/*" element={<NotFound/>}/>
+                            </Routes>
+                        }
+                    </Router>
+                </>
+                :
+                <HowToInstall/>}
+        </MantineProvider>
     );
 }
 

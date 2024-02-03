@@ -19,11 +19,12 @@ services:
             dockerfile: Dockerfile
         environment:
           - ychat.gateway.redirect.target.auth=http://ychat-auth:8080
-          - ychat.gateway.redirect.target.social=http://ychat-social:8080
+          - ychat.gateway.redirect.target.social=http://ychat-social:80
           - ychat.gateway.redirect.target.messaging=http://ychat-messaging:8080
           - ychat.gateway.redirect.target.notification=http://ychat-notification:8080
           - ychat.gateway.redirect.target.payment=http://ychat-payment:8080
           - ychat.gateway.redirect.target.media=http://ychat-media:8080
+          - ychat.gateway.redirect.target.calling=http://ychat-calling:8080
           - ychat.cors.allowed.url=http://localhost:3000
         ports: 
           - "7500:8080"
@@ -131,6 +132,40 @@ services:
           - spring.kafka.listener.concurrency=3
         ports:
           - "7504:8080"
+    # Calling Service
+    ychat-calling-db:
+        container_name: ychat-calling-db
+        image: 'mongo'
+        restart: unless-stopped
+        environment:
+          - MONGO_INITDB_ROOT_USERNAME=admin
+          - MONGO_INITDB_ROOT_PASSWORD=devpw
+        ports:
+          - "27020:27017"
+    ychat-calling:
+        container_name: ychat-calling
+        image: 'mrsarius/yc-calling'
+        restart: unless-stopped
+        pull_policy: never
+        build:
+            context: calling-service
+            dockerfile: Dockerfile
+        depends_on:
+          - ychat-calling-db
+        environment:
+          - spring.data.mongodb.host=ychat-calling-db
+          - spring.data.mongodb.port=27020
+          - spring.data.mongodb.username=admin
+          - spring.data.mongodb.password=devpw
+          - spring.data.mongodb.database=calling
+          - spring.data.mongodb.authentication-database=admin
+          - spring.kafka.bootstrap-servers=ychat-kafka:29092
+          - spring.kafka.consumer.group-id=calling
+          - spring.kafka.consumer.auto-offset-reset=earliest
+          - spring.kafka.listener.poll-timeout=3000
+          - spring.kafka.listener.concurrency=3
+        ports:
+          - "7507:8080"
     # Payment Service
     ychat-payment-db:
         container_name: ychat-payment-db
@@ -171,3 +206,37 @@ services:
             dockerfile: Dockerfile
         ports:
           - "7506:8080"
+  # Social Service
+    ychat-social-db:
+      container_name: "ychat-social-db"
+      image: postgres:16.1
+      restart: unless-stopped
+      environment:
+        TZ: "UTC"
+        POSTGRES_DB: "social-db"
+        POSTGRES_INITDB_ARGS: "--locale=en_US.utf8"
+        POSTGRES_USER: "ychat"
+        POSTGRES_PASSWORD: "ychatformerlyknownas"
+      ports:
+        - "55432:5432"
+      volumes:
+        - ./social-db/social-db/social-db-1-config.sql:/docker-entrypoint-initdb.d/social-db-1-config.sql
+        - ./social-db/social-db/social-db-2-schema.sql:/docker-entrypoint-initdb.d/social-db-2-schema.sql
+    ychat-social:
+      container_name: "ychat-social-service"
+      image: "mrsarius/yc-social"
+      restart: unless-stopped
+      pull_policy: never
+      build:
+        context: "./social-service"
+        dockerfile: "Dockerfile"
+      environment:
+        TZ: "UTC"
+        SERVER_PORT: "80"
+        SPRING_DATASOURCE_URL: "jdbc:postgresql://ychat-social-db:5432/social-db"
+        SPRING_DATASOURCE_USERNAME: "ychat"
+        SPRING_DATASOURCE_PASSWORD: "ychatformerlyknownas"
+      ports:
+        - "7502:80"
+      depends_on:
+        - ychat-social-db

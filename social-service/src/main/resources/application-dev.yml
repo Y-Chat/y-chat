@@ -1,0 +1,28 @@
+server:
+  port: 7502
+logging:
+  level:
+    root: INFO
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:55432/social-db
+    username: ychat
+    password: ychatformerlyknownas
+    driverClassName: org.postgresql.Driver
+  jpa:
+    show-sql: true
+    generate-ddl: false
+    open-in-view: true
+    hibernate:
+      ddl-auto: none
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
+          issuer-uri: https://securetoken.google.com/y-chat-e5132

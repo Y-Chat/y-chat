@@ -3,18 +3,20 @@ package com.ychat.ychat.models;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Document()
 public class Message {
-    public Message(UUID id, UUID senderId, UUID chatId, LocalDateTime sentTimestamp, String message, UUID mediaId, UUID transactionId) {
+    public Message(UUID id, UUID senderId, UUID chatId, Instant sentTimestamp, String message, String mediaPath, UUID transactionId) {
         this.id = id;
         this.senderId = senderId;
         this.chatId = chatId;
         this.sentTimestamp = sentTimestamp;
         this.message = message;
-        this.mediaId = mediaId;
+        this.mediaPath = mediaPath;
         this.transactionId = transactionId;
     }
 
@@ -25,11 +27,11 @@ public class Message {
 
     private UUID chatId;
 
-    private LocalDateTime sentTimestamp;
+    private Instant sentTimestamp;
 
     private String message;
 
-    private UUID mediaId;
+    private String mediaPath;
 
     private UUID transactionId;
 
@@ -49,7 +51,7 @@ public class Message {
         return chatId;
     }
 
-    public LocalDateTime getSentTimestamp() {
+    public Instant getSentTimestamp() {
         return sentTimestamp;
     }
 
@@ -57,8 +59,8 @@ public class Message {
         return message;
     }
 
-    public UUID getMediaId() {
-        return mediaId;
+    public String getMediaPath() {
+        return mediaPath;
     }
 
     public UUID getTransactionId() {
@@ -70,7 +72,7 @@ public class Message {
                 this.id,
                 this.senderId,
                 this.chatId,
-                this.sentTimestamp,
+                OffsetDateTime.ofInstant(this.sentTimestamp, OffsetDateTime.now().getOffset()),
                 this.message
         );
     }
@@ -80,9 +82,9 @@ public class Message {
                 message.getId(),
                 message.getSenderId(),
                 message.getChatId(),
-                message.getSentTimestamp(),
+                message.getSentTimestamp().toInstant(),
                 message.getMessage(),
-                message.getMediaId(),
+                message.getMediaPath(),
                 message.getTransactionId()
         );
     }

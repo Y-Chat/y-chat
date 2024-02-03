@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {
     Avatar,
     Center,
@@ -12,25 +12,34 @@ import {
     Container,
     Button,
     rem,
-    ColorPicker
+    ColorPicker, useMantineTheme, ActionIcon, Tooltip
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {TextInput} from "@mantine/core";
-import {useAppStore} from "../../state/store";
-import MenuDrawer from "../menu/MenuDrawer";
-import {IconLogout, IconUpload, IconX} from "@tabler/icons-react";
+import {useUserStore} from "../../state/userStore";
+import {IconCheck, IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 import {signOut} from "firebase/auth";
 import auth from "../../firebase/auth";
 import {getImageUrl, uploadImage} from "../../network/media";
+import {api} from "../../network/api";
+import {useNavigate, useOutletContext} from "react-router-dom";
+import {ShellOutletContext} from "../shell/ShellOutletContext";
+import {useSettingsStore} from "../../state/settingsStore";
+import {showErrorNotification} from "../../notifications/notifications";
 
 export function AccountMain() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
-    const [accentColor, setAccentColor] = useState('#fff');
+    const [updatingUser, setUpdatingUser] = useState(false);
     const [logoutLoading, setLogoutLoading] = useState(false);
-    const sizeHeader = 10;
-    const user = useAppStore((state) => state.user)!; // this view can only be rendered if user is not null!
-    const setUser = useAppStore((state) => state.setUser);
+    const user = useUserStore((state) => state.user)!; // this view can only be rendered if user is not null!
+    const setUser = useUserStore((state) => state.setUser);
+    const setPrimaryColor = useSettingsStore((state) => state.setPrimaryColor);
+    const [userProfilePictureURL, setUserProfilePictureURL] = useState<string | null>(null);
+    const navigate = useNavigate();
+    const {setHeader} = useOutletContext<ShellOutletContext>();
+    const theme = useMantineTheme();
+
     const form = useForm({
         initialValues: {
             email: user?.email,
@@ -39,176 +48,222 @@ export function AccountMain() {
         },
 
         validate: {
-            // TODO
-            //email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
             //password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
         },
     });
 
+    useEffect(() => {
+        if (user.profilePictureId) {
+            getImageUrl(user.profilePictureId).then(url => {
+                setUserProfilePictureURL(url);
+            })
+        }
+    }, [user.profilePictureId])
+
+    useEffect(() => {
+        setHeader(
+            <Center>
+                <Text fz="lg">Account Settings</Text>
+            </Center>
+        );
+    }, []);
+
+    async function updateUser() {
+        setUpdatingUser(true);
+        try {
+            await api.updateUserProfile({
+                userId: user.id, userProfileDTO: {
+                    firstName: form.values.firstName,
+                    lastName: form.values.lastName,
+                }
+            });
+        } catch (err) {
+            showErrorNotification("An error occurred while updating your user details.", "Error Updating Details");
+            setUpdatingUser(false);
+        }
+        setUpdatingUser(false);
+    }
+
     return (
-        <>
-            <header>
-                <div style={{
-                    height: `${sizeHeader}vh`,
-                    width: "100%",
-                    zIndex: 1,
-                }}>
-                    <Group justify="space-between" pl={10} h={"100%"} pr={10}>
-                        <MenuDrawer/>
-                        <Text fz="xl" fw={500}>Account Settings</Text>
-                        <span/>
-                    </Group>
-                    <Divider/>
-                </div>
-            </header>
+        <Container p='md'>
+            <form onSubmit={form.onSubmit(async () => {
+                await updateUser();
+            })}>
+                <Stack justify="flex-start" align="stretch">
+                    <Center mb={10}>
+                        <Dropzone
+                            maxFiles={1}
+                            multiple={false}
+                            pos={"relative"}
+                            loading={uploadingAvatar}
+                            onDrop={(files) => {
+                                setUploadingAvatar(true);
+                                try {
+                                    const uid = auth.currentUser?.uid
+                                    if (!uid)
+                                        return;
 
-            <Container p='md'>
-                <form onSubmit={form.onSubmit(() => {
-                })}>
-                    <Stack justify="flex-start" align="stretch">
-                        <Center mb={10}>
-                            <Dropzone
-                                maxFiles={1}
-                                multiple={false}
-                                pos={"relative"}
-                                loading={uploadingAvatar}
-                                onDrop={(files) => {
-                                    setUploadingAvatar(true);
-                                    try {
-                                        const uid = auth.currentUser?.uid
-                                        if (!uid)
-                                            return;
-
-                                        files.forEach(async (file) => {
-                                            const objectId = await uploadImage(file, `profilePictures/${uid}/${file.name}`);
-                                            const url = await getImageUrl(objectId);
+                                    files.forEach((file) => {
+                                        uploadImage(file, `profilePictures/${uid}/${file.name}`).then(objectId => {
+                                            return api.updateUserProfile({
+                                                userId: user.id,
+                                                userProfileDTO: {
+                                                    firstName: user.firstName,
+                                                    lastName: user.lastName,
+                                                    profilePictureId: objectId
+                                                }
+                                            })
+                                        }).then(userProfile => {
                                             setUser({
                                                 ...user,
-                                                avatar: url
+                                                profilePictureId: userProfile.profilePictureId || null
                                             })
-                                            setUploadingAvatar(false);
-                                        })
-                                    } catch (e) {
+                                        }).catch(err => {
+                                            // TODO handle error
+                                        });
                                         setUploadingAvatar(false);
-                                        // TODO handle error
-                                    }
-                                }}
-                                onReject={(files) => console.log('rejected files', files)}
-                                accept={IMAGE_MIME_TYPE}
-                            >
-                                <Group justify="center" gap="xl" style={{pointerEvents: 'none'}}>
-                                    <Dropzone.Accept>
-                                        <Avatar size={120}>
-                                            <IconUpload
-                                                style={{
-                                                    width: rem(52),
-                                                    height: rem(52),
-                                                    color: 'var(--mantine-color-blue-6)'
-                                                }}
-                                                stroke={1.5}
-                                            />
-                                        </Avatar>
-                                    </Dropzone.Accept>
-                                    <Dropzone.Reject>
-                                        <Avatar size={120}>
-                                            <IconX
-                                                style={{
-                                                    width: rem(52),
-                                                    height: rem(52),
-                                                    color: 'var(--mantine-color-red-6)'
-                                                }}
-                                                stroke={1.5}
-                                            />
-                                        </Avatar>
-                                    </Dropzone.Reject>
-                                    <Dropzone.Idle>
-                                        <Avatar src={user.avatar} size={120} color={accentColor}/>
-                                    </Dropzone.Idle>
-                                </Group>
-                            </Dropzone>
+                                    })
+                                } catch (e) {
+                                    setUploadingAvatar(false);
+                                    // TODO handle error
+                                }
+                            }}
+                            onReject={(files) => console.log('rejected files', files)}
+                            accept={IMAGE_MIME_TYPE}
+                        >
+                            <Group justify="center" gap="xl" style={{pointerEvents: 'none'}}>
+                                <Dropzone.Accept>
+                                    <Avatar size={120}>
+                                        <IconUpload
+                                            style={{
+                                                width: rem(52),
+                                                height: rem(52),
+                                                color: 'var(--mantine-color-blue-6)'
+                                            }}
+                                            stroke={1.5}
+                                        />
+                                    </Avatar>
+                                </Dropzone.Accept>
+                                <Dropzone.Reject>
+                                    <Avatar size={120}>
+                                        <IconX
+                                            style={{
+                                                width: rem(52),
+                                                height: rem(52),
+                                                color: 'var(--mantine-color-red-6)'
+                                            }}
+                                            stroke={1.5}
+                                        />
+                                    </Avatar>
+                                </Dropzone.Reject>
+                                <Dropzone.Idle>
+                                    <Avatar
+                                        src={userProfilePictureURL}
+                                        size={120}/>
+                                </Dropzone.Idle>
+                            </Group>
+                        </Dropzone>
 
-                        </Center>
-                        <Group grow>
-                            <TextInput
-                                size="md"
-                                label="First Name"
-                                placeholder="Max"
-                                value={form.values.firstName}
-                                onChange={(event) => form.setFieldValue('firstName', event.currentTarget.value)}
-                                radius="md"
-                            />
-                            <TextInput
-                                size="md"
-                                label="Last Name"
-                                placeholder="Mustermann"
-                                value={form.values.lastName}
-                                onChange={(event) => form.setFieldValue('lastName', event.currentTarget.value)}
-                                radius="md"
-                            />
-                        </Group>
+                    </Center>
+                    <Group grow>
                         <TextInput
+                            rightSection={
+                                <Button
+                                    rightSection={<IconCheck/>}
+                                    type="submit"
+                                    variant={"transparent"}
+                                    loading={updatingUser}
+                                />}
+                            disabled={updatingUser}
                             size="md"
-                            label="Email"
-                            placeholder="max@mustermann.com"
-                            value={form.values.email}
-                            onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
+                            label="First Name"
+                            placeholder="Max"
+                            required
+                            value={form.values.firstName}
+                            onChange={(event) => form.setFieldValue('firstName', event.currentTarget.value)}
                             radius="md"
                         />
-                        <Divider m='xs'/>
-                        <Input.Wrapper
+                        <TextInput
+                            rightSection={
+                                <Button
+                                    rightSection={<IconCheck/>}
+                                    type="submit"
+                                    variant={"transparent"}
+                                    loading={updatingUser}
+                                />}
+                            disabled={updatingUser}
                             size="md"
-                            label="Your Balance"
-                        >
-                            <Center><Text size="md" c="green">{user?.balance}€</Text></Center>
-                        </Input.Wrapper>
-                        <SimpleGrid cols={3} verticalSpacing="sm">
-                            {["+5€", "+10€", "+50€"].map(e =>
-                                <Card key={e} withBorder>
-                                    <Center>{e}</Center>
-                                </Card>
-                            )}
-                        </SimpleGrid>
-                        <Divider m='xs'/>
-                        <Input.Wrapper
-                            size="md"
-                            label="Pick your accent color"
-                        >
-                            <Center pt={"md"}>
-                                <ColorPicker
-                                    format="hex"
-                                    value={accentColor}
-                                    onChange={setAccentColor}
-                                    withPicker={false}
-                                    fullWidth
-                                    swatches={[
-                                        "white", "#6BD731", "#0969FF", "#4C5897", "#8931B2", "#F01879", "#C91A25"
-                                    ]}
-                                />
-                            </Center>
-                        </Input.Wrapper>
-                        <Divider m='xs'/>
-                        <Button
-                            loading={logoutLoading}
-                            rightSection={<IconLogout size={14}/>}
-                            variant="default"
-                            onClick={() => {
-                                setLogoutLoading(true)
-                                signOut(auth).then(() => {
-                                    setLogoutLoading(false)
-                                    setUser(null)
-                                }).catch(() => {
-                                    setLogoutLoading(false)
-                                    // TODO maybe handle error
-                                })
-                            }}
-                        >
-                            <Text>Logout</Text>
-                        </Button>
-                    </Stack>
-                </form>
-            </Container>
-        </>
-
-    )
-        ;
+                            label="Last Name"
+                            placeholder="Mustermann"
+                            required
+                            value={form.values.lastName}
+                            onChange={(event) => form.setFieldValue('lastName', event.currentTarget.value)}
+                            radius="md"
+                        />
+                    </Group>
+                    <TextInput
+                        size="md"
+                        disabled
+                        label="Email"
+                        placeholder="max@mustermann.com"
+                        value={form.values.email}
+                        onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
+                        radius="md"
+                    />
+                    <Divider m='xs'/>
+                    <Input.Wrapper
+                        size="md"
+                        label="Your Balance"
+                    >
+                        <Center>
+                            <Text size="md" c={theme.primaryColor}>{user?.balance}€</Text>
+                        </Center>
+                    </Input.Wrapper>
+                    <SimpleGrid cols={3} verticalSpacing="sm">
+                        {["+5€", "+10€", "+50€"].map(e =>
+                            <Card key={e} withBorder>
+                                <Center>{e}</Center>
+                            </Card>
+                        )}
+                    </SimpleGrid>
+                    <Divider m='xs'/>
+                    <Input.Wrapper
+                        size="md"
+                        label="Pick your accent color"
+                    >
+                        <Center pt={"md"}>
+                            <ColorPicker
+                                format="hex"
+                                onChange={setPrimaryColor}
+                                withPicker={false}
+                                fullWidth
+                                swatches={[
+                                    "gray", "yellow", "lime", "violet", "red", "blue", "indigo"
+                                ]}
+                            />
+                        </Center>
+                    </Input.Wrapper>
+                    <Divider m='xs'/>
+                    <Button
+                        loading={logoutLoading}
+                        rightSection={<IconLogout size={14}/>}
+                        variant="default"
+                        onClick={() => {
+                            setLogoutLoading(true)
+                            signOut(auth).then(() => {
+                                setLogoutLoading(false);
+                                setUser(null);
+                                navigate("/");
+                            }).catch(() => {
+                                setLogoutLoading(false);
+                                // TODO maybe handle error
+                            })
+                        }}
+                    >
+                        <Text>Logout</Text>
+                    </Button>
+                </Stack>
+            </form>
+        </Container>
+    );
 }

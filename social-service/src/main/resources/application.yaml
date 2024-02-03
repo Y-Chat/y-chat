@@ -16,7 +16,7 @@ spring:
     driverClassName: org.postgresql.Driver
   jpa:
     show-sql: true
-    generate-ddl: false
+    generate-ddl: true
     open-in-view: true
     hibernate:
       ddl-auto: validate

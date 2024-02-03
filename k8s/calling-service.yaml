@@ -1,0 +1,147 @@
+############## calling service database ##############
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: calling-mongo-secret
+type: Opaque
+data:
+  # test and test (Base64 encoded) for now
+  mongo-user: dGVzdA==
+  mongo-password: dGVzdA==
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: calling-mongo-config
+data:
+  mongo-url: "calling-mongo-service"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calling-mongo-deployment
+  labels:
+    app: calling-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: calling-mongo
+  template:
+    metadata:
+      labels:
+        app: calling-mongo
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:5.0
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: calling-mongo-secret
+                  key: mongo-user
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: calling-mongo-secret
+                  key: mongo-password
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: calling-mongo-service # also change in mongo-config if you change the name here
+spec:
+  type: ClusterIP
+  selector:
+    app: calling-mongo
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27020
+
+---
+
+############## calling service ##############
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calling-service-deployment
+  labels:
+    app: calling-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: calling-service
+  strategy:
+    type: RollingUpdate # if a new container is available in docker registry the update will gradually roll out
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: calling-service
+    spec:
+      containers:
+        - name: calling-service
+          image: mrsarius/yc-calling:latest
+          ports:
+            - containerPort: 8080 # port of spring boot inside the container
+          env:
+            - name: spring.data.mongodb.host
+              valueFrom:
+                configMapKeyRef:
+                  name: calling-mongo-config
+                  key: mongo-url
+            - name: spring.data.mongodb.port
+              value: "27020"
+            - name: spring.data.mongodb.username
+              valueFrom:
+                secretKeyRef:
+                  name: calling-mongo-secret
+                  key: mongo-user
+            - name: spring.data.mongodb.password
+              valueFrom:
+                secretKeyRef:
+                  name: calling-mongo-secret
+                  key: mongo-password
+            - name: spring.data.mongodb.database
+              value: "calling"
+            - name: spring.data.mongodb.authentication-database
+              value: "admin"
+            - name: spring.kafka.bootstrap-servers
+              value: "kafka-service:9092"
+            - name: spring.kafka.consumer.group-id
+              value: "calling"
+            - name: spring.kafka.consumer.auto-offset-reset
+              value: "earliest"
+            - name: spring.kafka.listener.poll-timeout
+              value: "3000"
+            - name: spring.kafka.listener.concurrency
+              value: "3"
+---
+# this service exposes the test-service to your localhost:8080. Of course, later the only exposed service will be the api-gateway
+apiVersion: v1
+kind: Service
+metadata:
+  name: calling-service
+spec:
+  type: ClusterIP
+  selector:
+    app: calling-service
+  ports:
+    - protocol: TCP
+      port: 8080 # port to expose to the outside
+      targetPort: 8080 # port of spring boot inside the container

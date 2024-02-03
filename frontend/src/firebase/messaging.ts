@@ -1,14 +1,17 @@
-import {getMessaging, getToken, onMessage, isSupported} from "firebase/messaging";
+import {getMessaging, getToken, onMessage, isSupported, MessagePayload} from "firebase/messaging";
 import firebaseApp from "./firebaseApp";
-import {showErrorNotification, showNotification} from "../notifications/notifications";
-import {api, setApiAccessToken} from "../network/api";
+import {showCallNotification, showErrorNotification, showNotification} from "../notifications/notifications";
+import {useCallingStore} from "../state/callingStore";
+import {useChatsStore} from "../state/chatsStore";
+import {useMessagesStore} from "../state/messagesStore";
 
-const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
+export const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
 const hasPermission = 'Notification' in window && Notification.permission == "granted"
+const notificationTypeHandlers: { [type: string]: (payload: MessagePayload) => void; } = {}
 
 // if permission already granted -> generate token
 if (hasPermission) {
-    generateToken();
+    setupNotifications();
 }
 
 // request notification permissions and then generate token
@@ -25,28 +28,75 @@ export async function requestNotificationPermissions() {
         return false;
     }
 
-    await generateToken();
+    await setupNotifications();
     return true;
 }
 
-async function generateToken() {
-    try {
-        const messaging = getMessaging(firebaseApp);
+async function setupNotifications() {
+    setupNotificationHandler();
 
-        let currentToken = await getToken(messaging, {vapidKey: vapidKey})
+    registerNotificationTypeHandler("SIGNALING_NEW_OFFER", (payload: MessagePayload) => {
+        console.log('Received SIGNALING_NEW_OFFER', payload);
+        if (!payload || !payload.data) return;
+        const callId = payload.data["call-id"];
+        const callerId = payload.data["caller-id"];
+        const offerSdp = payload.data["offer-sdp"];
+        const offerType = payload.data["offer-type"];
+        showCallNotification(callId, callerId, offerSdp, offerType);
+    })
 
-        if (!currentToken)
-            console.log('No registration token available. Request permission to generate one.');
+    registerNotificationTypeHandler("NEW_MESSAGE", (payload) => {
+        if (!payload.data || !payload.data["chat-id"]) {
+            return;
+        }
+        const chatId = payload.data["chat-id"]
+        useMessagesStore.getState().fetchMoreMessagesByChat(chatId, "FUTURE", true);
+        showNotification(payload.notification?.body || "", payload.notification?.title);
+    });
 
-        console.log("FBC token: " + currentToken) // TODO remove
-        setApiAccessToken(currentToken)
+    registerNotificationTypeHandler(null, (payload) => {
+        if (process.env.NODE_ENV === "development") {
+            console.log('Received foreground message ', payload);
+        }
+        showErrorNotification(payload.notification?.body || "", payload.notification?.title)
+    });
+}
 
-        onMessage(messaging, (payload) => {
-            console.log('Received foreground message ', payload); //TODO remove
-            showErrorNotification(payload.notification?.body || "", payload.notification?.title)
-        })
-    } catch (e) {
-        console.log('An error occurred while retrieving token. ', e);
-        return false;
+export function registerNotificationTypeHandler(type: string | string[] | null, callback: (payload: MessagePayload) => void) {
+    if (type === null) {
+        notificationTypeHandlers["null"] = callback;
+    } else if (typeof type === "string") {
+        notificationTypeHandlers[type] = callback;
+    } else {
+        type.forEach(x => notificationTypeHandlers[x] = callback)
     }
+}
+
+export function unregisterNotificationTypeHandler(type: string | string[] | null) {
+    if (type === null) {
+        delete notificationTypeHandlers["null"]
+    } else if (typeof type === "string") {
+        delete notificationTypeHandlers[type]
+    } else {
+        type.forEach(x => delete notificationTypeHandlers[x])
+    }
+}
+
+function setupNotificationHandler() {
+    const messaging = getMessaging(firebaseApp);
+    console.log("registering notification handler")
+    onMessage(messaging, (payload) => {
+        console.log("Received notification:", payload)
+        if (!payload.data || !("type" in payload.data)) {
+            notificationTypeHandlers["null"](payload);
+            return;
+        }
+        const type = payload.data["type"]
+        if (type in notificationTypeHandlers) {
+            notificationTypeHandlers[type](payload);
+            return;
+        }
+
+        console.error(`Received notification of type ${type} but no handler was registered`, payload)
+    });
 }
