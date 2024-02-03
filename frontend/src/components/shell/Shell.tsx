@@ -1,12 +1,11 @@
-import React, {useEffect, useState} from "react";
-import {Outlet, useNavigate} from "react-router-dom";
+import React, {useState} from "react";
+import {Outlet} from "react-router-dom";
 import {AppShell, Burger, Container, Divider, Group, ScrollArea} from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
 import {ShellOutletContext} from "./ShellOutletContext";
 import AccountBtn from "./AccountBtn";
 import {ContactList} from "./ContactList";
 import {IconBar} from "./IconBar";
-import {useCallingStore} from "../../state/callingStore";
 
 
 function Shell() {
@@ -48,7 +47,7 @@ function Shell() {
                 </Group>
             </AppShell.Header>}
 
-            {!collapseHeader && <AppShell.Navbar withBorder={false}>
+            {!collapseHeader && <AppShell.Navbar withBorder>
                 <ScrollArea style={{flex: 1}} pl={"md"} pr={"md"}>
                     <ContactList toggleNav={toggle}/>
                 </ScrollArea>
