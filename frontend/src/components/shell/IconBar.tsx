@@ -1,5 +1,5 @@
 import React from "react";
-import {ActionIcon, Center, Container, Group, Text} from "@mantine/core";
+import {ActionIcon, Container, Flex, Group, Text} from "@mantine/core";
 import {IconArchive, IconUserCancel, IconUsersGroup} from "@tabler/icons-react";
 import {useNavigate} from "react-router-dom";
 import Logo from "../common/Logo";
@@ -13,10 +13,10 @@ export function IconBar({toggleNav}: IconBarProps) {
 
     return (
         <>
-            <Center style={{flexGrow: 1}}>
-                <Logo style={{width: 40}}></Logo>
+            <Flex style={{flexGrow: 1}} justify={"flex-start"} align={"center"} gap={0}>
+                <Logo style={{width: 40, marginLeft: 16}}></Logo>
                 <Text fw={600} size={"lg"}>Chat</Text>
-            </Center>
+            </Flex>
 
             <Container>
                 <Group justify="flex-end" style={{flexGrow: 0}}>

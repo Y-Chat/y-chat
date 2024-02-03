@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {Outlet} from "react-router-dom";
-import {AppShell, Burger, Container, Divider, Group, ScrollArea} from "@mantine/core";
-import {useDisclosure} from "@mantine/hooks";
+import {AppShell, Burger, Container, Divider, em, Group, ScrollArea} from "@mantine/core";
+import {useDisclosure, useMediaQuery} from "@mantine/hooks";
 import {ShellOutletContext} from "./ShellOutletContext";
 import AccountBtn from "./AccountBtn";
 import {ContactList} from "./ContactList";
@@ -12,6 +12,7 @@ function Shell() {
     const [opened, {toggle}] = useDisclosure();
     const [header, setHeader] = useState(<></>);
     const [collapseHeader, setCollapseHeader] = useState(false);
+    const isMobile = useMediaQuery(`(max-width: ${em(770)})`);
 
     // this just exists to guarantee type safety for ShellOutletContext
     const outletContext: ShellOutletContext = {
@@ -19,15 +20,14 @@ function Shell() {
         setCollapseHeader
     }
 
+    function renderHeader(){
+    }
+
     return (
         <AppShell
+            header={{ height: 90 }}
+            navbar={{ width: 400, breakpoint: 'sm', collapsed: { mobile: !opened } }}
             zIndex={2000}
-            header={{height: 90, collapsed: collapseHeader}}
-            navbar={{
-                width: 300,
-                breakpoint: 'xl',
-                collapsed: {mobile: !opened || collapseHeader, desktop: collapseHeader},
-            }}
             padding={0}
         >
             {!collapseHeader && <AppShell.Header p={"md"}>
@@ -47,15 +47,16 @@ function Shell() {
                 </Group>
             </AppShell.Header>}
 
-            {!collapseHeader && <AppShell.Navbar withBorder>
-                <ScrollArea style={{flex: 1}} pl={"md"} pr={"md"}>
-                    <ContactList toggleNav={toggle}/>
-                </ScrollArea>
-                <Divider size={1}/>
-                <Container h={90} p={"md"} m={0}>
-                    <AccountBtn toggleNav={toggle}/>
-                </Container>
-            </AppShell.Navbar>}
+            {!collapseHeader &&
+                <AppShell.Navbar withBorder>
+                    <AppShell.Section grow pl={"md"} pr={"md"} component={ScrollArea}>
+                        <ContactList toggleNav={toggle}/>
+                    </AppShell.Section>
+                    <Divider size={1}/>
+                    <Container h={90} p={"md"} m={0}>
+                        <AccountBtn toggleNav={toggle}/>
+                    </Container>
+                </AppShell.Navbar>}
 
             <AppShell.Main>
                 <Outlet context={outletContext}/>
