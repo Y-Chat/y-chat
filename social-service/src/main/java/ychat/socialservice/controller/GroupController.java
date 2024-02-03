@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ychat.socialservice.config.SecurityConfig;
+import ychat.socialservice.SecurityConfig;
 import ychat.socialservice.service.dto.ChatMemberDTO;
 import ychat.socialservice.service.dto.GroupProfileDTO;
 import ychat.socialservice.service.dto.GroupDTO;

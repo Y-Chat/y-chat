@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ychat.socialservice.config.SecurityConfig;
+import ychat.socialservice.SecurityConfig;
 import ychat.socialservice.model.chat.ChatStatus;
 import ychat.socialservice.service.dto.ChatDTO;
 import ychat.socialservice.service.dto.ChatMemberDTO;

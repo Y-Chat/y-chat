@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -57,6 +58,15 @@ public class SecurityConfig {
 
     public static UUID getRequesterUUID() {
         return UUID.nameUUIDFromBytes(SecurityContextHolder.getContext().getAuthentication().getName().getBytes());
+    }
+
+    public static void verifyUserAccess(UUID userId) {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        if (!requestUserId.equals(userId)) {
+            throw new AccessDeniedException(
+                    "createUser with " + userId + " not allowed for user " + requestUserId + "."
+            );
+        }
     }
 
     /**
