@@ -2,20 +2,21 @@ import React, {useState} from "react";
 import {
     Anchor,
     Button,
+    Center,
+    Container,
     Divider,
     Group,
     Paper,
     PasswordInput,
+    rem,
     Stack,
     TextInput,
-    Container,
-    Center, rem,
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
 import {upperFirst, useToggle} from "@mantine/hooks";
 import Logo from "../common/Logo";
 import {useUserStore} from "../../state/userStore";
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser} from "firebase/auth"
+import {createUserWithEmailAndPassword, deleteUser, signInWithEmailAndPassword} from "firebase/auth"
 import {GoogleButton} from "./GoogleButton";
 import {AppleButton} from "./AppleButton";
 import auth from "../../firebase/auth";
@@ -116,8 +117,8 @@ function AuthMain() {
                 </Center>
                 <Paper radius="md" p="xl" withBorder>
                     <Group grow mb="md" mt="md">
-                        <GoogleButton disabled={userLoading} radius="xl">Google</GoogleButton>
-                        <AppleButton disabled={userLoading} radius="xl">Apple</AppleButton>
+                        <GoogleButton disabled={true} radius="xl">Google</GoogleButton>
+                        <AppleButton disabled={true} radius="xl">Apple</AppleButton>
                     </Group>
 
                     <Divider label="Or continue with email" labelPosition="center" my="lg"/>

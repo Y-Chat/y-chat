@@ -3,7 +3,7 @@ import {Chat} from "../../model/Chat";
 import {useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
 import {ActionIcon, Avatar, Container, Group, Text} from "@mantine/core";
-import {IconVideo} from "@tabler/icons-react";
+import {IconUser, IconUsersGroup, IconVideo} from "@tabler/icons-react";
 import MessageList from "./MessageList";
 import ChatTextArea from "./ChatTextArea";
 import {useCallingStore} from "../../state/callingStore";
@@ -20,7 +20,9 @@ export function ChatWindow({chat}: ChatWindowProps) {
         setHeader(
             <>
                 <Group justify={"center"} gap={0}>
-                    {chat ? <Avatar src={null} radius={"xl"} mr={"xs"}/> : undefined}
+                    <Avatar src={null} radius={"xl"} mr={"xs"}>
+                        {chat.groupInfo ? <IconUsersGroup/> : <IconUser/>}
+                    </Avatar>
                     <div style={{marginLeft: 5}}>
                         <Text fz="sm" fw={500}>
                             {`${chat.name}`}
@@ -32,7 +34,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
                             whiteSpace: "nowrap",
                             textOverflow: "ellipsis"
                         }}>
-                            {`${chat.groupInfo ? chat.groupInfo?.description : chat.email}`}
+                            {`${chat.groupInfo ? chat.groupInfo?.description || "No Group Description" : chat.email}`}
                         </Text>
                     </div>
                 </Group>

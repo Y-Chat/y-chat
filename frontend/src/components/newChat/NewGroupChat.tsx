@@ -7,7 +7,7 @@ import {api} from "../../network/api";
 import {useUserStore} from "../../state/userStore";
 import {useChatsStore} from "../../state/chatsStore";
 import {uploadImage} from "../../network/media";
-import {useOutletContext} from "react-router-dom";
+import {useNavigate, useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
 
 export function NewGroupChat() {
@@ -17,6 +17,7 @@ export function NewGroupChat() {
         file: null,
         previewUrl: ""
     });
+    const navigate = useNavigate();
     const user = useUserStore(state => state.user)!;
     const fetchChats = useChatsStore(state => state.fetchChats);
     const {setHeader} = useOutletContext<ShellOutletContext>();
@@ -77,10 +78,11 @@ export function NewGroupChat() {
                                 groupName: form.values.groupName,
                                 profileDescription: form.values.groupDescription
                             }
-                        })
+                        });
                     }
                     // TODO add group members api.addGroupMember()
                     await fetchChats();
+                    navigate(`/chat/${group.id}`);
                     form.reset();
                     setAvatarPreview({file: null, previewUrl: ""})
                 } catch (err) {

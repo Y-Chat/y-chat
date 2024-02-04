@@ -10,7 +10,7 @@ interface ContactListProps {
     toggleNav: () => void
 }
 
-export function ContactList({toggleNav}: ContactListProps) {
+export function ChatsList({toggleNav}: ContactListProps) {
     const [search, setSearch] = useState('');
     const chats = useChatsStore((state) => state.chats);
     const [sortedChats, setSortedChats] = useState<Chat[]>(chats);
@@ -34,7 +34,11 @@ export function ContactList({toggleNav}: ContactListProps) {
         filterData();
     }, [search, chats]);
 
-    const rows = sortedChats.map(chat => <ContactListEntry key={chat.id} toggleNav={toggleNav} chat={chat}/>)
+    const rows = sortedChats.map(chat => {
+        return (
+            <ContactListEntry key={chat.id} toggleNav={toggleNav} chat={chat}/>
+        );
+    })
 
     return (
         <Stack
@@ -47,6 +51,8 @@ export function ContactList({toggleNav}: ContactListProps) {
                 placeholder="Search chats or add friends"
                 size="md"
                 w="100%"
+                pl={"md"}
+                pr={"md"}
                 rightSection={
                     <NewDirectChat email={search}/>
                 }
@@ -67,7 +73,7 @@ export function ContactList({toggleNav}: ContactListProps) {
             />
             {rows.length <= 0 ?
                 <Center>
-                    <Stack c={"dimmed"} justify="start" align="center" gap={5}>
+                    <Stack c={"dimmed"} justify="start" align="center" gap={0}>
                         <IconMessageOff/>
                         <Text>No Chats.</Text>
                     </Stack>

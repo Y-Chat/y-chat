@@ -1,6 +1,6 @@
 import React from "react";
 import {Avatar, Group, rem, Text, UnstyledButton, useMantineTheme} from "@mantine/core";
-import {IconChevronRight} from "@tabler/icons-react";
+import {IconChevronRight, IconUser} from "@tabler/icons-react";
 import {useUserStore} from "../../state/userStore";
 import {useNavigate} from "react-router-dom";
 
@@ -15,7 +15,7 @@ function AccountBtn({toggleNav}: AccountBtnProps) {
 
     return (
         <UnstyledButton
-            h={"100%"}
+            h={90}
             w={"100%"}
             onClick={() => {
                 navigate('/account')
@@ -25,7 +25,9 @@ function AccountBtn({toggleNav}: AccountBtnProps) {
                 <Avatar
                     src={user?.profilePictureId}
                     radius="xl"
-                />
+                >
+                    <IconUser/>
+                </Avatar>
 
                 <div style={{flex: 1}}>
                     <Text size="sm" fw={500}>
