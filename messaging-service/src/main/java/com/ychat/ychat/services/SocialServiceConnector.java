@@ -9,21 +9,23 @@ import com.openapi.gen.social.dto.Pageable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class SocialServiceConnector {
 
-    @Value("${ychat.social.url}")
-    private String socialServiceURL;
-
     InternalEndpointApi socialServiceInternalEndpointApi;
 
-    public SocialServiceConnector() {
+    public SocialServiceConnector(@Value("${ychat.social.url}") String socialServiceURL) throws MalformedURLException {
         ApiClient apiClient = new ApiClient();
-        apiClient.setHost(socialServiceURL);
-        this.socialServiceInternalEndpointApi = new InternalEndpointApi();
+        var url = new URL(socialServiceURL);
+        apiClient.setHost(url.getHost());
+        apiClient.setPort(url.getPort());
+        apiClient.setScheme(url.getProtocol());
+        this.socialServiceInternalEndpointApi = new InternalEndpointApi(apiClient);
     }
 
     public boolean canUserAccessChat(UUID userId, UUID chatId) {

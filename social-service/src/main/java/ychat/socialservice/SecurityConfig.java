@@ -33,7 +33,10 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable) // Is handled by api gateway
-                .authorizeHttpRequests((auth) -> auth.anyRequest().authenticated())
+                .authorizeHttpRequests((auth) ->
+                        auth.requestMatchers("/internal/**").permitAll().
+                                anyRequest().authenticated()
+                )
                 .httpBasic(Customizer.withDefaults())
                 .oauth2ResourceServer(config -> config.jwt((jwt) -> jwt.decoder(getDecoder())));
         return http.build();
