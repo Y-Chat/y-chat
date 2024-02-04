@@ -24,14 +24,8 @@ function MessageList({chatId}: MessageListProps) {
         }
     }
 
-    async function getNewMessages() {
-    }
-
     useEffect(() => {
-        // do one initials load into the past if we have no messages for this chat
-        if (messages.length == 0) {
-            fetchMoreMessagesByChat(chatId, "PAST", false).then(hasMore => setMoreMessagesToLoad(hasMore));
-        }
+        fetchMoreMessagesByChat(chatId, "PAST", false).then(hasMore => setMoreMessagesToLoad(hasMore));
     }, []);
 
     useEffect(() => {
@@ -91,7 +85,7 @@ function MessageList({chatId}: MessageListProps) {
                         </Center>
                     }
                     endMessage={
-                        <Center mt={"md"}>
+                        <Center>
                             <Text>Conversation started</Text>
                         </Center>
                     }
@@ -100,16 +94,11 @@ function MessageList({chatId}: MessageListProps) {
                         display: 'flex',
                         flexDirection: 'column-reverse',
                         gap: gapBetweenMessages,
+                        paddingBottom: gapBetweenMessages,
+                        paddingTop: gapBetweenMessages,
                         paddingLeft: 16,
                         paddingRight: 16
                     }}
-                    // TODO do we need pull down on phone?
-                    refreshFunction={() => console.log("refresh")}
-                    pullDownToRefresh
-                    pullDownToRefreshThreshold={50}
-                    releaseToRefreshContent={
-                        <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
-                    }
                 >
                     {messages.map((msg, i) =>
                         <MessageBubble key={i} message={msg}/>

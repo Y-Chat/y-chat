@@ -4,7 +4,7 @@ import {AppShell, Burger, Center, Container, Divider, em, Group, ScrollArea} fro
 import {useDisclosure, useMediaQuery} from "@mantine/hooks";
 import {ShellOutletContext} from "./ShellOutletContext";
 import AccountBtn from "./AccountBtn";
-import {ContactList} from "./ContactList";
+import {ChatsList} from "./ChatsList";
 import {IconBar} from "./IconBar";
 
 
@@ -71,11 +71,11 @@ function Shell() {
             {
                 !collapseHeader &&
                 <AppShell.Navbar withBorder>
-                    <AppShell.Section grow pl={"md"} pr={"md"} component={ScrollArea}>
-                        <ContactList toggleNav={toggle}/>
+                    <AppShell.Section grow component={ScrollArea}>
+                        <ChatsList toggleNav={toggle}/>
                     </AppShell.Section>
                     <Divider size={1}/>
-                    <AppShell.Section h={90} p={"md"}>
+                    <AppShell.Section h={90} pl={"md"} pr={"md"}>
                         <AccountBtn toggleNav={toggle}/>
                     </AppShell.Section>
                 </AppShell.Navbar>

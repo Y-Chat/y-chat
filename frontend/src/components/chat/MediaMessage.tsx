@@ -1,16 +1,23 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {Image, Modal, Text} from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
 import {Message} from "../../model/Message";
+import {getImageUrl} from "../../network/media";
 
 interface MediaMessageProps {
     message: Message
 }
 
-// TODO: support videos in the future?
 export function MediaMessage({message}: MediaMessageProps) {
     const [opened, {toggle}] = useDisclosure(false);
-    const imageElement = <Image src={message.mediaUrl}/>
+    const [url, setUrl] = useState<string | null>(null);
+    const imageElement = <Image src={url}/>
+
+    useEffect(() => {
+        getImageUrl(message.mediaId!).then(url => {
+            setUrl(url);
+        })
+    }, []);
 
     return (
         <>
