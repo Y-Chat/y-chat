@@ -63,9 +63,7 @@ public class MessagingService {
         return Pair.of(Optional.of(res), pageRequest);
     }
 
-    public Optional<Message> sendMessage(Message message, UUID senderId) {
-        // TODO Check if senderId is part of chat
-        // TODO Check if transactionId is valid (Do when/if payment service is implemented)
+    public Message sendMessage(Message message, UUID senderId) {
         com.ychat.ychat.models.Message newMessage = new com.ychat.ychat.models.Message(
                 UUID.randomUUID(),
                 senderId,
@@ -83,6 +81,6 @@ public class MessagingService {
         notification.setNewMessage(schema1);
         notificationServiceConnector.onNotification(random.nextInt(), notification);
 
-        return Optional.of(newMessage.toOpenAPI());
+        return newMessage.toOpenAPI();
     }
 }

@@ -36,6 +36,6 @@ public class MessageController implements MessageApi {
         var requesterId = SecurityConfig.getRequesterUUID();
         if(!socialServiceConnector.canUserAccessChat(requesterId, message.getChatId())) return ResponseEntity.status(401).build();
         var res = messagingService.sendMessage(message, requesterId);
-        return res.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(500).build());
+        return ResponseEntity.ok(res);
     }
 }
