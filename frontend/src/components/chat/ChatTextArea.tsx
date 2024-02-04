@@ -8,6 +8,7 @@ import {uploadImage} from "../../network/media";
 import {showErrorNotification} from "../../notifications/notifications";
 import {useUserStore} from "../../state/userStore";
 import {useMessagesStore} from "../../state/messagesStore";
+import auth from "../../firebase/auth";
 
 interface ChatTextAreaProps {
     chatId: string
@@ -20,6 +21,7 @@ function ChatTextArea({chatId}: ChatTextAreaProps) {
     const theme = useMantineTheme();
     const user = useUserStore(state => state.user)!;
     const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
+    const fbUser = auth.currentUser!
 
     async function sendMessage() {
         setMessageSending(true);
@@ -35,7 +37,7 @@ function ChatTextArea({chatId}: ChatTextAreaProps) {
         try {
             if (image.file) {
                 //TODO insert chatID here!
-                msg.mediaPath = await uploadImage(image.file, `chats/${chatId}/${image.file.name}`);
+                msg.mediaPath = await uploadImage(image.file, `chats/${chatId}/${fbUser.uid}/${image.file.name}`);
             }
             const m = await api.sendMessage({message: msg});
             await fetchMoreMessagesByChat(chatId, "FUTURE", true);

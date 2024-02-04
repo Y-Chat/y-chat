@@ -46,6 +46,7 @@ export function ChatsList({toggleNav}: ContactListProps) {
             mt="md"
             mb="md"
             p={0}
+            gap={0}
         >
             <TextInput
                 placeholder="Search chats or add friends"
@@ -53,6 +54,7 @@ export function ChatsList({toggleNav}: ContactListProps) {
                 w="100%"
                 pl={"md"}
                 pr={"md"}
+                pb={"md"}
                 rightSection={
                     <NewDirectChat email={search}/>
                 }
