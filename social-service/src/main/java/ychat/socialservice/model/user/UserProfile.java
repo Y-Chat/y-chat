@@ -24,7 +24,7 @@ public class UserProfile extends Profile {
 
     @Override
     protected void defaultProfileDescription() {
-        setProfileDescription("Hi, I am using formerly known as WhatsUp.");
+        setProfileDescription("Hi, I am using YChat.");
     }
 
     public String getFirstName() {

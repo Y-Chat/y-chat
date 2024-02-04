@@ -8,6 +8,8 @@ import ychat.socialservice.model.user.BlockedUser;
 import ychat.socialservice.model.user.User;
 import ychat.socialservice.model.user.UserProfile;
 import ychat.socialservice.model.user.UserSettings;
+import ychat.socialservice.repository.DirectChatRepository;
+import ychat.socialservice.repository.GroupRepository;
 
 public class DTOConverter {
     // User start ----------------------------------------------------------------------------------
@@ -96,9 +98,17 @@ public class DTOConverter {
         );
     }
 
-    public static ChatDTO convertToDTO(Chat chat, User user) {
-        return chat.getClass() == DirectChat.class
-                ? convertToDTO((DirectChat) chat, user) : convertToChatDTO((Group) chat);
+    public static ChatDTO convertToDTO(Chat chat, User user, GroupRepository groupRepo, DirectChatRepository directChatRepo) {
+        // Workaround for broken data model:
+        var directChat = directChatRepo.findById(chat.getId());
+        var groupChat = groupRepo.findById(chat.getId());
+        if(directChat.isPresent()) {
+            return convertToDTO(directChat.get(), user);
+        } else if (groupChat.isPresent()) {
+            return convertToChatDTO(groupChat.get());
+        } else {
+            throw new RuntimeException("Found chat that is neither directchat nor group chat. Invariant broken");
+        }
     }
 
     public static ChatMemberDTO convertToDTO(DirectChatMember directChatMember) {
