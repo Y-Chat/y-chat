@@ -39,8 +39,13 @@ export const useMessagesStore = create<MessagesState>()(
                     const pageSize = 10;
 
                     if (currentMessages.length == 0) {
+                        // if we have no messages in the storage we have no entry date to fetch from.
+                        // -> We can only use the current time and fetch a few messages into the past
                         d = new Date();
+                        direction = "PAST"
+                        untilEnd = false
                     } else {
+                        // otherwise use the date from either the last or first message, we have, and fetch into the past or future
                         d = direction == "PAST" ? new Date(currentMessages[currentMessages.length - 1].date) : new Date(currentMessages[0].date);
                     }
 

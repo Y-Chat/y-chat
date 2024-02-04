@@ -1,4 +1,9 @@
-import {Button, ButtonProps} from '@mantine/core';
+import {Button} from '@mantine/core';
+import {deleteUser, GoogleAuthProvider, signInWithPopup} from "firebase/auth";
+import auth from "../../firebase/auth";
+import {api} from "../../network/api";
+import getUuidByString from "uuid-by-string";
+import {showErrorNotification, showSuccessNotification} from "../../notifications/notifications";
 
 function GoogleIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
     return (
@@ -29,8 +34,65 @@ function GoogleIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
     );
 }
 
-export function GoogleButton(props: ButtonProps & React.ComponentPropsWithoutRef<'button'>) {
+interface GoogleButtonProps {
+    loadingState: boolean,
+    setLoading: (loadingState: boolean) => void,
+    login: () => void
+}
+
+export function GoogleButton({loadingState, setLoading, login}: GoogleButtonProps) {
+    const provider = new GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+
     return (
-        <Button leftSection={<GoogleIcon/>} variant="default" {...props} />
+        <Button
+            radius="xl"
+            disabled={loadingState}
+            onClick={() => {
+                signInWithPopup(auth, provider)
+                    .then((userCredentials) => {
+                        const providerData = userCredentials.user.providerData[0];
+                        let firstName = " ";
+                        let lastName = " ";
+
+                        if (providerData && providerData.displayName) {
+                            const parts = providerData.displayName.split(/\s+/);
+                            firstName = parts[0] || " "
+                            lastName = parts[1] || " "
+                        }
+                        api.createUser({
+                            userId: getUuidByString(userCredentials.user.uid, 3),
+                            userProfileDTO: {
+                                firstName: firstName,
+                                lastName: lastName,
+                            }
+                        }).then(user => {
+                            showSuccessNotification("Registration successful", "Registration successful");
+                            login();
+                            setLoading(false);
+                        }).catch(err => {
+                            if (err.response.status && err.response.status == 409) {
+                                // then login because user existed already
+                                return login();
+                            }
+                            if (auth.currentUser) {
+                                deleteUser(auth.currentUser).then(r => {
+                                    showErrorNotification("Something went wrong during registration. Please try again.", "Registration Unsuccessful");
+                                    setLoading(false);
+                                }).catch(err => {
+                                    // if this fails again, the user has to manually reset the user. Might think of a smarter solution in the future
+                                    setLoading(false);
+                                });
+                            }
+                        })
+
+                    }).catch((error) => {
+                    showErrorNotification("Something went wrong during registration. Please try again.", "Registration Unsuccessful");
+                    setLoading(false);
+                });
+            }}
+            leftSection={<GoogleIcon/>}
+            variant="default"
+        >Google</Button>
     );
 }

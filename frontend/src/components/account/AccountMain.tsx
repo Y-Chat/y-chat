@@ -1,21 +1,22 @@
 import React, {useEffect, useState} from "react";
 import {
     Avatar,
+    Button,
+    Card,
     Center,
-    Text,
+    ColorPicker,
+    Container,
     Divider,
     Group,
-    Stack,
-    SimpleGrid,
-    Card,
     Input,
-    Container,
-    Button,
     rem,
-    ColorPicker, useMantineTheme, ActionIcon, Tooltip
+    SimpleGrid,
+    Stack,
+    Text,
+    TextInput,
+    useMantineTheme
 } from "@mantine/core";
 import {useForm} from "@mantine/form";
-import {TextInput} from "@mantine/core";
 import {useUserStore} from "../../state/userStore";
 import {IconCheck, IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
@@ -33,6 +34,7 @@ export function AccountMain() {
     const [updatingUser, setUpdatingUser] = useState(false);
     const [logoutLoading, setLogoutLoading] = useState(false);
     const user = useUserStore((state) => state.user)!; // this view can only be rendered if user is not null!
+    const fbUser = auth.currentUser!
     const setUser = useUserStore((state) => state.setUser);
     const setPrimaryColor = useSettingsStore((state) => state.setPrimaryColor);
     const [userProfilePictureURL, setUserProfilePictureURL] = useState<string | null>(null);
@@ -99,12 +101,8 @@ export function AccountMain() {
                             onDrop={(files) => {
                                 setUploadingAvatar(true);
                                 try {
-                                    const uid = auth.currentUser?.uid
-                                    if (!uid)
-                                        return;
-
                                     files.forEach((file) => {
-                                        uploadImage(file, `profilePictures/${uid}/${file.name}`).then(objectId => {
+                                        uploadImage(file, `profilePictures/${fbUser.uid}/${file.name}`).then(objectId => {
                                             return api.updateUserProfile({
                                                 userId: user.id,
                                                 userProfileDTO: {
