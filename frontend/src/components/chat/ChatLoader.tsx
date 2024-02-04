@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {useChatsStore} from "../../state/chatsStore";
 import {Chat} from "../../model/Chat";
-import {useUserStore} from "../../state/userStore";
 import {ChatWindow} from "./ChatWindow";
 import {useParams} from "react-router-dom";
 import {NotFound} from "../404/NotFound";
@@ -21,8 +20,6 @@ function ChatLoader() {
             })
         }
     }, [chatId]);
-
-    console.log("lol")
 
     return (
         <>

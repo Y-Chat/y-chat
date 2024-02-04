@@ -66,8 +66,8 @@ spec:
     app: calling-mongo
   ports:
     - protocol: TCP
-      port: 27017
-      targetPort: 27020
+      port: 27020
+      targetPort: 27017
 
 ---
 

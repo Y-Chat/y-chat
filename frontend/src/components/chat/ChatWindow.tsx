@@ -1,12 +1,11 @@
 import React, {useEffect} from "react";
 import {Chat} from "../../model/Chat";
-import {useNavigate, useOutletContext} from "react-router-dom";
+import {useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
 import {ActionIcon, Avatar, Container, Group, Text} from "@mantine/core";
 import {IconVideo} from "@tabler/icons-react";
 import MessageList from "./MessageList";
 import ChatTextArea from "./ChatTextArea";
-import {useChatsStore} from "../../state/chatsStore";
 import {useCallingStore} from "../../state/callingStore";
 
 interface ChatWindowProps {
@@ -52,15 +51,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
     return (
         <>
             <MessageList chatId={chat.id}/>
-            <div style={{
-                position: "fixed",
-                bottom: 0,
-                height: 90,
-                width: "100%",
-                zIndex: 1
-            }}>
-                <ChatTextArea chatId={chat.id}/>
-            </div>
+            <ChatTextArea chatId={chat.id}/>
         </>
     );
 }

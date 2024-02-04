@@ -1,27 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {
-    UnstyledButton,
-    Group,
-    Text,
-    TextInput,
-    rem,
-    Indicator,
-    Avatar,
-    ActionIcon,
-    Stack,
-    Center,
-} from '@mantine/core';
-import {
-    IconMessageOff,
-    IconSearch,
-    IconX
-} from '@tabler/icons-react';
-import {useUserStore} from "../../state/userStore";
-import {useNavigate} from "react-router-dom";
+import {ActionIcon, Center, rem, Stack, Text, TextInput,} from '@mantine/core';
+import {IconMessageOff, IconSearch, IconX} from '@tabler/icons-react';
 import {useChatsStore} from "../../state/chatsStore";
 import {Chat} from "../../model/Chat";
 import {NewDirectChat} from "../newChat/NewDirectChat";
-import {useMessagesStore} from "../../state/messagesStore";
 import {ContactListEntry} from "./ContactListEntry";
 
 interface ContactListProps {
@@ -52,19 +34,15 @@ export function ContactList({toggleNav}: ContactListProps) {
         filterData();
     }, [search, chats]);
 
-    const rows = sortedChats.map(chat => <ContactListEntry toggleNav={toggleNav} chat={chat}/>)
+    const rows = sortedChats.map(chat => <ContactListEntry key={chat.id} toggleNav={toggleNav} chat={chat}/>)
 
     return (
         <Stack
             justify="flex-start"
-            gap={25}
             mt="md"
             mb="md"
             p={0}
         >
-            {/*<Center>*/}
-            {/*    <Text c={"dimmed"}>Chats</Text>*/}
-            {/*</Center>*/}
             <TextInput
                 placeholder="Search chats or add friends"
                 size="md"

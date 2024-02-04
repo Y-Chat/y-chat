@@ -16,6 +16,7 @@ function MessageList({chatId}: MessageListProps) {
     const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
     const messages = useMessagesStore(state => state.messages[chatId]) || [];
     const [moreMessagesToLoad, setMoreMessagesToLoad] = useState(true);
+    const [showChevron, setShowChevron] = useState(false);
 
     function scrollToBottom() {
         if (scrollableDiv.current) {
@@ -33,6 +34,16 @@ function MessageList({chatId}: MessageListProps) {
         }
     }, []);
 
+    useEffect(() => {
+        const div = scrollableDiv.current;
+        if (div) {
+            div.addEventListener('scroll', () => {
+                const scrollPosition = Math.abs(div.scrollTop);
+                setShowChevron(!(scrollPosition <= 50));
+            });
+        }
+    }, [scrollableDiv]);
+
     return (
         <>
             <ActionIcon
@@ -47,7 +58,8 @@ function MessageList({chatId}: MessageListProps) {
                     right: 0,
                     marginBottom: 20,
                     marginRight: 20,
-                    zIndex: 1
+                    zIndex: 1,
+                    opacity: showChevron ? 1 : 0
                 }}
             >
                 <IconCircleChevronDown

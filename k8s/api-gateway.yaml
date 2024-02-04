@@ -38,6 +38,8 @@ spec:
               value: "http://payment-service:8080" # TODO
             - name: ychat.gateway.redirect.target.media
               value: "http://media-service:8080"
+            - name: ychat.gateway.redirect.target.calling
+              value: "http://calling-service:8080"
             - name: ychat.cors.allowed.url
               value: "https://y-chat.net"
 ---
