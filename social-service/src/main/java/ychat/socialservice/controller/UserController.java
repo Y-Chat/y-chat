@@ -9,6 +9,7 @@ import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ychat.socialservice.SecurityConfig;
 import ychat.socialservice.service.dto.UserProfileDTO;
@@ -67,8 +68,10 @@ public class UserController {
         summary = "Get the user id for an email.",
         description = "Returns the user id if it exists."
     )
-    public UUID getUserIdByEmail(String email) throws FirebaseAuthException {
-        return userService.getUserIdByEmail(email);
+    public ResponseEntity<UUID> getUserIdByEmail(String email) throws FirebaseAuthException {
+        var uuid = userService.getUserIdByEmail(email);
+        if(uuid == null) return ResponseEntity.status(404).build();
+        return ResponseEntity.ok(uuid);
     }
 
     @DeleteMapping("/{userId}")
