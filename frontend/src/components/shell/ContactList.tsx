@@ -39,14 +39,10 @@ export function ContactList({toggleNav}: ContactListProps) {
     return (
         <Stack
             justify="flex-start"
-            gap={25}
             mt="md"
             mb="md"
             p={0}
         >
-            {/*<Center>*/}
-            {/*    <Text c={"dimmed"}>Chats</Text>*/}
-            {/*</Center>*/}
             <TextInput
                 placeholder="Search chats or add friends"
                 size="md"
