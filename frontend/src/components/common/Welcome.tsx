@@ -24,7 +24,7 @@ export function Welcome() {
     }, []);
 
     return (
-        <Container pt={"20%"}>
+        <Container pt={rem(100)}>
             <Stack align={"center"} gap={"lg"} justify="flex-start">
                 <HelloSVG style={{width: rem(220)}}/>
                 <Text fw={900} size={rem(30)} ta={"center"}>Welcome to {<Logo

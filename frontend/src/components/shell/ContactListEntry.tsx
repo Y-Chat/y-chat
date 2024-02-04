@@ -1,7 +1,7 @@
 import React from "react";
-import {Avatar, Group, Indicator, Text, UnstyledButton} from "@mantine/core";
+import {Avatar, Group, Indicator, Text, UnstyledButton, useMantineTheme} from "@mantine/core";
 import {Chat} from "../../model/Chat";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {useMessagesStore} from "../../state/messagesStore";
 
 interface ContactListEntryProps {
@@ -12,6 +12,8 @@ interface ContactListEntryProps {
 export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
     const messages = useMessagesStore((state) => state.messages[chat.id]);
     const navigate = useNavigate();
+    const {chatId} = useParams();
+    const theme = useMantineTheme();
 
     let lastMessage = "";
     let lastDate = new Date();
@@ -22,10 +24,15 @@ export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
     }
 
     return (
-        <UnstyledButton onClick={() => {
-            navigate(`/chat/${chat.id}`);
-            toggleNav();
-        }}>
+        <UnstyledButton p={"md"}
+                        style={{
+                            background: chatId == chat.id ? theme.colors["dark"][6] : undefined,
+                            borderRadius: 5
+                        }}
+                        onClick={() => {
+                            navigate(`/chat/${chat.id}`);
+                            toggleNav();
+                        }}>
             <Group justify="space-between" gap={0}>
                 <Group gap="sm">
                     <Indicator disabled={!chat.newMessages} style={{flexGrow: 0}}>
