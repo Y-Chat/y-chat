@@ -111,6 +111,17 @@ public class ChatService {
         return chatMembers.map(DTOConverter::convertToDTO);
     }
 
+    public Page<ChatMemberDTO> getChatMembersInternal(@NotNull UUID chatId, @NotNull Pageable pageable) {
+        if (pageable.isUnpaged() || pageable.getPageSize() > MAX_CHAT_PAGE_SIZE) {
+            throw new IllegalUserInputException(
+                    "Get all chat members request must be paged with maximum page size: "
+                            + MAX_CHAT_MEMBER_PAGE_SIZE
+            );
+        }
+        Page<ChatMember> chatMembers = chatMemberRepo.findAllByChatId(chatId, pageable);
+        return chatMembers.map(DTOConverter::convertToDTO);
+    }
+
     public ChatStatus getChatStatus(@NotNull UUID chatId, @NotNull UUID userId) {
         Optional<ChatMember> optionalChatMember =
             chatMemberRepo.findByUserIdAndChatId(userId, chatId);

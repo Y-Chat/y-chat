@@ -68,13 +68,16 @@ public class Message {
     }
 
     public com.openapi.gen.messaging.dto.Message toOpenAPI() {
-        return new com.openapi.gen.messaging.dto.Message(
+        var message = new com.openapi.gen.messaging.dto.Message(
                 this.id,
                 this.senderId,
                 this.chatId,
                 OffsetDateTime.ofInstant(this.sentTimestamp, OffsetDateTime.now().getOffset()),
                 this.message
         );
+        message.setTransactionId(this.transactionId);
+        message.setMediaPath(this.mediaPath);
+        return message;
     }
 
     public static Message fromOpenAPI(com.openapi.gen.messaging.dto.Message message) {

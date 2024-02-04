@@ -1,3 +1,4 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import java.security.MessageDigest
 
 plugins {
@@ -39,7 +40,7 @@ dependencies {
 
 }
 
-openApiGenerate {
+task openApiGenerateNotification(type: GenerateTask) {
 	generatorName.set("spring")
 	outputDir.set("$rootDir/generated/openapi/notification")
 	inputSpec.set("$rootDir/api-specs/notification/openapi.yml")
@@ -61,6 +62,32 @@ openApiGenerate {
 			"string+date-time": "LocalDateTime",
 			"string+ObjectId": "UUID"
 	])
+}
+
+task openApiGenerateSocial(type: GenerateTask) {
+	generatorName.set("java")
+	outputDir.set("$rootDir/generated/openapi/social")
+	inputSpec.set("$rootDir/api-specs/social/openapi.yml")
+	apiPackage.set("com.openapi.gen.social.api")
+	modelPackage.set("com.openapi.gen.social.dto")
+	configOptions.set([
+			serializableModel: "true",
+			useJakartaEe: "true",
+			documentationProvider: "none",
+			performBeanValidation: "true",
+			useBeanValidation: "true",
+			dateLibrary: "java8-localdatetime",
+			library: "native"
+	])
+	typeMappings.set([
+			"string+date-time": "LocalDateTime",
+			"string+ObjectId": "UUID"
+	])
+}
+
+task generateOpenAPI {
+	description = "Generate OpenAPI files"
+	dependsOn openApiGenerateNotification, openApiGenerateSocial
 }
 
 node {
@@ -113,7 +140,7 @@ task asyncApiGenerate(type: NpxTask) {
 }
 
 compileJava {
-	dependsOn "openApiGenerate"
+	dependsOn "generateOpenAPI"
 	dependsOn "asyncApiGenerate"
 }
 
@@ -129,6 +156,7 @@ sourceSets {
 			srcDirs "src/main/java"
 			srcDirs "generated/openapi/notification/src/main/java"
 			srcDirs "generated/asyncapi/notification/src/main/java"
+			srcDirs "generated/openapi/social/src/main/java"
 		}
 	}
 }

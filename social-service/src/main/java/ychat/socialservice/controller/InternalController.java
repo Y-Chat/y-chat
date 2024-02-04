@@ -51,8 +51,7 @@ public class InternalController {
                     "of each member. Page size is not allowed to exceed " +
                     ChatService.MAX_CHAT_MEMBER_PAGE_SIZE + "."
     )
-    public Page<ChatMemberDTO> getChatMembers(@PathVariable UUID chatId, @RequestParam UUID userId,
-                                              Pageable pageable) {
-        return chatService.getChatMembers(chatId, userId, pageable);
+    public Page<ChatMemberDTO> getChatMembers(@PathVariable UUID chatId, Pageable pageable) {
+        return chatService.getChatMembersInternal(chatId, pageable);
     }
 }
