@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ychat.socialservice.model.chat.DirectChatMember;
 import ychat.socialservice.model.group.Group;
+import ychat.socialservice.model.group.GroupMember;
 import ychat.socialservice.repository.ChatMemberRepository;
 import ychat.socialservice.model.chat.ChatMember;
 
@@ -36,7 +37,7 @@ public class InternalService {
         if (optionalChatMember.isEmpty())
             return false;
         ChatMember chatMember = optionalChatMember.get();
-        if (chatMember.getChat().getClass() == Group.class)
+        if (chatMember.getClass() == GroupMember.class)
             return true;
         UUID otherUserId = ((DirectChatMember) chatMember).getOtherUserId();
         return userService.isBlockedUser(userId, otherUserId) == null;

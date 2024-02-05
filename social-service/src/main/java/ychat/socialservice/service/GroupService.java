@@ -1,5 +1,6 @@
 package ychat.socialservice.service;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ import ychat.socialservice.service.dto.GroupDTO;
 import ychat.socialservice.model.group.GroupRole;
 import ychat.socialservice.util.IllegalUserInputException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -117,7 +120,7 @@ public class GroupService {
                                         @NotNull UUID requestUserId) {
         GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
         if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
-            throw new IllegalUserInputException(userId + " is not a admin of " + groupId + ".");
+            throw new IllegalUserInputException(requestUserId + " is not an admin of " + groupId + ".");
         Group group = requestGroupMember.getGroup();
         User user = userService.findUserByIdOrThrow(userId);
         if (group.isMember(user)) {
@@ -127,6 +130,26 @@ public class GroupService {
         }
         GroupMember groupMember = group.addGroupMember(user);
         return DTOConverter.convertToDTO(groupMember);
+    }
+
+    @Transactional
+    public ChatMemberDTO[] addGroupMembers(@NotNull UUID groupId, @NotNull String[] emails,
+                                        @NotNull UUID requestUserId) throws FirebaseAuthException {
+        GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
+        if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
+            throw new IllegalUserInputException(requestUserId + " is not an admin of " + groupId + ".");
+        Group group = groupRepo.findById(requestGroupMember.getChat().getId()).get();
+        List<ChatMemberDTO> groupMembers = new ArrayList<>();
+        for(String email: emails) {
+            UUID userId = userService.getUserIdByEmail(email);
+            if(userId == null) continue;
+            User user = userService.findUserByIdOrThrow(userId);
+            if (group.isMember(user)) {
+               continue;
+            }
+            groupMembers.add(DTOConverter.convertToDTO(group.addGroupMember(user)));
+        }
+        return groupMembers.toArray(new ChatMemberDTO[]{});
     }
 
     @Transactional

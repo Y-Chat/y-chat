@@ -2,6 +2,7 @@ package ychat.socialservice.model.group;
 
 import jakarta.persistence.*;
 import lombok.NonNull;
+import ychat.socialservice.model.chat.Chat;
 import ychat.socialservice.model.chat.ChatMember;
 import ychat.socialservice.model.user.User;
 

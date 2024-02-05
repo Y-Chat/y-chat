@@ -1,5 +1,6 @@
 package ychat.socialservice.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.NonNull;
@@ -85,7 +86,7 @@ public class GroupController {
 
     // All members can be fetched in the chat endpoint
 
-    @PostMapping("/{groupId}/members")
+    @PostMapping("/{groupId}/member")
     @Operation(
         summary = "Add a new user to the group.",
         description = "The new user is added as a GROUP_MEMBER. One cannot add someone who is " +
@@ -94,6 +95,12 @@ public class GroupController {
     public ChatMemberDTO addGroupMember(@PathVariable UUID groupId, @RequestParam UUID userId) {
         UUID requestUserId = SecurityConfig.getRequesterUUID();
         return groupService.addGroupMember(groupId, userId, requestUserId);
+    }
+
+    @PostMapping("/{groupId}/members")
+    public ChatMemberDTO[] addGroupMembers(@PathVariable UUID groupId, @RequestBody String[] emails) throws FirebaseAuthException {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        return groupService.addGroupMembers(groupId, emails, requestUserId);
     }
 
     @DeleteMapping("/{groupId}/members")

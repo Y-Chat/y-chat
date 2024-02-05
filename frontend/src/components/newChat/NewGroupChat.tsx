@@ -79,7 +79,10 @@ export function NewGroupChat() {
                             }
                         })
                     }
-                    // TODO add group members api.addGroupMember()
+                    await api.addGroupMembers({
+                        groupId: group.id,
+                        requestBody: form.values.groupMembers
+                    })
                     await fetchChats();
                     form.reset();
                     setAvatarPreview({file: null, previewUrl: ""})
