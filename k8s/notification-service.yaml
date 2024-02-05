@@ -131,6 +131,8 @@ spec:
               value: "3000"
             - name: spring.kafka.listener.concurrency
               value: "3"
+            - name: ychat.social.url
+              value: "http://social-service:8080"
 ---
 # this service exposes the test-service to your localhost:8080. Of course, later the only exposed service will be the api-gateway
 apiVersion: v1
