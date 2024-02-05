@@ -255,6 +255,7 @@ export function AccountMain() {
                             signOut(auth).then(() => {
                                 setLogoutLoading(false);
                                 setUser(null);
+                                localStorage.clear();
                                 navigate("/");
                             }).catch(() => {
                                 setLogoutLoading(false);

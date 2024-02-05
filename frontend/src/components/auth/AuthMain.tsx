@@ -19,6 +19,7 @@ function AuthMain() {
         if (fbUser) {
             api.getUser({userId: getUuidByString(fbUser.uid, 3)})
                 .then(user => {
+                    localStorage.clear();
                     setUser({
                         id: user.id,
                         firstName: user.userProfileDTO.firstName,
@@ -29,7 +30,7 @@ function AuthMain() {
                     });
                     setUserLoading(false);
                 })
-                .catch(err => {
+                .catch(_ => {
                     showErrorNotification("Maybe you had a typo in your credentials?", "Login Unsuccessful");
                     setUserLoading(false);
                 });

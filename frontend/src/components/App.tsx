@@ -30,9 +30,15 @@ function App() {
     const [firebaseUser, loading] = useAuthState(auth);
     const user = useUserStore((state) => state.user);
     const primaryColor = useSettingsStore((state) => state.primaryColor);
-
     // otherwise show how to install instruction
     const showAppInstructions = (isMobile && !window.matchMedia('(display-mode: standalone)').matches) && process.env.NODE_ENV !== "development"
+
+    useEffect(() => {
+        const channel4Broadcast = new BroadcastChannel('channel4');
+        channel4Broadcast.onmessage = (event) => {
+            //value = event.data.key;
+        }
+    }, []);
 
     useEffect(() => {
         const messaging = getMessaging(firebaseApp);
