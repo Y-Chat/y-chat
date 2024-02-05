@@ -23,7 +23,9 @@ export function ChatWindow({chat}: ChatWindowProps) {
 
     useEffect(() => {
         api.getChatMembers({chatId: chat.id, userId: user.id, pageable: {page: 0, size: 10}})
-            .then((x) => setChatMembersFirstPage(x))
+            .then((x) => {
+                setChatMembersFirstPage(x)
+            })
             .catch((err) => {
                 console.error(err);
                 return null;
@@ -63,7 +65,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
                 </Container>
             </>
         );
-    }, [chat]);
+    }, [chat, chatMembersFirstPage, startCall, user, setHeader]);
 
     return (
         <>
