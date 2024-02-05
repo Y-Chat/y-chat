@@ -6,8 +6,6 @@ import jakarta.validation.constraints.Size;
 import ychat.socialservice.model.util.CreateDTO;
 import ychat.socialservice.model.util.UpdateDTO;
 
-import java.util.UUID;
-
 /**
  * The DTO to interact with user profiles.
  *
@@ -26,7 +24,7 @@ public record UserProfileDTO (
     @Size(min = 1, max = 32, groups = {CreateDTO.class, UpdateDTO.class})
     String lastName,
 
-    UUID profilePictureId,
+    String profilePictureId,
 
     @Null(groups = {CreateDTO.class})
     Boolean removeProfilePictureId,

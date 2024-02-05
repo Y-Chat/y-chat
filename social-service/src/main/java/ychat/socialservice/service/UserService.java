@@ -1,14 +1,23 @@
 package ychat.socialservice.service;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.UserRecord;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import ychat.socialservice.model.chat.Chat;
 import ychat.socialservice.model.chat.ChatMember;
+import ychat.socialservice.model.util.CreateDTO;
+import ychat.socialservice.model.util.UpdateDTO;
 import ychat.socialservice.repository.*;
 import ychat.socialservice.service.dto.*;
 import ychat.socialservice.util.IllegalUserInputException;
@@ -22,7 +31,9 @@ import java.util.*;
  * be simple and readable, not performant. The code will be optimized when we discover
  * bottlenecks.
  */
+@Validated
 @Service
+@Transactional(readOnly = true)
 public class UserService {
     public static final int MAX_BLOCKED_USER_PAGE_SIZE = 1000;
 
@@ -48,17 +59,12 @@ public class UserService {
         return optionalUser.get();
     }
 
-    private void deleteChatMember(User user, ChatMember chatMember) {
-        Chat chat = chatMember.getChat();
-        if (chat.toDeleteIfUserRemoved(user)) {
-            chatRepo.delete(chat);
-        } else {
-            chatMemberRepo.delete(chatMember);
-        }
-    }
-
     // User start ----------------------------------------------------------------------------------
-    public UserDTO createUser(UUID userId, UserProfileDTO userProfileDTO) {
+    @Transactional
+    public UserDTO createUser(
+        @NotNull UUID userId,
+        @NotNull @Validated(CreateDTO.class) UserProfileDTO userProfileDTO
+    ) {
         if (userRepo.existsById(userId))
             throw new EntityExistsException("User exists already: " + userId);
         UserProfile userProfile = DTOConverter.convertToEntity(userProfileDTO);
@@ -67,98 +73,136 @@ public class UserService {
         return DTOConverter.convertToDTO(user);
     }
 
-    public UserDTO getUser(UUID userId) {
+    public UserDTO getUser(@NotNull UUID userId) {
         User user = findUserByIdOrThrow(userId);
         return DTOConverter.convertToDTO(user);
     }
 
-    public void deleteUser(UUID userId) {
+    public UUID getUserIdByEmail(@NotNull @Email String email) throws FirebaseAuthException {
+        UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(email);
+        var userUUID = UUID.nameUUIDFromBytes(userRecord.getUid().getBytes());
+        var user = userRepo.findById(userUUID);
+        return user.map(User::getId).orElse(null);
+    }
+
+    @Transactional
+    public void deleteUser(@NotNull UUID userId) {
         User user = findUserByIdOrThrow(userId);
         Pageable pageable = PageRequest.of(0, ChatService.MAX_CHAT_MEMBER_PAGE_SIZE);
         Page<ChatMember> chatMembers;
         do {
-            chatMembers = chatMemberRepo.findAllByUser(user, pageable);
-            for (ChatMember chatMember : chatMembers)
-                deleteChatMember(user, chatMember);
+            chatMembers = chatMemberRepo.findAllByUserId(userId, pageable);
+            for (ChatMember chatMember : chatMembers) {
+                Chat chat = chatMember.getChat();
+                if (chat.toDeleteIfUserRemoved(user)) {
+                    // Cascade deletes the chat members as well
+                    chatRepo.delete(chat);
+                } else {
+                    chat.removeMember(user);
+                }
+            }
             pageable = pageable.next();
         } while (chatMembers.hasNext());
         // Deletes the blocked user entries via cascading
+        chatRepo.flush(); // Needs to happen to not have problems with foreign keys
         userRepo.delete(user);
     }
     // User end ------------------------------------------------------------------------------------
 
     // Profiles and settings start -----------------------------------------------------------------
-    public UserProfileDTO getUserProfile(UUID userId) {
+    public UserProfileDTO getUserProfile(@NotNull UUID userId) {
         User user = findUserByIdOrThrow(userId);
         return DTOConverter.convertToDTO(user.getUserProfile());
     }
 
-    public UserProfileDTO updateUserProfile(UUID userId, UserProfileDTO userProfileDTO) {
+    @Transactional
+    public UserProfileDTO updateUserProfile(
+        @NotNull UUID userId,
+        @NotNull @Validated(UpdateDTO.class) UserProfileDTO userProfileDTO
+    ) {
+        if (userProfileDTO.removeProfilePictureId() != null
+                && userProfileDTO.profilePictureId() != null) {
+            throw new IllegalUserInputException(
+                "It is not allowed to set both profilePictureId and removeProfilePicture."
+            );
+        }
         User user = findUserByIdOrThrow(userId);
         UserProfile userProfile = user.getUserProfile();
         userProfile.setFirstName(userProfileDTO.firstName());
         userProfile.setLastName(userProfileDTO.lastName());
-        if (userProfileDTO.removeProfilePictureId())
+        if (userProfileDTO.removeProfilePictureId() != null
+                && userProfileDTO.removeProfilePictureId())
             userProfile.removeProfilePictureId();
         else
             userProfile.setProfilePictureId(userProfileDTO.profilePictureId());
         userProfile.setProfileDescription(userProfileDTO.profileDescription());
-        userRepo.save(user);
         return DTOConverter.convertToDTO(user.getUserProfile());
     }
 
-    public UserSettingsDTO getUserSettings(UUID userId) {
+    public UserSettingsDTO getUserSettings(@NotNull UUID userId) {
         User user = findUserByIdOrThrow(userId);
         return DTOConverter.convertToDTO(user.getUserSettings());
     }
 
-    public UserSettingsDTO updateUserSettings(UUID userId, UserSettingsDTO userSettingsDTO) {
+    @Transactional
+    public UserSettingsDTO updateUserSettings(
+        @NotNull UUID userId,
+        @NotNull @Validated(UpdateDTO.class) UserSettingsDTO userSettingsDTO
+    ) {
         User user = findUserByIdOrThrow(userId);
         UserSettings userSettings = user.getUserSettings();
         userSettings.setReadReceipts(userSettingsDTO.readReceipts());
         userSettings.setLastSeen(userSettingsDTO.lastSeen());
-        userRepo.save(user);
         return DTOConverter.convertToDTO(user.getUserSettings());
     }
     // Profiles and settings end -------------------------------------------------------------------
 
     // Blocking start ------------------------------------------------------------------------------
-    public Page<BlockedUserDTO> getBlockedUsers(UUID userId, Pageable pageable) {
-        User user = findUserByIdOrThrow(userId);
-        Page<BlockedUser> blockedUsers = blockedUserRepo.findAllByFromUser(user, pageable);
+    public Page<BlockedUserDTO> getBlockedUsers(@NotNull UUID userId, @NotNull Pageable pageable) {
+        if (pageable.isUnpaged() || pageable.getPageSize() > MAX_BLOCKED_USER_PAGE_SIZE) {
+            throw new IllegalUserInputException(
+                "Get blocked user request must be paged with maximum page size: "
+                + MAX_BLOCKED_USER_PAGE_SIZE + "."
+            );
+        }
+        Page<BlockedUser> blockedUsers = blockedUserRepo.findAllByFromUserId(userId, pageable);
         return blockedUsers.map(DTOConverter::convertToDTO);
     }
 
-    public LocalDateTime isBlockedUser(UUID userId, UUID isBlockedId) {
-        User user = findUserByIdOrThrow(userId);
-        User isBlockedUser = findUserByIdOrThrow(isBlockedId);
+    public LocalDateTime isBlockedUser(@NotNull UUID userId, @NotNull UUID isBlockedId) {
         Optional<BlockedUser> blockedUserOptional =
-            blockedUserRepo.findByFromUserAndToUser(user, isBlockedUser);
+            blockedUserRepo.findByFromUserIdAndToUserId(userId, isBlockedId);
         if (blockedUserOptional.isEmpty())
             return null;
         BlockedUser blockedUser = blockedUserOptional.get();
         return blockedUser.getCreated();
     }
 
-    public BlockedUserDTO addBlockedUser(UUID userId, UUID blockUserId) {
+    @Transactional
+    public BlockedUserDTO addBlockedUser(@NotNull UUID userId, @NotNull UUID blockUserId) {
+        if (userId.equals(blockUserId))
+            throw new IllegalUserInputException("User cannot block themselves: " + userId);
         User user = findUserByIdOrThrow(userId);
         User blockUser = findUserByIdOrThrow(blockUserId);
         BlockedUser blockedUser = user.addBlockedUser(blockUser);
-        userRepo.save(user);
+        if (blockedUser == null) {
+            throw new IllegalUserInputException(
+                user + " already has " + blockUserId + " blocked."
+            );
+        }
         return DTOConverter.convertToDTO(blockedUser);
     }
 
-    public void removeBlockedUser(UUID userId, UUID unblockUserId) {
+    @Transactional
+    public void removeBlockedUser(@NotNull UUID userId, @NotNull UUID unblockUserId) {
         User user = findUserByIdOrThrow(userId);
         User unblockUser = findUserByIdOrThrow(unblockUserId);
-        if (user.isBlockedUser(unblockUser)) {
-            user.removeBlockedUser(unblockUser);
-            userRepo.save(user);
-        } else {
+        if (!user.isBlockedUser(unblockUser)) {
             throw new IllegalUserInputException(
                 user + " does not have " + unblockUser + " blocked."
             );
         }
+        user.removeBlockedUser(unblockUser);
     }
     // Blocking end --------------------------------------------------------------------------------
 }

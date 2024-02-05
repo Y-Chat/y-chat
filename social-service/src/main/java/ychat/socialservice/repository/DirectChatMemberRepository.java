@@ -8,15 +8,20 @@ import ychat.socialservice.model.chat.ChatMemberId;
 import ychat.socialservice.model.chat.DirectChatMember;
 import ychat.socialservice.model.user.User;
 
+import java.util.UUID;
+
 @Repository
 public interface DirectChatMemberRepository extends JpaRepository<DirectChatMember, ChatMemberId> {
-    // TODO not sure if it really works => test
     @Query(
-        "SELECT COUNT(m) > 0 " +
-        "FROM DirectChatMember m " +
-        "WHERE (m.user = :user OR m.otherUserId = :otherUser) " +
-        "GROUP BY m.chat " +
-        "HAVING COUNT(m.chat) > 1"
+        "SELECT CASE WHEN EXISTS ( " +
+            "SELECT 1 " +
+            "FROM DirectChatMember m " +
+            "WHERE ((m.user.id = :userId AND m.otherUserId = :otherUserId) " +
+                "OR (m.user.id = :otherUserId AND m.otherUserId = :userId)) " +
+            "GROUP BY m.chat " +
+            "HAVING COUNT(m.chat) >= 1 " +
+        ") THEN true ELSE false END"
     )
-    boolean existsBetweenTwoUsers(@Param("user") User user, @Param("otherUser") User otherUser);
+    boolean existsBetweenTwoUsers(@Param("userId") UUID userId,
+                                  @Param("otherUserId") UUID otherUserId);
 }

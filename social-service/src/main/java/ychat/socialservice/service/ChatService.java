@@ -1,10 +1,12 @@
 package ychat.socialservice.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import ychat.socialservice.model.group.Group;
 import ychat.socialservice.repository.*;
 import ychat.socialservice.service.dto.ChatDTO;
@@ -21,63 +23,77 @@ import java.util.*;
  * be simple and readable, not performant. The code will be optimized when we discover
  * bottlenecks.
  */
+@Validated
 @Service
+@Transactional(readOnly = true)
 public class ChatService {
     public static final int MAX_CHAT_PAGE_SIZE = 1000;
     public static final int MAX_CHAT_MEMBER_PAGE_SIZE = 1000;
 
     private final UserService userService;
-    private final ChatRepository chatRepo;
     private final ChatMemberRepository chatMemberRepo;
     private final DirectChatRepository directChatRepo;
+
+    private final GroupRepository groupRepo;
     private final DirectChatMemberRepository directChatMemberRepo;
 
     public ChatService(@NonNull UserService userService,
-                       @NonNull ChatRepository chatRepo,
                        @NonNull DirectChatRepository directChatRepo,
                        @NonNull ChatMemberRepository chatMemberRepo,
-                       @NonNull DirectChatMemberRepository directChatMemberRepo) {
+                       @NonNull DirectChatMemberRepository directChatMemberRepo,
+                       @NonNull GroupRepository groupRepo) {
         this.userService = userService;
-        this.chatRepo = chatRepo;
         this.directChatRepo = directChatRepo;
         this.chatMemberRepo = chatMemberRepo;
         this.directChatMemberRepo = directChatMemberRepo;
+        this.groupRepo = groupRepo;
     }
 
-    public Chat findChatByIdOrThrow(UUID chatId) {
-        Optional<Chat> optionalChat = chatRepo.findById(chatId);
-        if (optionalChat.isEmpty())
-            throw new EntityNotFoundException("Chat does not exist: " + chatId);
-        return optionalChat.get();
-    }
-
-    public Optional<ChatMember> findChatMemberByIdsOrThrow(UUID chatId, UUID userId) {
-        Chat chat = findChatByIdOrThrow(chatId);
-        User user = userService.findUserByIdOrThrow(userId);
-        return chatMemberRepo.findByUserAndChat(user, chat);
+    public ChatMember findChatMemberByIdsOrThrow(UUID userId, UUID chatId) {
+        Optional<ChatMember> optionalChatMember =
+            chatMemberRepo.findByUserIdAndChatId(userId, chatId);
+        if (optionalChatMember.isEmpty()) {
+            throw new IllegalUserInputException(
+                userId + " is not a member of chat " + chatId + "."
+            );
+        }
+        return optionalChatMember.get();
     }
 
     // Chats start ---------------------------------------------------------------------------------
-    public ChatDTO getChat(UUID chatId, UUID userId) {
-        Chat chat = findChatByIdOrThrow(chatId);
-        User user = userService.findUserByIdOrThrow(userId);
-        return DTOConverter.convertToDTO(chat, user);
+    public ChatDTO getChat(@NotNull UUID chatId, @NotNull UUID userId) {
+        ChatMember chatMember = findChatMemberByIdsOrThrow(userId, chatId);
+        User user = chatMember.getUser();
+        Chat chat = chatMember.getChat();
+        return DTOConverter.convertToDTO(chat, user, groupRepo, directChatRepo);
     }
 
-    public Page<ChatDTO> getAllChats(UUID userId, Pageable pageable) {
+    public Page<ChatDTO> getAllChats(@NotNull UUID userId, @NotNull Pageable pageable) {
+        if (pageable.isUnpaged() || pageable.getPageSize() > MAX_CHAT_PAGE_SIZE) {
+            throw new IllegalUserInputException(
+                "Get all chats request must be paged with maximum page size: "
+                + MAX_CHAT_PAGE_SIZE
+            );
+        }
         User user = userService.findUserByIdOrThrow(userId);
-        Page<ChatMember> chatMembers = chatMemberRepo.findAllByUser(user, pageable);
-        return chatMembers.map(chatMember -> DTOConverter.convertToDTO(chatMember.getChat(), user));
+        Page<ChatMember> chatMembers = chatMemberRepo.findAllByUserId(userId, pageable);
+        return chatMembers.map(chatMember -> DTOConverter.convertToDTO(chatMember.getChat(), user, groupRepo, directChatRepo));
     }
 
-    public ChatDTO createDirectChat(UUID userId, UUID otherUserId) {
+    @Transactional
+    public ChatDTO createDirectChat(@NotNull UUID userId, @NotNull UUID otherUserId) {
+        if (userId.equals(otherUserId)) {
+            throw new IllegalUserInputException(
+                "User is not allowed to establish a direct chat with themselves " + userId + "."
+            );
+        }
+        if (directChatMemberRepo.existsBetweenTwoUsers(userId, otherUserId)) {
+            throw new IllegalUserInputException(
+                "Direct chat between " + userId + " and " + otherUserId + " already exists."
+            );
+        }
         User user = userService.findUserByIdOrThrow(userId);
         User otherUser = userService.findUserByIdOrThrow(otherUserId);
-//        if (directChatMemberRepo.existsBetweenTwoUsers(user, otherUser)) { TODO this is causing errors!
-//            throw new IllegalUserInputException(
-//                "Direct chat between " + user + " and " + otherUser + " already exists."
-//            );
-//        }
         DirectChat directChat = new DirectChat(user, otherUser);
         directChatRepo.save(directChat);
         return DTOConverter.convertToDTO(directChat, user);
@@ -85,31 +101,48 @@ public class ChatService {
     // Chats end ---------------------------------------------------------------------------------
 
     // Members start -------------------------------------------------------------------------------
-    public Page<ChatMemberDTO> getChatMembers(UUID chatId, Pageable pageable) {
-        Chat chat = findChatByIdOrThrow(chatId);
-        Page<ChatMember> chatMembers = chatMemberRepo.findAllByChat(chat, pageable);
+    public Page<ChatMemberDTO> getChatMembers(@NotNull UUID chatId, @NotNull UUID userId,
+                                              @NotNull Pageable pageable) {
+        if (pageable.isUnpaged() || pageable.getPageSize() > MAX_CHAT_PAGE_SIZE) {
+            throw new IllegalUserInputException(
+                "Get all chat members request must be paged with maximum page size: "
+                + MAX_CHAT_MEMBER_PAGE_SIZE
+            );
+        }
+        ChatMember chatMember = findChatMemberByIdsOrThrow(userId, chatId);
+        Chat chat = chatMember.getChat();
+        Page<ChatMember> chatMembers = chatMemberRepo.findAllByChatId(chat.getId(), pageable);
         return chatMembers.map(DTOConverter::convertToDTO);
     }
 
-    public ChatStatus getChatStatus(UUID chatId, UUID userId) {
-        Optional<ChatMember> optionalChatMember = findChatMemberByIdsOrThrow(chatId, userId);
+    public Page<ChatMemberDTO> getChatMembersInternal(@NotNull UUID chatId, @NotNull Pageable pageable) {
+        if (pageable.isUnpaged() || pageable.getPageSize() > MAX_CHAT_PAGE_SIZE) {
+            throw new IllegalUserInputException(
+                    "Get all chat members request must be paged with maximum page size: "
+                            + MAX_CHAT_MEMBER_PAGE_SIZE
+            );
+        }
+        Page<ChatMember> chatMembers = chatMemberRepo.findAllByChatId(chatId, pageable);
+        return chatMembers.map(DTOConverter::convertToDTO);
+    }
+
+    public ChatStatus getChatStatus(@NotNull UUID chatId, @NotNull UUID userId) {
+        Optional<ChatMember> optionalChatMember =
+            chatMemberRepo.findByUserIdAndChatId(userId, chatId);
         if (optionalChatMember.isEmpty())
             return ChatStatus.NOT_A_MEMBER;
         ChatMember chatMember = optionalChatMember.get();
         return chatMember.getChatStatus();
     }
 
-    public ChatStatus setChatStatus(UUID chatId, UUID userId, ChatStatus chatStatus) {
+    @Transactional
+    public ChatStatus setChatStatus(@NotNull UUID chatId, @NotNull UUID userId,
+                                    @NotNull ChatStatus chatStatus) {
         if (chatStatus == ChatStatus.NOT_A_MEMBER)
             throw new IllegalUserInputException("NOT_A_MEMBER is not allowed for a chat status.");
-
-        Optional<ChatMember> optionalChatMember = findChatMemberByIdsOrThrow(chatId, userId);
-        if (optionalChatMember.isEmpty())
-            throw new IllegalUserInputException(userId + " not a member of " + chatId + ".");
-        ChatMember chatMember = optionalChatMember.get();
+        ChatMember chatMember = findChatMemberByIdsOrThrow(userId, chatId);
         Chat chat = chatMember.getChat();
         User user = chatMember.getUser();
-
         if (chatStatus == ChatStatus.DELETED) {
             if (chat.getClass() == Group.class) {
                 throw new IllegalUserInputException(
@@ -118,12 +151,11 @@ public class ChatService {
             }
             if (chat.toDeleteIfUserRemoved(user)) {
                 // Deletes chat membership via cascading as well
-                chatRepo.delete(chat);
+                directChatRepo.delete((DirectChat) chat);
                 return ChatStatus.DELETED;
             }
         }
         chatMember.setChatStatus(chatStatus);
-        chatMemberRepo.save(chatMember);
         return chatMember.getChatStatus();
     }
     // Members end ---------------------------------------------------------------------------------

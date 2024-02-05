@@ -2,6 +2,7 @@ package ychat.socialservice.model.group;
 
 import jakarta.persistence.*;
 import lombok.NonNull;
+import ychat.socialservice.model.chat.Chat;
 import ychat.socialservice.model.chat.ChatMember;
 import ychat.socialservice.model.user.User;
 
@@ -31,15 +32,16 @@ public class GroupMember extends ChatMember {
 
     public void setGroupRole(GroupRole groupRole) {
         if (groupRole == null) return;
+        if (groupRole == GroupRole.NOT_A_MEMBER) return;
+        if (groupRole != GroupRole.GROUP_ADMIN && getGroup().getNumberOfAdmins() == 1) return;
         this.groupRole = groupRole;
     }
-
 
     // equals and hashCode are implemented in the superclass
 
     @Override
     public String toString() {
-        return "GroupMember{" + "user=" + getUser() + ", group=" + getChat() +
+        return "GroupMember{" + "user=" + getUser() + ", group=" + getGroup() +
                 ", groupRole=" + groupRole + ", chatStatus=" + getChatStatus() + '}';
     }
 }

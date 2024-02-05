@@ -1,6 +1,7 @@
 package ychat.socialservice.model.chat;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NonNull;
 import ychat.socialservice.model.user.User;
 import ychat.socialservice.model.util.TimestampEntity;
@@ -16,38 +17,30 @@ public abstract class ChatMember extends TimestampEntity {
     @EmbeddedId
     protected ChatMemberId chatMemberId;
 
-    @ManyToOne
+    @Getter
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
     @JoinColumn
     private User user;
 
-    @ManyToOne
+    @Getter
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("chatId")
     @JoinColumn
     private Chat chat;
 
+    @Getter
     @Enumerated(EnumType.STRING)
     private ChatStatus chatStatus;
 
     protected ChatMember() {} // Required by JPA
 
     public ChatMember(@NonNull User user, @NonNull Chat chat) {
+        super();
         this.chatMemberId = new ChatMemberId(user.getId(), chat.getId());
         this.user = user;
         this.chat = chat;
         this.chatStatus = ChatStatus.ACTIVE;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Chat getChat() {
-        return chat;
-    }
-
-    public ChatStatus getChatStatus() {
-        return chatStatus;
     }
 
     public void setChatStatus(ChatStatus chatStatus) {

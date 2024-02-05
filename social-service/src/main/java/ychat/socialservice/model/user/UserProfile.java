@@ -1,5 +1,6 @@
 package ychat.socialservice.model.user;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.util.Objects;
@@ -15,15 +16,15 @@ public class UserProfile extends Profile {
 
     protected UserProfile() {} // Required by JPA
 
-    public UserProfile(String firstName, String lastName, String profileDescription) {
-        super(profileDescription);
+    public UserProfile(String firstName, String lastName) {
+        super();
         this.firstName = firstName;
         this.lastName = lastName;
     }
 
     @Override
     protected void defaultProfileDescription() {
-        setProfileDescription("Hi, I am using formerly known as WhatsUp.");
+        setProfileDescription("Hi, I am using YChat.");
     }
 
     public String getFirstName() {

@@ -36,9 +36,10 @@ public class User extends TimestampEntity {
     protected User() {} // Required by JPA
 
     public User(@NonNull UUID id, @NonNull UserProfile userProfile) {
+        super();
         this.id = id;
         this.userProfile = userProfile;
-        this.userSettings = new UserSettings(true, true);
+        this.userSettings = new UserSettings();
         blockedUsers = new HashSet<>();
     }
 
@@ -63,12 +64,13 @@ public class User extends TimestampEntity {
 
     public BlockedUser addBlockedUser(User user) {
         if (user == null) return null;
+        BlockedUser blockedUser = new BlockedUser(this, user);
+        if (blockedUsers.contains(blockedUser)) return null;
         if (blockedUsers.size() >= User.BLOCK_LIMIT) {
             throw new LimitReachedException(
                 "User reached the block limit of " + User.BLOCK_LIMIT + ": " + user
             );
         }
-        BlockedUser blockedUser = new BlockedUser(this, user);
         blockedUsers.add(blockedUser);
         return blockedUser;
     }

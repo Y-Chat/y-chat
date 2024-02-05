@@ -1,5 +1,6 @@
 package ychat.socialservice;
 
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.internal.EmulatorCredentials;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Service
 public class FirebaseInitializer {
@@ -27,7 +29,15 @@ public class FirebaseInitializer {
     private void initializeFirebaseApp() throws IOException {
         if (FirebaseApp.getApps() == null || FirebaseApp.getApps().isEmpty()) {
             var firebaseOptionBuilder = FirebaseOptions.builder();
-            firebaseOptionBuilder.setCredentials(new EmulatorCredentials()).setProjectId("y-chat-e5132");
+            // firebaseOptionBuilder.setCredentials(new EmulatorCredentials()).setProjectId("y-chat-e5132");
+
+            InputStream serviceAccount = FirebaseInitializer.class.getResourceAsStream("/firebase-service-credentials.json");
+            if(serviceAccount == null) {
+                throw new RuntimeException("Error: firebase-service-credentials.json is missing from resources. Ask Ben Str. about it");
+            }
+            GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount);
+            firebaseOptionBuilder.setCredentials(credentials);
+
             FirebaseApp.initializeApp(firebaseOptionBuilder.build());
         }
     }

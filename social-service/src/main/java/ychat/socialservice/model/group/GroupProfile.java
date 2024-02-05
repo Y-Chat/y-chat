@@ -11,8 +11,8 @@ public class GroupProfile extends Profile {
 
     protected GroupProfile() {} // Required by JPA
 
-    public GroupProfile(String groupName, String profileDescription) {
-        super(profileDescription);
+    public GroupProfile(String groupName) {
+        super();
         this.groupName = groupName;
     }
 

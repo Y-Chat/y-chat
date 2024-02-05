@@ -1,5 +1,5 @@
 # This would in reality be a StatefulSet with more replicas
-# TODO add init script
+# This is missing the init script
 apiVersion: apps/v1
 kind: Deployment
 metadata:

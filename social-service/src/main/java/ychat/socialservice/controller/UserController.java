@@ -1,22 +1,22 @@
 package ychat.socialservice.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ychat.socialservice.SecurityConfig;
 import ychat.socialservice.service.dto.UserProfileDTO;
 import ychat.socialservice.service.dto.UserSettingsDTO;
-import ychat.socialservice.model.util.CreateDTO;
-import ychat.socialservice.model.util.UpdateDTO;
 import ychat.socialservice.service.dto.BlockedUserDTO;
 import ychat.socialservice.service.UserService;
 import ychat.socialservice.service.dto.UserDTO;
-import ychat.socialservice.util.IllegalUserInputException;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,7 +24,6 @@ import java.util.UUID;
 @RestController
 @ResponseStatus(HttpStatus.OK)
 @RequestMapping("/users")
-@Validated
 @Tag(
     name = "Users Endpoint",
     description = "Manage the user as they exist in the Y-Chat domain. The lifetime of a user is " +
@@ -44,12 +43,12 @@ public class UserController {
         summary = "Create a user with an initial profile.",
         description = "One cannot create a user which exists already. If the profile description " +
                       "is empty, a default value is used. ProfilePictureId is optional. The " +
-                      "other fields are required. RemoveProfilePicture must be null."
+                      "other fields are required. RemoveProfilePicture must be null. The email " +
+                      "must not exist in the system yet."
     )
-    public UserDTO createUser(
-        @RequestParam @NotNull UUID userId,
-        @RequestBody @Validated(CreateDTO.class) UserProfileDTO userProfileDTO
-    ) {
+    public UserDTO createUser(@RequestParam UUID userId,
+                              @RequestBody UserProfileDTO userProfileDTO) {
+        SecurityConfig.verifyUserAccess(userId);
         return userService.createUser(userId, userProfileDTO);
     }
 
@@ -58,17 +57,32 @@ public class UserController {
         summary = "Fetch the general information about a user.",
         description = "Returns the user id, profile, and settings."
     )
-    public UserDTO getUser(@PathVariable @NotNull UUID userId) {
+    public UserDTO getUser(@PathVariable UUID userId) {
+        SecurityConfig.verifyUserAccess(userId);
         return userService.getUser(userId);
     }
 
+    // TODO write integration test
+    @GetMapping("/byEmail")
+    @Operation(
+        summary = "Get the user id for an email.",
+        description = "Returns the user id if it exists."
+    )
+    public ResponseEntity<UUID> getUserIdByEmail(String email) throws FirebaseAuthException {
+        var uuid = userService.getUserIdByEmail(email);
+        if(uuid == null) return ResponseEntity.status(404).build();
+        return ResponseEntity.ok(uuid);
+    }
+
     @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
         summary = "Delete a user from the Social service.",
         description = "The deletion process includes all blocked relations and all chat " +
                       "memberships."
     )
-    public void deleteUser(@PathVariable @NotNull UUID userId) {
+    public void deleteUser(@PathVariable UUID userId) {
+        SecurityConfig.verifyUserAccess(userId);
         userService.deleteUser(userId);
     }
     // User end ------------------------------------------------------------------------------------
@@ -90,15 +104,10 @@ public class UserController {
                       "field to null and removeProfilePictureId to true. Returns the same object " +
                       "as getUserProfile."
     )
-    public UserProfileDTO updateUserProfile(
-        @PathVariable @NotNull UUID userId,
-        @RequestBody @Validated(UpdateDTO.class) UserProfileDTO userProfileDTO
+    public UserProfileDTO updateUserProfile(@PathVariable UUID userId,
+                                            @RequestBody UserProfileDTO userProfileDTO
     ) {
-        if (userProfileDTO.removeProfilePictureId() && userProfileDTO.profilePictureId() != null) {
-            throw new IllegalUserInputException(
-                "It is not allowed to set both profilePictureId and removeProfilePicture."
-            );
-        }
+        SecurityConfig.verifyUserAccess(userId);
         return userService.updateUserProfile(userId, userProfileDTO);
     }
 
@@ -107,7 +116,8 @@ public class UserController {
         summary = "Fetch the settings for a user.",
         description = "All returned fields are populated."
     )
-    public UserSettingsDTO getUserSettings(@PathVariable @NotNull UUID userId) {
+    public UserSettingsDTO getUserSettings(@PathVariable UUID userId) {
+        SecurityConfig.verifyUserAccess(userId);
         return userService.getUserSettings(userId);
     }
 
@@ -116,9 +126,9 @@ public class UserController {
         summary = "Update the settings for a user.",
         description = "All given fields are updated. Returns the same object as getUserSettings."
     )
-    public UserSettingsDTO updateUserSettings(
-        @PathVariable @NotNull UUID userId,
-        @RequestBody @Validated(UpdateDTO.class) UserSettingsDTO userSettingsDTO) {
+    public UserSettingsDTO updateUserSettings(@PathVariable UUID userId,
+                                              @RequestBody UserSettingsDTO userSettingsDTO) {
+        SecurityConfig.verifyUserAccess(userId);
         return userService.updateUserSettings(userId, userSettingsDTO);
     }
     // Profiles and settings end -------------------------------------------------------------------
@@ -128,16 +138,11 @@ public class UserController {
     @Operation(
         summary = "Fetch the blocklist for a user.",
         description = "Returns a page of ids, profiles, and timestamps when the user has been " +
-                      "blocked. Page size is not allowed to exceed 1000."
+                      "blocked. Page size is not allowed to exceed " +
+                      UserService.MAX_BLOCKED_USER_PAGE_SIZE + "."
     )
-    public Page<BlockedUserDTO> getBlockedUsers(@PathVariable @NotNull UUID userId,
-                                                @NotNull Pageable pageable) {
-        if (pageable.getPageSize() > UserService.MAX_BLOCKED_USER_PAGE_SIZE) {
-            throw new IllegalUserInputException(
-                "Page size for Blocked Users is not allowed to be larger than " +
-                UserService.MAX_BLOCKED_USER_PAGE_SIZE + "."
-            );
-        }
+    public Page<BlockedUserDTO> getBlockedUsers(@PathVariable UUID userId, Pageable pageable) {
+        SecurityConfig.verifyUserAccess(userId);
         return userService.getBlockedUsers(userId, pageable);
     }
 
@@ -147,8 +152,9 @@ public class UserController {
         description = "Returns null, if the user is not blocked. Returns a timestamp " +
                       "corresponding to the block time, if the user is blocked."
     )
-    public LocalDateTime isBlockedUser(@PathVariable @NotNull UUID userId,
-                                       @PathVariable @NotNull UUID isBlockedId) {
+    public LocalDateTime isBlockedUser(@PathVariable UUID userId,
+                                       @PathVariable UUID isBlockedId) {
+        SecurityConfig.verifyUserAccess(userId);
         return userService.isBlockedUser(userId, isBlockedId);
     }
 
@@ -158,22 +164,22 @@ public class UserController {
         description = "A user cannot block themselves. There is a limit on the number of users a " +
                       "user can block. A user cannot block a user that they have already " +
                       "blocked. Returns the same object as getBlockedUsers."
-
     )
-    public BlockedUserDTO addBlockedUser(@PathVariable @NotNull UUID userId,
-                               @RequestParam @NotNull UUID blockUserId) {
-        if (userId == blockUserId)
-            throw new IllegalUserInputException("User cannot block themselves: " + userId);
+    public BlockedUserDTO addBlockedUser(@PathVariable UUID userId,
+                                         @RequestParam UUID blockUserId) {
+        SecurityConfig.verifyUserAccess(userId);
         return userService.addBlockedUser(userId, blockUserId);
     }
 
     @DeleteMapping("/{userId}/blockedUsers")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
         summary = "Remove a user from the blocklist.",
         description = "One cannot remove a user which has not been blocked."
     )
-    public void removeBlockedUser(@PathVariable @NotNull UUID userId,
-                                  @RequestParam @NotNull UUID unblockUserId) {
+    public void removeBlockedUser(@PathVariable UUID userId,
+                                  @RequestParam UUID unblockUserId) {
+        SecurityConfig.verifyUserAccess(userId);
         userService.removeBlockedUser(userId, unblockUserId);
     }
     // Blocking end --------------------------------------------------------------------------------

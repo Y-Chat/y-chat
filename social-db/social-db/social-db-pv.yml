@@ -1,4 +1,3 @@
-# TODO The type probably has to change for it to work on GKE
 apiVersion: v1
 kind: PersistentVolume
 metadata:

@@ -16,12 +16,12 @@ public class BlockedUser extends TimestampEntity {
     @EmbeddedId
     private BlockedUserId blockedUserId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("fromUserId")
     @JoinColumn
     private User fromUser;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("toUserId")
     @JoinColumn
     private User toUser;
@@ -29,6 +29,7 @@ public class BlockedUser extends TimestampEntity {
     protected BlockedUser() {} // Required by JPA
 
     public BlockedUser(@NonNull User fromUser, @NonNull User toUser) {
+        super();
         this.blockedUserId = new BlockedUserId(fromUser.getId(), toUser.getId());
         this.fromUser = fromUser;
         this.toUser = toUser;

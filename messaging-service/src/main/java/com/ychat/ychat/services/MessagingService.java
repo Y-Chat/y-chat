@@ -31,7 +31,10 @@ public class MessagingService {
 
     private final Random random = new Random();
 
-    public MessagingService(@Autowired ChatMessageRepository messageRepository, @Autowired NotificationServiceConnector notificationServiceConnector){
+    public MessagingService(
+            @Autowired ChatMessageRepository messageRepository,
+            @Autowired NotificationServiceConnector notificationServiceConnector
+    ){
         this.messageRepository = messageRepository;
         this.notificationServiceConnector = notificationServiceConnector;
     }
@@ -60,10 +63,7 @@ public class MessagingService {
         return Pair.of(Optional.of(res), pageRequest);
     }
 
-    public Optional<Message> sendMessage(Message message, UUID senderId) {
-        // TODO Check if senderId is part of chat
-        // TODO Check if mediaId is valid
-        // TODO Check if transactionId is valid
+    public Message sendMessage(Message message, UUID senderId) {
         com.ychat.ychat.models.Message newMessage = new com.ychat.ychat.models.Message(
                 UUID.randomUUID(),
                 senderId,
@@ -78,9 +78,10 @@ public class MessagingService {
         var notification = new Notification();
         var schema1 = new AnonymousSchema1();
         schema1.setChatId(newMessage.getChatId().toString());
+        schema1.setSenderId(newMessage.getSenderId().toString());
         notification.setNewMessage(schema1);
         notificationServiceConnector.onNotification(random.nextInt(), notification);
 
-        return Optional.of(newMessage.toOpenAPI());
+        return newMessage.toOpenAPI();
     }
 }

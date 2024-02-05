@@ -4,6 +4,7 @@ import com.openapi.gen.messaging.api.MessageApi;
 import com.openapi.gen.messaging.dto.Message;
 import com.ychat.ychat.SecurityConfig;
 import com.ychat.ychat.services.MessagingService;
+import com.ychat.ychat.services.SocialServiceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +24,18 @@ public class MessageController implements MessageApi {
 
     private final MessagingService messagingService;
 
-    public MessageController(@Autowired(required = true) MessagingService messagingService) {
+    private final SocialServiceConnector socialServiceConnector;
+
+    public MessageController(@Autowired MessagingService messagingService, @Autowired SocialServiceConnector socialServiceConnector) {
         this.messagingService = messagingService;
+        this.socialServiceConnector = socialServiceConnector;
     }
 
     @Override
     public ResponseEntity<Message> sendMessage(com.openapi.gen.messaging.dto.Message message) {
         var requesterId = SecurityConfig.getRequesterUUID();
-        // TODO Check with social service if user is allowed to access chat
+        if(!socialServiceConnector.canUserAccessChat(requesterId, message.getChatId())) return ResponseEntity.status(401).build();
         var res = messagingService.sendMessage(message, requesterId);
-        return res.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(500).build());
+        return ResponseEntity.ok(res);
     }
 }

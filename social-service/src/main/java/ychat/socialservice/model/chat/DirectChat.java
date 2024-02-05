@@ -2,7 +2,6 @@ package ychat.socialservice.model.chat;
 
 import jakarta.persistence.*;
 import lombok.NonNull;
-import ychat.socialservice.util.IllegalUserInputException;
 import ychat.socialservice.model.user.User;
 
 import java.util.*;
@@ -26,7 +25,7 @@ public class DirectChat extends Chat {
     public DirectChat(@NonNull User fstUser, @NonNull User sndUser) {
         super();
         if (fstUser.equals(sndUser)) {
-            throw new IllegalUserInputException(
+            throw new IllegalArgumentException(
                 "User is not allowed to have a direct chat with themselves: " + fstUser
             );
         }
@@ -37,31 +36,49 @@ public class DirectChat extends Chat {
 
     @Override
     public boolean toDeleteIfUserRemoved(User user) {
-        Optional<DirectChatMember> optionalDirectChatMember = getOtherMember(user);
-        if (optionalDirectChatMember.isEmpty())
-            return true;
-        DirectChatMember otherMember = optionalDirectChatMember.get();
+        DirectChatMember otherMember = getOtherMember(user);
+        if (otherMember == null) return true;
         return otherMember.getChatStatus() == ChatStatus.DELETED;
     }
 
-    public Optional<DirectChatMember> getMember(User user) {
-        for (DirectChatMember member : members) {
-            if (user.equals(member.getUser()))
-                return Optional.of(member);
-        }
-        return Optional.empty();
+    @Override
+    public boolean isMember(User user) {
+        if (user == null) return false;
+        DirectChatMember directChatMember = new DirectChatMember(
+            user, this, new UUID(0,0)
+        );
+        return members.contains(directChatMember);
     }
 
-    public Optional<DirectChatMember> getOtherMember(User user) {
+    @Override
+    public void removeMember(User user) {
+        if (user == null) return;
+        if (members.size() == 1) return;
+        DirectChatMember directChatMember = new DirectChatMember(
+            user, this, new UUID(0,0)
+        );
+        members.remove(directChatMember);
+    }
+
+    @Override
+    public DirectChatMember getMember(User user) {
+        for (DirectChatMember member : members) {
+            if (user.equals(member.getUser()))
+                return member;
+        }
+        return null;
+    }
+
+    public DirectChatMember getOtherMember(User user) {
         for (DirectChatMember member : members) {
             if (!user.equals(member.getUser()))
-                return Optional.of(member);
+                return member;
         }
-        return Optional.empty();
+        return null;
     }
 
     @Override
     public String toString() {
-        return "DirectChat{" + "id=" + getId() + ", members=" + members + '}';
+        return "DirectChat{" + "id=" + getId() + '}';
     }
 }

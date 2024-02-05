@@ -1,27 +1,23 @@
 package ychat.socialservice.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ychat.socialservice.SecurityConfig;
 import ychat.socialservice.service.dto.ChatMemberDTO;
 import ychat.socialservice.service.dto.GroupProfileDTO;
-import ychat.socialservice.model.util.CreateDTO;
-import ychat.socialservice.model.util.UpdateDTO;
 import ychat.socialservice.service.dto.GroupDTO;
 import ychat.socialservice.model.group.GroupRole;
 import ychat.socialservice.service.GroupService;
-import ychat.socialservice.util.IllegalUserInputException;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/groups")
 @ResponseStatus(HttpStatus.OK)
-@Validated
 @Tag(
     name = "Groups Endpoint",
     description = "Manage groups, a collection of users with a chat. In reality, a group is also " +
@@ -35,14 +31,15 @@ public class GroupController {
         this.groupService = groupService;
     }
 
-    // Group start -----------------------------------------------------------------------------
+    // Group start ---------------------------------------------------------------------------------
     @GetMapping("/{groupId}")
     @Operation(
         summary = "Fetch the information about a group.",
         description = "Returns the group id and group profile."
     )
-    public GroupDTO getGroup(@PathVariable @NotNull UUID groupId) {
-        return groupService.getGroup(groupId);
+    public GroupDTO getGroup(@PathVariable UUID groupId) {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        return groupService.getGroup(groupId, requestUserId);
     }
 
     @PostMapping
@@ -54,10 +51,9 @@ public class GroupController {
                       "provided a default description will be set. Picture id is optional. " +
                       "Returns the same structure as getGroup."
     )
-    public GroupDTO createGroup(
-        @RequestParam @NotNull UUID userId,
-        @RequestBody @Validated(CreateDTO.class) GroupProfileDTO groupProfileDTO
-    ) {
+    public GroupDTO createGroup(@RequestParam UUID userId,
+                                @RequestBody GroupProfileDTO groupProfileDTO) {
+        SecurityConfig.verifyUserAccess(userId);
         return groupService.createGroup(userId, groupProfileDTO);
     }
     // Group end -----------------------------------------------------------------------------------
@@ -68,8 +64,9 @@ public class GroupController {
         summary = "Fetch the group profile for a given group.",
         description = "All returned fields are populated. RemoveProfilePictureId is null."
     )
-    public GroupProfileDTO getGroupProfile(@PathVariable @NotNull UUID groupId) {
-        return groupService.getGroupProfile(groupId);
+    public GroupProfileDTO getGroupProfile(@PathVariable UUID groupId) {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        return groupService.getGroupProfile(groupId, requestUserId);
     }
 
     @PatchMapping("/{groupId}/profile")
@@ -78,15 +75,10 @@ public class GroupController {
         description = "All given fields are updated. To remove the profilePictureId, set the " +
                       "field to null and removeProfilePictureId to true."
     )
-    public GroupProfileDTO updateGroupProfile(
-        @PathVariable @NotNull UUID groupId,
-        @RequestBody @Validated(UpdateDTO.class) GroupProfileDTO groupProfileDTO
-    ) {
-        if (groupProfileDTO.removeProfilePictureId() && groupProfileDTO.profilePictureId() != null)
-            throw new IllegalUserInputException(
-                "It is not allowed to set both profilePictureId and removeProfilePicture."
-            );
-        return groupService.updateGroupProfile(groupId, groupProfileDTO);
+    public GroupProfileDTO updateGroupProfile(@PathVariable UUID groupId,
+                                              @RequestBody GroupProfileDTO groupProfileDTO) {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        return groupService.updateGroupProfile(groupId, groupProfileDTO, requestUserId);
     }
     // Profile start -------------------------------------------------------------------------------
 
@@ -94,25 +86,34 @@ public class GroupController {
 
     // All members can be fetched in the chat endpoint
 
-    @PostMapping("/{groupId}/members")
+    @PostMapping("/{groupId}/member")
     @Operation(
         summary = "Add a new user to the group.",
         description = "The new user is added as a GROUP_MEMBER. One cannot add someone who is " +
                       "already part of the group. Returns the same object as getChatMember."
     )
-    public ChatMemberDTO addGroupMember(@PathVariable @NotNull UUID groupId,
-                                        @RequestParam @NotNull UUID userId) {
-        return groupService.addGroupMember(groupId, userId);
+    public ChatMemberDTO addGroupMember(@PathVariable UUID groupId, @RequestParam UUID userId) {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        return groupService.addGroupMember(groupId, userId, requestUserId);
+    }
+
+    @PostMapping("/{groupId}/members")
+    public ChatMemberDTO[] addGroupMembers(@PathVariable UUID groupId, @RequestBody String[] emails) throws FirebaseAuthException {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        return groupService.addGroupMembers(groupId, emails, requestUserId);
     }
 
     @DeleteMapping("/{groupId}/members")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
         summary = "Remove a member from a group.",
-        description = "One cannot remove someone who is not a member of the group."
+        description = "One cannot remove someone who is not a member of the group. If the last " +
+                      "admin of the group removes themselves, another member is promoted to " +
+                      "admin at random."
     )
-    public void removeGroupMember(@PathVariable @NotNull UUID groupId,
-                                  @RequestParam @NotNull UUID userId) {
-        groupService.removeGroupMember(groupId, userId);
+    public void removeGroupMember(@PathVariable UUID groupId, @RequestParam UUID userId) {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        groupService.removeGroupMember(groupId, userId, requestUserId);
     }
 
     @GetMapping("/{groupId}/members/{userId}/role")
@@ -120,9 +121,10 @@ public class GroupController {
         summary = "Fetch the role of a user for a group.",
         description = "If the user is not part of the group, NOT_A_MEMBER is returned."
     )
-    public GroupRole getGroupRole(@PathVariable @NotNull UUID groupId,
-                                  @PathVariable @NotNull UUID userId) {
-        return groupService.getGroupRole(groupId, userId);
+    public GroupRole getGroupRole(@PathVariable UUID groupId,
+                                  @PathVariable UUID userId) {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        return groupService.getGroupRole(groupId, userId, requestUserId);
     }
 
     @PatchMapping("/{groupId}/members/{userId}/role")
@@ -130,12 +132,14 @@ public class GroupController {
         summary = "Update the role of a group member for a group.",
         description = "One cannot update the role of a user who is not in the group. This " +
                       "endpoint cannot be used to remove someone from a group. NOT_A_MEMBER is " +
-                      "not a valid value for this endpoint."
+                      "not a valid value for this endpoint. The requesting user must be an admin " +
+                      "of the group to perform this action. There always must be at least one " +
+                      "admin in a group."
     )
-    public GroupRole updateGroupRole(@PathVariable @NotNull UUID groupId,
-                                @PathVariable @NotNull UUID userId,
-                                @RequestBody @NotNull GroupRole groupRole) {
-        return groupService.updateGroupRole(groupId, userId, groupRole);
+    public GroupRole updateGroupRole(@PathVariable UUID groupId, @PathVariable UUID userId,
+                                     @RequestBody GroupRole groupRole) {
+        UUID requestUserId = SecurityConfig.getRequesterUUID();
+        return groupService.updateGroupRole(groupId, userId, groupRole, requestUserId);
     }
     // Members end ---------------------------------------------------------------------------------
 }

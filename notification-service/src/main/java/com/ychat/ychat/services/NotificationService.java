@@ -4,6 +4,7 @@ import com.asyncapi.gen.notification.model.Notification;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.openapi.gen.social.dto.ChatMemberDTO;
 import com.ychat.ychat.enums.NotificationTypeEnum;
 import com.ychat.ychat.models.UserFirebaseTokenMapping;
 import com.ychat.ychat.repositories.UserFirebaseTokenMappingRepository;
@@ -25,8 +26,13 @@ public class NotificationService {
 
     private final UserFirebaseTokenMappingRepository userFirebaseTokenMappingRepository;
 
-    public NotificationService(@Autowired UserFirebaseTokenMappingRepository userFirebaseTokenMappingRepository) {
+    private final SocialServiceConnector socialServiceConnector;
+
+    public NotificationService(
+            @Autowired UserFirebaseTokenMappingRepository userFirebaseTokenMappingRepository,
+            @Autowired SocialServiceConnector socialServiceConnector) {
         this.userFirebaseTokenMappingRepository = userFirebaseTokenMappingRepository;
+        this.socialServiceConnector = socialServiceConnector;
     }
 
     public void updateToken(UUID userId, String token) {
@@ -92,29 +98,37 @@ public class NotificationService {
                 data.put("chat-id", notification.getNewMessage().getChatId());
                 messageBuilder.putAllData(data);
 
-                // TODO Remove mock - Query all users for the chat from social service until social service is ready
-                var benStrUUID = UUID.fromString("b52684f9-724b-3e55-8581-f581030b9ccb");
-                var benROutlook = UUID.fromString("3471078e-3e20-3a75-a169-78317f552de1");
-                var benExampleCo = UUID.fromString("384d1c62-f466-3511-8286-5762dbf3fd70");
-                var beloln = UUID.fromString("a3fbd22e-993e-3ccf-a6a4-3e4898437e56");
-                var benExampleCom = UUID.fromString("25e65ec0-8736-39ba-87d7-092b6e91dc1f");
-                UUID[][] paginatedChatUUIDs = {{benStrUUID, benROutlook, benExampleCo, beloln, benExampleCom} };
+                var pageSize = 10;
+                var currentPageNumber = 0;
+                var currentPage = socialServiceConnector.getChatMembersInternal(
+                        UUID.fromString(notification.getNewMessage().getChatId()),
+                        new com.openapi.gen.social.dto.Pageable().page(currentPageNumber).size(pageSize)
+                );
 
-                for(UUID[] page: paginatedChatUUIDs) {
-                    for(UUID userUUID: page) {
-                        sendNotificationToUser(userUUID, messageBuilder, staleTokens);
+                while(currentPageNumber == 0 || currentPage.getChatMembers().size() >= pageSize) {
+                    for(ChatMemberDTO user: currentPage.getChatMembers()) {
+                        if(user.getUserId().toString().equals(notification.getNewMessage().getSenderId())) continue;
+                        sendNotificationToUser(user.getUserId(), messageBuilder, staleTokens);
                     }
                     removeStaleTokens(staleTokens);
+                    staleTokens.clear();
+                    currentPageNumber += 1;
+                    if(currentPage.getChatMembers().size() >= pageSize) {
+                        currentPage = socialServiceConnector.getChatMembersInternal(
+                                UUID.fromString(notification.getNewMessage().getChatId()),
+                                new com.openapi.gen.social.dto.Pageable().page(currentPageNumber).size(pageSize)
+                        );
+                    }
                 }
             }
             case MEDIA_UPLOADED -> {
-                // TODO
+                // Will not be implemented for now
             }
             case TRANSACTION_COMPLETE -> {
-                // TODO
+                // Will not be implemented for now
             }
             case UPDATED_MESSAGE -> {
-                // TODO
+                // Will not be implemented for now
             }
             case SIGNALING_NEW_OFFER -> {
                 data.put("offer-sdp", notification.getSignalingNewOffer().getOffer().getSdp());
@@ -196,6 +210,7 @@ public class NotificationService {
             }
 
             removeStaleTokens(staleTokens);
+            staleTokens.clear();
 
             lastPageSize = mappings.getContent().size();
             pageable = pageable.next();

@@ -8,8 +8,8 @@ import ychat.socialservice.model.user.BlockedUser;
 import ychat.socialservice.model.user.User;
 import ychat.socialservice.model.user.UserProfile;
 import ychat.socialservice.model.user.UserSettings;
-
-import java.util.Optional;
+import ychat.socialservice.repository.DirectChatRepository;
+import ychat.socialservice.repository.GroupRepository;
 
 public class DTOConverter {
     // User start ----------------------------------------------------------------------------------
@@ -23,9 +23,10 @@ public class DTOConverter {
 
     public static UserProfile convertToEntity(UserProfileDTO userProfileDTO) {
         UserProfile userProfile = new UserProfile(
-            userProfileDTO.firstName(), userProfileDTO.lastName(),
-            userProfileDTO.profileDescription()
+            userProfileDTO.firstName(),
+            userProfileDTO.lastName()
         );
+        userProfile.setProfileDescription(userProfile.getProfileDescription());
         userProfile.setProfilePictureId(userProfileDTO.profilePictureId());
         return userProfile;
     }
@@ -59,10 +60,8 @@ public class DTOConverter {
     }
 
     public static GroupProfile convertToEntity(GroupProfileDTO groupProfileDTO) {
-        GroupProfile groupProfile = new GroupProfile(
-            groupProfileDTO.groupName(),
-            groupProfileDTO.profileDescription()
-        );
+        GroupProfile groupProfile = new GroupProfile(groupProfileDTO.groupName());
+        groupProfile.setProfileDescription(groupProfileDTO.profileDescription());
         groupProfile.setProfilePictureId(groupProfileDTO.profilePictureId());
         return groupProfile;
     }
@@ -74,25 +73,22 @@ public class DTOConverter {
 
     // Chat start ----------------------------------------------------------------------------------
     public static ChatDTO convertToDTO(DirectChat directChat, User user) {
-        Optional<DirectChatMember> optionalDirectChatMember = directChat.getOtherMember(user);
-        if (optionalDirectChatMember.isEmpty()) {
-            optionalDirectChatMember = directChat.getMember(user);
-            if (optionalDirectChatMember.isEmpty())
-                throw new IllegalArgumentException("Convert to ChatDTO called with bad member.");
-            DirectChatMember member = optionalDirectChatMember.get();
+        DirectChatMember otherMember = directChat.getOtherMember(user);
+        if (otherMember == null) {
+            DirectChatMember member = directChat.getMember(user);
             return new ChatDTO(
                 directChat.getId(),
                 member.getOtherUserId(),
                 null
             );
+        } else {
+            User otherUser = otherMember.getUser();
+            return new ChatDTO(
+                directChat.getId(),
+                otherUser.getId(),
+                convertToDTO(otherUser.getUserProfile())
+            );
         }
-        DirectChatMember otherMember = optionalDirectChatMember.get();
-        User otherUser = otherMember.getUser();
-        return new ChatDTO(
-            directChat.getId(),
-            otherUser.getId(),
-            convertToDTO(otherUser.getUserProfile())
-        );
     }
 
     public static ChatDTO convertToChatDTO(Group group) {
@@ -102,9 +98,17 @@ public class DTOConverter {
         );
     }
 
-    public static ChatDTO convertToDTO(Chat chat, User user) {
-        return chat.getClass() == DirectChat.class
-                ? convertToDTO((DirectChat) chat, user) : convertToChatDTO((Group) chat);
+    public static ChatDTO convertToDTO(Chat chat, User user, GroupRepository groupRepo, DirectChatRepository directChatRepo) {
+        // Workaround for broken data model:
+        var directChat = directChatRepo.findById(chat.getId());
+        var groupChat = groupRepo.findById(chat.getId());
+        if(directChat.isPresent()) {
+            return convertToDTO(directChat.get(), user);
+        } else if (groupChat.isPresent()) {
+            return convertToChatDTO(groupChat.get());
+        } else {
+            throw new RuntimeException("Found chat that is neither directchat nor group chat. Invariant broken");
+        }
     }
 
     public static ChatMemberDTO convertToDTO(DirectChatMember directChatMember) {

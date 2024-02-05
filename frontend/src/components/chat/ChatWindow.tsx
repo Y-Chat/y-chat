@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Chat} from "../../model/Chat";
 import {useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
@@ -7,6 +7,9 @@ import {IconUser, IconUsersGroup, IconVideo} from "@tabler/icons-react";
 import MessageList from "./MessageList";
 import ChatTextArea from "./ChatTextArea";
 import {useCallingStore} from "../../state/callingStore";
+import {api} from "../../network/api";
+import {useUserStore} from "../../state/userStore";
+import {PageChatMemberDTO} from "../../api-wrapper";
 
 interface ChatWindowProps {
     chat: Chat
@@ -15,6 +18,19 @@ interface ChatWindowProps {
 export function ChatWindow({chat}: ChatWindowProps) {
     const {setHeader} = useOutletContext<ShellOutletContext>();
     const startCall = useCallingStore((state) => state.startCall);
+    const user = useUserStore((state) => state.user)!;
+    const [chatMembersFirstPage, setChatMembersFirstPage] = useState<PageChatMemberDTO | null>(null)
+
+    useEffect(() => {
+        api.getChatMembers({chatId: chat.id, userId: user.id, pageable: {page: 0, size: 10}})
+            .then((x) => {
+                setChatMembersFirstPage(x)
+            })
+            .catch((err) => {
+                console.error(err);
+                return null;
+            })
+    }, []);
 
     useEffect(() => {
         setHeader(
@@ -40,15 +56,18 @@ export function ChatWindow({chat}: ChatWindowProps) {
                 </Group>
 
                 <Container style={{flexGrow: 0}}>
-                    <ActionIcon variant="transparent" c="lightgray">
+                    <ActionIcon variant="transparent" c="lightgray" disabled={(chatMembersFirstPage?.content?.length ?? 0) > 2}>
                         {chat?.email ? <IconVideo onClick={() => {
-                            startCall("2e0c5f8f-c782-394f-9388-52000aae64cf")
+                            const otherMember = chatMembersFirstPage?.content?.find((x) => x.userId !== user.id);
+                            if(otherMember) {
+                                startCall(otherMember.userId)
+                            }
                         }}/> : undefined}
                     </ActionIcon>
                 </Container>
             </>
         );
-    }, [chat]);
+    }, [chat, chatMembersFirstPage, startCall, user, setHeader]);
 
     return (
         <>

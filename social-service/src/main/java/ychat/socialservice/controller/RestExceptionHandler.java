@@ -1,11 +1,13 @@
 package ychat.socialservice.controller;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -19,7 +21,11 @@ import ychat.socialservice.util.LimitReachedException;
  */
 @RestControllerAdvice
 public class RestExceptionHandler {
-    @ExceptionHandler({IllegalUserInputException.class, MethodArgumentNotValidException.class})
+    @ExceptionHandler({
+        IllegalUserInputException.class,
+        MethodArgumentNotValidException.class,
+        FirebaseAuthException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ApiResponse(description = "Illegal user input", responseCode = "400", content = {
         @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
@@ -52,6 +58,15 @@ public class RestExceptionHandler {
         @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
     })
     public String handleLimitReachedException(LimitReachedException e) {
+        return e.getMessage();
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ApiResponse(description = "Access denied", responseCode = "403", content = {
+        @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+    })
+    public String handleAccessDeniedException(AccessDeniedException e) {
         return e.getMessage();
     }
 

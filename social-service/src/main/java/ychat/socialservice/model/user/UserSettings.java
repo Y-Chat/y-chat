@@ -13,11 +13,9 @@ public class UserSettings {
     private boolean readReceipts;
     private boolean lastSeen;
 
-    protected UserSettings() {} // Required by JPA
-
-    public UserSettings(Boolean readReceipts, Boolean lastSeen) {
-        this.readReceipts = readReceipts != null ? readReceipts : true;
-        this.lastSeen = lastSeen != null ? lastSeen : true;
+    public UserSettings() {
+        this.readReceipts = true;
+        this.lastSeen = true;
     }
 
     public boolean isReadReceipts() {

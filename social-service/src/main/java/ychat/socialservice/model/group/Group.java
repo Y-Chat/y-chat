@@ -32,7 +32,6 @@ public class Group extends Chat {
     public Group(@NonNull User initUser, @NonNull GroupProfile groupProfile) {
         super();
         this.groupProfile = groupProfile;
-
         GroupMember initGroupMember = new GroupMember(initUser, this);
         initGroupMember.setGroupRole(GroupRole.GROUP_ADMIN);
         this.groupMembers = new HashSet<>();
@@ -41,7 +40,46 @@ public class Group extends Chat {
 
     @Override
     public boolean toDeleteIfUserRemoved(User user) {
-        return groupMembers.size() == 1 && isGroupMember(user);
+        return groupMembers.size() == 1 && isMember(user);
+    }
+
+    @Override
+    public boolean isMember(User user) {
+        if (user == null) return false;
+        GroupMember groupMember = new GroupMember(user, this);
+        return groupMembers.contains(groupMember);
+    }
+
+    public int getNumberOfAdmins() {
+        int count = 0;
+        for (GroupMember groupMember : groupMembers) {
+            if (groupMember.getGroupRole() == GroupRole.GROUP_ADMIN)
+                count++;
+        }
+        return count;
+    }
+
+    @Override
+    public void removeMember(User user) {
+        if (user == null) return;
+        if (groupMembers.size() == 1) return;
+        GroupMember removeGroupMember = new GroupMember(user, this);
+        groupMembers.remove(removeGroupMember);
+        if (getNumberOfAdmins() == 0) {
+            for (GroupMember groupMember : groupMembers) {
+                groupMember.setGroupRole(GroupRole.GROUP_ADMIN);
+                break;
+            }
+        }
+    }
+
+    @Override
+    public GroupMember getMember(User user) {
+        for (GroupMember groupMember : groupMembers) {
+            if (groupMember.getUser().equals(user))
+                return groupMember;
+        }
+        return null;
     }
 
     public GroupProfile getGroupProfile() {
@@ -49,11 +87,6 @@ public class Group extends Chat {
     }
 
     // One can fetch members via the GroupMemberRepository
-
-    public boolean isGroupMember(User user) {
-        if (user == null) return false;
-        return groupMembers.contains(new GroupMember(user, this));
-    }
 
     public GroupMember addGroupMember(User user) {
         if (user == null) return null;
@@ -65,12 +98,6 @@ public class Group extends Chat {
         GroupMember groupMember = new GroupMember(user, this);
         groupMembers.add(groupMember);
         return groupMember;
-    }
-
-    public void removeGroupMember(User user) {
-        if (user == null) return;
-        GroupMember groupMember = new GroupMember(user, this);
-        groupMembers.remove(groupMember);
     }
 
     // hashCode and equals work on the id in the superclass

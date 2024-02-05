@@ -21,7 +21,13 @@ export function NewDirectChat({email}: NewDirectChatProps) {
             onClick={async () => {
                 setIsLoading(true);
                 try {
-                    const chat = await api.createDirectChat({userId: user.id, otherUserId: email}) // TODO API must accept email instead of uid!
+                    const userId = await api.getUserIdByEmail({email: email})
+                    // Error is caught further down & displays error msg
+                    /*.catch((err) => {
+                        console.error(err);
+                        return null;
+                    })*/
+                    const chat = await api.createDirectChat({userId: user.id, otherUserId: userId}) // TODO API must accept email instead of uid!
                     await fetchChats();
                 } catch (err) {
                     // TODO handle err

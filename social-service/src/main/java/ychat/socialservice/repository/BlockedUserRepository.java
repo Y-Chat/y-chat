@@ -9,10 +9,11 @@ import ychat.socialservice.model.user.BlockedUserId;
 import ychat.socialservice.model.user.User;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface BlockedUserRepository extends JpaRepository<BlockedUser, BlockedUserId> {
-    Page<BlockedUser> findAllByFromUser(User fromuser, Pageable pageable);
+    Page<BlockedUser> findAllByFromUserId(UUID fromUserId, Pageable pageable);
 
-    Optional<BlockedUser> findByFromUserAndToUser(User fromUser, User toUser);
+    Optional<BlockedUser> findByFromUserIdAndToUserId(UUID fromUserId, UUID toUserId);
 }
