@@ -78,6 +78,7 @@ public class MessagingService {
         var notification = new Notification();
         var schema1 = new AnonymousSchema1();
         schema1.setChatId(newMessage.getChatId().toString());
+        schema1.setSenderId(newMessage.getSenderId().toString());
         notification.setNewMessage(schema1);
         notificationServiceConnector.onNotification(random.nextInt(), notification);
 
