@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {BrowserRouter as Router, Route, Routes, useNavigate} from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import {LoadingOverlay, MantineProvider} from "@mantine/core";
 import {useUserStore} from "../state/userStore";
 import AuthMain from "./auth/AuthMain";
@@ -30,14 +30,20 @@ function App() {
     const [firebaseUser, loading] = useAuthState(auth);
     const user = useUserStore((state) => state.user);
     const primaryColor = useSettingsStore((state) => state.primaryColor);
-
     // otherwise show how to install instruction
-    const showApp = (window.matchMedia('(display-mode: standalone)').matches && isMobile) || process.env.NODE_ENV == "development" || true // TODO remove true when actually in prod
+    const showAppInstructions = (isMobile && !window.matchMedia('(display-mode: standalone)').matches) && process.env.NODE_ENV !== "development"
 
-	useEffect(() => {
+    useEffect(() => {
+        const channel4Broadcast = new BroadcastChannel('channel4');
+        channel4Broadcast.onmessage = (event) => {
+            //value = event.data.key;
+        }
+    }, []);
+
+    useEffect(() => {
         const messaging = getMessaging(firebaseApp);
 
-        if(auth.currentUser === null) return;
+        if (auth.currentUser === null) return;
 
         auth.currentUser?.getIdToken().then((accessToken) => {
             return accessToken;
@@ -61,7 +67,7 @@ function App() {
 
     return (
         <MantineProvider theme={{primaryColor}} defaultColorScheme="dark" forceColorScheme="dark">
-            {showApp ?
+            {!showAppInstructions ?
                 <>
                     <PermissionsModal/>
                     <Notifications zIndex={10000} autoClose={5000} position="top-right"/>

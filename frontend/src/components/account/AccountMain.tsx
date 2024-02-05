@@ -22,12 +22,13 @@ import {IconCheck, IconLogout, IconUpload, IconX} from "@tabler/icons-react";
 import {Dropzone, IMAGE_MIME_TYPE} from "@mantine/dropzone";
 import {signOut} from "firebase/auth";
 import auth from "../../firebase/auth";
-import {getImageUrl, uploadImage} from "../../network/media";
+import {uploadImage} from "../../network/media";
 import {api} from "../../network/api";
 import {useNavigate, useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
 import {useSettingsStore} from "../../state/settingsStore";
 import {showErrorNotification} from "../../notifications/notifications";
+import {useImagesStore} from "../../state/imagesStore";
 
 export function AccountMain() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -37,10 +38,11 @@ export function AccountMain() {
     const fbUser = auth.currentUser!
     const setUser = useUserStore((state) => state.setUser);
     const setPrimaryColor = useSettingsStore((state) => state.setPrimaryColor);
-    const [userProfilePictureURL, setUserProfilePictureURL] = useState<string | null>(null);
     const navigate = useNavigate();
     const {setHeader} = useOutletContext<ShellOutletContext>();
     const theme = useMantineTheme();
+    const avatarUrl = useImagesStore(state => state.cachedImages[user.profilePictureId || ""])
+    const fetchImageUrl = useImagesStore(state => state.fetchImageUrl)
 
     const form = useForm({
         initialValues: {
@@ -49,18 +51,14 @@ export function AccountMain() {
             lastName: user?.lastName,
         },
 
-        validate: {
-            //password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
-        },
+        validate: {},
     });
 
     useEffect(() => {
         if (user.profilePictureId) {
-            getImageUrl(user.profilePictureId).then(url => {
-                setUserProfilePictureURL(url);
-            })
+            fetchImageUrl(user.profilePictureId);
         }
-    }, [user.profilePictureId])
+    }, [user]);
 
     useEffect(() => {
         setHeader(
@@ -73,12 +71,18 @@ export function AccountMain() {
     async function updateUser() {
         setUpdatingUser(true);
         try {
-            await api.updateUserProfile({
+            const updates = await api.updateUserProfile({
                 userId: user.id, userProfileDTO: {
                     firstName: form.values.firstName,
                     lastName: form.values.lastName,
                 }
             });
+            const newUser = {
+                ...user,
+                firstName: updates.firstName,
+                lastName: updates.lastName
+            }
+            setUser(newUser);
         } catch (err) {
             showErrorNotification("An error occurred while updating your user details.", "Error Updating Details");
             setUpdatingUser(false);
@@ -156,7 +160,7 @@ export function AccountMain() {
                                 </Dropzone.Reject>
                                 <Dropzone.Idle>
                                     <Avatar
-                                        src={userProfilePictureURL}
+                                        src={avatarUrl?.url}
                                         size={120}/>
                                 </Dropzone.Idle>
                             </Group>
@@ -251,6 +255,7 @@ export function AccountMain() {
                             signOut(auth).then(() => {
                                 setLogoutLoading(false);
                                 setUser(null);
+                                localStorage.clear();
                                 navigate("/");
                             }).catch(() => {
                                 setLogoutLoading(false);

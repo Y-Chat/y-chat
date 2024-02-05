@@ -5,18 +5,22 @@ import {api} from "../../network/api";
 import {useUserStore} from "../../state/userStore";
 import {useChatsStore} from "../../state/chatsStore";
 import {showErrorNotification} from "../../notifications/notifications";
+import {useNavigate} from "react-router-dom";
 
 interface NewDirectChatProps {
     email: string
 }
 
 export function NewDirectChat({email}: NewDirectChatProps) {
-    const [isLoading, setIsLoading] = useState(false)
-    const isValidEmail = /^\S+@\S+$/.test(email) || true // TODO enable valid mail check again if social service endpoint ist fixed.
-    const user = useUserStore(state => state.user)!
-    const fetchChats = useChatsStore(state => state.fetchChats)
+    const [isLoading, setIsLoading] = useState(false);
+    const isValidEmail = /^\S+@\S+$/.test(email);
+    const user = useUserStore(state => state.user)!;
+    const fetchChats = useChatsStore(state => state.fetchChats);
+    const navigate = useNavigate()
+
     return (
         <ActionIcon
+            disabled={!isValidEmail}
             loading={isLoading}
             onClick={async () => {
                 setIsLoading(true);
@@ -27,11 +31,12 @@ export function NewDirectChat({email}: NewDirectChatProps) {
                         console.error(err);
                         return null;
                     })*/
-                    const chat = await api.createDirectChat({userId: user.id, otherUserId: userId}) // TODO API must accept email instead of uid!
+                    const chat = await api.createDirectChat({userId: user.id, otherUserId: userId})
+                    navigate(`/chat/${chat.chatId}`);
                     await fetchChats();
                 } catch (err) {
                     // TODO handle err
-                    showErrorNotification("It seems like the email you entered is not registered in our system.","User not found"); // ignore other errors for now
+                    showErrorNotification("It seems like the email you entered is not registered in our system.", "User not found"); // ignore other errors for now
                     setIsLoading(false);
                 }
                 setIsLoading(false);

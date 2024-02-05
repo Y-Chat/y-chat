@@ -20,6 +20,7 @@ export function PermissionsModal() {
 
     return (
         <Modal
+            zIndex={10000}
             overlayProps={{backgroundOpacity: 0.5, blur: 4}}
             centered
             closeOnEscape={false}

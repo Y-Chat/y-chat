@@ -19,11 +19,11 @@ export function ChatsList({toggleNav}: ContactListProps) {
     function filterData() {
         const query = search.toLowerCase().trim();
         const filtered = chats.filter((item) => {
-                return (item.name + item.email).toLowerCase().includes(query)
+                return item.name.toLowerCase().includes(query);
             }
         );
-        filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
-        setSortedChats(filtered);
+        const sorted = filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
+        setSortedChats(sorted);
     }
 
     useEffect(() => {
