@@ -5,6 +5,7 @@ import lombok.NonNull;
 import ychat.socialservice.model.chat.Chat;
 import ychat.socialservice.model.chat.ChatMember;
 import ychat.socialservice.model.user.User;
+import ychat.socialservice.repository.GroupRepository;
 
 /**
  * Models the many-to-many relationship between users and groups. This entity is owned by the group.
@@ -22,8 +23,17 @@ public class GroupMember extends ChatMember {
         this.groupRole = GroupRole.GROUP_MEMBER;
     }
 
+    // How has this ever worked???
     public Group getGroup() {
         return (Group) getChat();
+    }
+
+    // Workaround for broken data model
+    public Group getGroupFixed(GroupRepository groupRepository) {
+        var chat = getChat();
+        var group = groupRepository.findById(chat.getId());
+        if(group.isEmpty()) throw new RuntimeException("Chat of of group member is not a Group. Invariant broken");
+        return group.get();
     }
 
     public GroupRole getGroupRole() {

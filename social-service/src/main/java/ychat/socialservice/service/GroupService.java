@@ -59,7 +59,7 @@ public class GroupService {
     // Group start ---------------------------------------------------------------------------------
     public GroupDTO getGroup(@NotNull UUID groupId, @NotNull UUID requestUserId) {
         GroupMember groupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
-        Group group = groupMember.getGroup();
+        Group group = groupMember.getGroupFixed(groupRepo);
         return DTOConverter.convertToDTO(group);
     }
 
@@ -79,7 +79,7 @@ public class GroupService {
     // Profiles start ------------------------------------------------------------------------------
     public GroupProfileDTO getGroupProfile(@NotNull UUID groupId, @NotNull UUID requestUserId) {
         GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
-        Group group = requestGroupMember.getGroup();
+        Group group = requestGroupMember.getGroupFixed(groupRepo);
         return DTOConverter.convertToDTO(group.getGroupProfile());
     }
 
@@ -101,7 +101,7 @@ public class GroupService {
                 requestUserId + " is not a admin of " + groupId + "."
             );
         }
-        Group group = groupMember.getGroup();
+        Group group = groupMember.getGroupFixed(groupRepo);
         GroupProfile groupProfile = group.getGroupProfile();
         groupProfile.setGroupName(groupProfileDTO.groupName());
         if (groupProfileDTO.removeProfilePictureId() != null
@@ -121,7 +121,7 @@ public class GroupService {
         GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
         if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
             throw new IllegalUserInputException(requestUserId + " is not an admin of " + groupId + ".");
-        Group group = requestGroupMember.getGroup();
+        Group group = requestGroupMember.getGroupFixed(groupRepo);
         User user = userService.findUserByIdOrThrow(userId);
         if (group.isMember(user)) {
             throw new IllegalUserInputException(
@@ -158,7 +158,7 @@ public class GroupService {
         GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
         if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
             throw new IllegalUserInputException(userId + " is not a admin of " + groupId + ".");
-        Group group = requestGroupMember.getGroup();
+        Group group = requestGroupMember.getGroupFixed(groupRepo);
         User user = userService.findUserByIdOrThrow(userId);
         if (!group.isMember(user)) {
             throw new IllegalUserInputException(
@@ -192,7 +192,7 @@ public class GroupService {
         if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
             throw new IllegalUserInputException(userId + " is not a admin of " + groupId + ".");
         GroupMember groupMember = findGroupMemberByIdsOrThrow(userId, groupId);
-        if (groupRole != GroupRole.GROUP_ADMIN && groupMember.getGroup().getNumberOfAdmins() == 1
+        if (groupRole != GroupRole.GROUP_ADMIN && groupMember.getGroupFixed(groupRepo).getNumberOfAdmins() == 1
             && userId == requestUserId) {
             throw new IllegalUserInputException(
                 requestUserId + " cannot demote yourself, when you are the last admin of "
