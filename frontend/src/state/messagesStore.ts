@@ -38,7 +38,7 @@ export const useMessagesStore = create<MessagesState>()(
                     let d: Date;
                     const pageSize = 10;
 
-                    if (currentMessages.length == 0) {
+                    if (currentMessages.length === 0) {
                         // if we have no messages in the storage we have no entry date to fetch from.
                         // -> We can only use the current time and fetch a few messages into the past
                         d = new Date();
@@ -46,7 +46,7 @@ export const useMessagesStore = create<MessagesState>()(
                         untilEnd = false
                     } else {
                         // otherwise use the date from either the last or first message, we have, and fetch into the past or future
-                        d = direction == "PAST" ? new Date(currentMessages[currentMessages.length - 1].date) : new Date(currentMessages[0].date);
+                        d = direction === "PAST" ? new Date(currentMessages[currentMessages.length - 1].date) : new Date(currentMessages[0].date);
                     }
 
                     let fetchedMessages: Message[] = []
@@ -76,7 +76,7 @@ export const useMessagesStore = create<MessagesState>()(
                             updatedMessages[chatId] = [...fetchedMessages, ...currentMessages];
                         }
                         set({messages: updatedMessages});
-                        return fetchedMessages.length % pageSize == 0
+                        return fetchedMessages.length % pageSize === 0
                     } else {
                         return false;
                     }
@@ -105,7 +105,7 @@ function transformMessage(msg: ApiMessage): Message {
         message: msg.message,
         amount: -1, // TODO payment not implemented
         mediaId: msg.mediaPath,
-        fromMe: msg.senderId == uid,
+        fromMe: msg.senderId === uid,
         status: "sent",
         date: msg.sentTimestamp,
     }

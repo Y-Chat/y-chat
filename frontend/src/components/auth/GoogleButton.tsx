@@ -71,7 +71,7 @@ export function GoogleButton({loadingState, setLoading, login}: GoogleButtonProp
                             login();
                             setLoading(false);
                         }).catch(err => {
-                            if (err.response.status && err.response.status == 409) {
+                            if (err.response.status && err.response.status === 409) {
                                 // then login because user existed already
                                 return login();
                             }

@@ -24,7 +24,7 @@ function AuthMain() {
                         firstName: user.userProfileDTO.firstName,
                         lastName: user.userProfileDTO.lastName,
                         email: fbUser.email!,
-                        profilePictureId: null,
+                        profilePictureId: user.userProfileDTO.profilePictureId || null,
                         balance: 1337
                     });
                     setUserLoading(false);

@@ -25,7 +25,11 @@ function MessageList({chatId}: MessageListProps) {
     }
 
     useEffect(() => {
-        fetchMoreMessagesByChat(chatId, "PAST", false).then(hasMore => setMoreMessagesToLoad(hasMore));
+        if (messages.length == 0) {
+            fetchMoreMessagesByChat(chatId, "PAST", false).then(more => setMoreMessagesToLoad(more));
+        } else {
+            fetchMoreMessagesByChat(chatId, "FUTURE", true);
+        }
     }, []);
 
     useEffect(() => {
@@ -99,6 +103,17 @@ function MessageList({chatId}: MessageListProps) {
                         paddingLeft: 16,
                         paddingRight: 16
                     }}
+                    pullDownToRefresh
+                    refreshFunction={async () => {
+                        await fetchMoreMessagesByChat(chatId, "FUTURE", true)
+                    }
+                    }
+                    pullDownToRefreshThreshold={50}
+                    releaseToRefreshContent={
+                        <Center>
+                            <Text>Release to refresh</Text>
+                        </Center>
+                    }
                 >
                     {messages.map((msg, i) =>
                         <MessageBubble key={i} message={msg}/>

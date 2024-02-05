@@ -5,7 +5,6 @@ import superjson from 'superjson';
 import {Chat} from "../model/Chat";
 import {ChatDTO} from "../api-wrapper";
 import {useUserStore} from "./userStore";
-import {Message} from "../model/Message";
 
 interface ChatsState {
     chats: Chat[],
@@ -58,7 +57,7 @@ export const useChatsStore = create<ChatsState>()(
                         const resp = await api.getAllChats({
                             userId: userId,
                             pageable: {
-                                size: 100 // TODO
+                                size: 100 // TODO social service paging does not work reliably atm. Fetch 100 for now
                             }
                         });
                         const chats = resp.content?.map(transformChat) || [];
@@ -84,19 +83,19 @@ function transformChat(apiChat: ChatDTO): Chat {
 
     if (apiChat.userProfileDTO) {
         name = `${apiChat.userProfileDTO.firstName} ${apiChat.userProfileDTO.lastName}`;
-        avatar = apiChat.userProfileDTO.profilePictureId; // TODO
+        avatar = apiChat.userProfileDTO.profilePictureId;
     } else if (apiChat.groupProfileDTO) {
         name = apiChat.groupProfileDTO.groupName;
-        avatar = apiChat.groupProfileDTO.profilePictureId; // TODO
+        avatar = apiChat.groupProfileDTO.profilePictureId;
     }
 
     return {
         id: apiChat.chatId,
-        avatar: null,
+        avatarId: avatar,
         name: name,
-        email: apiChat.chatType == "DIRECT_CHAT" ? "email@user.com" : undefined,
         newMessages: 1,
-        groupInfo: apiChat.groupProfileDTO ? {description: apiChat.groupProfileDTO.profileDescription || ""} : undefined,
+        userInfo: apiChat.userProfileDTO && {status: "Hey there, I'm using Y-Chat"},
+        groupInfo: apiChat.groupProfileDTO && {description: apiChat.groupProfileDTO.profileDescription || ""},
         archived: false,
         date: new Date(), // TODO calc date,
     };

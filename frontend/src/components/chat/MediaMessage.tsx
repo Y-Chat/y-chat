@@ -17,7 +17,7 @@ export function MediaMessage({message}: MediaMessageProps) {
         fetchImageUrl(message.mediaId!);
     }, []);
 
-    const imageElement = <Image loading={"lazy"} src={imageUrl?.url}/>
+    const imageElement = <Image src={imageUrl?.url}/>
     return (
         <>
             <Modal
