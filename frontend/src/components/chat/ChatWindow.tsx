@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Chat} from "../../model/Chat";
 import {useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
@@ -56,10 +56,11 @@ export function ChatWindow({chat}: ChatWindowProps) {
                 </Group>
 
                 <Container style={{flexGrow: 0}}>
-                    <ActionIcon variant="transparent" c="lightgray" disabled={(chatMembersFirstPage?.content?.length ?? 0) > 2}>
+                    <ActionIcon variant="transparent" c="lightgray"
+                                disabled={(chatMembersFirstPage?.content?.length ?? 0) > 2}>
                         {chat?.email ? <IconVideo onClick={() => {
                             const otherMember = chatMembersFirstPage?.content?.find((x) => x.userId !== user.id);
-                            if(otherMember) {
+                            if (otherMember) {
                                 startCall(otherMember.userId)
                             }
                         }}/> : undefined}

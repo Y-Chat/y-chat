@@ -12,11 +12,12 @@ interface NewDirectChatProps {
 
 export function NewDirectChat({email}: NewDirectChatProps) {
     const [isLoading, setIsLoading] = useState(false)
-    const isValidEmail = /^\S+@\S+$/.test(email) || true // TODO enable valid mail check again if social service endpoint ist fixed.
+    const isValidEmail = /^\S+@\S+$/.test(email)
     const user = useUserStore(state => state.user)!
     const fetchChats = useChatsStore(state => state.fetchChats)
     return (
         <ActionIcon
+            disabled={!isValidEmail}
             loading={isLoading}
             onClick={async () => {
                 setIsLoading(true);
@@ -27,11 +28,11 @@ export function NewDirectChat({email}: NewDirectChatProps) {
                         console.error(err);
                         return null;
                     })*/
-                    const chat = await api.createDirectChat({userId: user.id, otherUserId: userId}) // TODO API must accept email instead of uid!
+                    const chat = await api.createDirectChat({userId: user.id, otherUserId: userId})
                     await fetchChats();
                 } catch (err) {
                     // TODO handle err
-                    showErrorNotification("It seems like the email you entered is not registered in our system.","User not found"); // ignore other errors for now
+                    showErrorNotification("It seems like the email you entered is not registered in our system.", "User not found"); // ignore other errors for now
                     setIsLoading(false);
                 }
                 setIsLoading(false);

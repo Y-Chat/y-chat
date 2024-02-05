@@ -50,7 +50,6 @@ export function AccountMain() {
         },
 
         validate: {
-            //password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
         },
     });
 

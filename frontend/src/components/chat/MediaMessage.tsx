@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 import {Image, Modal, Text} from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
 import {Message} from "../../model/Message";
-import {getImageUrl} from "../../network/media";
+import {useImagesStore} from "../../state/imagesStore";
 
 interface MediaMessageProps {
     message: Message
@@ -10,18 +10,18 @@ interface MediaMessageProps {
 
 export function MediaMessage({message}: MediaMessageProps) {
     const [opened, {toggle}] = useDisclosure(false);
-    const [url, setUrl] = useState<string | null>(null);
-    const imageElement = <Image src={url}/>
+    const imageUrl = useImagesStore(state => state.cachedImages[message.mediaId!])
+    const fetchImageUrl = useImagesStore(state => state.fetchImageUrl)
 
     useEffect(() => {
-        getImageUrl(message.mediaId!).then(url => {
-            setUrl(url);
-        })
+        fetchImageUrl(message.mediaId!);
     }, []);
 
+    const imageElement = <Image loading={"lazy"} src={imageUrl?.url}/>
     return (
         <>
             <Modal
+                zIndex={9000}
                 centered
                 lockScroll
                 opened={opened}
