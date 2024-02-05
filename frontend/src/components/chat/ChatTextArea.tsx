@@ -36,12 +36,10 @@ function ChatTextArea({chatId}: ChatTextAreaProps) {
 
         try {
             if (image.file) {
-                //TODO insert chatID here!
                 msg.mediaPath = await uploadImage(image.file, `chats/${chatId}/${fbUser.uid}/${image.file.name}`);
             }
-            const m = await api.sendMessage({message: msg});
+            await api.sendMessage({message: msg});
             await fetchMoreMessagesByChat(chatId, "FUTURE", true);
-            // TODO add message to local storage
             setMessage("");
             resetImage();
 

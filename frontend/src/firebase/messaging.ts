@@ -1,12 +1,10 @@
-import {getMessaging, getToken, onMessage, isSupported, MessagePayload} from "firebase/messaging";
+import {getMessaging, isSupported, MessagePayload, onMessage} from "firebase/messaging";
 import firebaseApp from "./firebaseApp";
 import {showCallNotification, showErrorNotification, showNotification} from "../notifications/notifications";
-import {useCallingStore} from "../state/callingStore";
-import {useChatsStore} from "../state/chatsStore";
 import {useMessagesStore} from "../state/messagesStore";
 
 export const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
-const hasPermission = 'Notification' in window && Notification.permission == "granted"
+const hasPermission = 'Notification' in window && Notification.permission === "granted"
 const notificationTypeHandlers: { [type: string]: (payload: MessagePayload) => void; } = {}
 
 // if permission already granted -> generate token

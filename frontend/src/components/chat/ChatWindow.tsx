@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Chat} from "../../model/Chat";
 import {useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
@@ -10,6 +10,7 @@ import {useCallingStore} from "../../state/callingStore";
 import {api} from "../../network/api";
 import {useUserStore} from "../../state/userStore";
 import {PageChatMemberDTO} from "../../api-wrapper";
+import {useImagesStore} from "../../state/imagesStore";
 
 interface ChatWindowProps {
     chat: Chat
@@ -19,7 +20,15 @@ export function ChatWindow({chat}: ChatWindowProps) {
     const {setHeader} = useOutletContext<ShellOutletContext>();
     const startCall = useCallingStore((state) => state.startCall);
     const user = useUserStore((state) => state.user)!;
-    const [chatMembersFirstPage, setChatMembersFirstPage] = useState<PageChatMemberDTO | null>(null)
+    const [chatMembersFirstPage, setChatMembersFirstPage] = useState<PageChatMemberDTO | null>(null);
+    const avatarUrl = useImagesStore((state) => state.cachedImages[chat.avatarId || ""]);
+    const fetchImageUrl = useImagesStore((state) => state.fetchImageUrl);
+
+    useEffect(() => {
+        if (chat.avatarId) {
+            fetchImageUrl(chat.avatarId);
+        }
+    }, []);
 
     useEffect(() => {
         api.getChatMembers({chatId: chat.id, userId: user.id, pageable: {page: 0, size: 10}})
@@ -36,7 +45,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
         setHeader(
             <>
                 <Group justify={"center"} gap={0}>
-                    <Avatar src={null} radius={"xl"} mr={"xs"}>
+                    <Avatar src={avatarUrl?.url} radius={"xl"} mr={"xs"}>
                         {chat.groupInfo ? <IconUsersGroup/> : <IconUser/>}
                     </Avatar>
                     <div style={{marginLeft: 5}}>
@@ -50,16 +59,17 @@ export function ChatWindow({chat}: ChatWindowProps) {
                             whiteSpace: "nowrap",
                             textOverflow: "ellipsis"
                         }}>
-                            {`${chat.groupInfo ? chat.groupInfo?.description || "No Group Description" : chat.email}`}
+                            {`${chat.groupInfo ? chat.groupInfo?.description || "No Group Description" : chat.userInfo!.status}`}
                         </Text>
                     </div>
                 </Group>
 
                 <Container style={{flexGrow: 0}}>
-                    <ActionIcon variant="transparent" c="lightgray" disabled={(chatMembersFirstPage?.content?.length ?? 0) > 2}>
-                        {chat?.email ? <IconVideo onClick={() => {
+                    <ActionIcon variant="transparent" c="lightgray"
+                                disabled={(chatMembersFirstPage?.content?.length ?? 0) > 2}>
+                        {chat?.userInfo ? <IconVideo onClick={() => {
                             const otherMember = chatMembersFirstPage?.content?.find((x) => x.userId !== user.id);
-                            if(otherMember) {
+                            if (otherMember) {
                                 startCall(otherMember.userId)
                             }
                         }}/> : undefined}

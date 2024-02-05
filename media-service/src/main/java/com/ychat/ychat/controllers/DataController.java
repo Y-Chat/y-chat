@@ -19,13 +19,11 @@ public class DataController implements DataApi {
 
     @Override
     public ResponseEntity<GetMedia200Response> getMedia(String objectName) {
-        logger.info("0 Received media request for {}", objectName);// TODO remove
         if (objectName.startsWith("/")) {
             objectName = objectName.substring(1);
         }
 
         String url = firebaseInitializer.generateSignedUrl(objectName);
-        logger.info("3 Returning signed url {}", url); // TODO remove
         return ResponseEntity.ok(new GetMedia200Response(url));
     }
 }

@@ -9,6 +9,7 @@ import {useChatsStore} from "../../state/chatsStore";
 import {uploadImage} from "../../network/media";
 import {useNavigate, useOutletContext} from "react-router-dom";
 import {ShellOutletContext} from "../shell/ShellOutletContext";
+import auth from "../../firebase/auth";
 
 export function NewGroupChat() {
     const [searchValue, setSearchValue] = useState('');
@@ -19,6 +20,7 @@ export function NewGroupChat() {
     });
     const navigate = useNavigate();
     const user = useUserStore(state => state.user)!;
+    const fbUser = auth.currentUser!;
     const fetchChats = useChatsStore(state => state.fetchChats);
     const {setHeader} = useOutletContext<ShellOutletContext>();
     const form = useForm<{ groupName: string, groupDescription: string, groupMembers: string[], avatar: string }>({
@@ -39,12 +41,6 @@ export function NewGroupChat() {
             ,
         },
     });
-
-    function checkAndSetGroupMembers(gm: string[]) {
-        const newGms = gm.filter(member => !form.values.groupMembers.includes(member));
-        newGms.map(newGm => {
-        });
-    }
 
     useEffect(() => {
         setHeader(
@@ -70,7 +66,7 @@ export function NewGroupChat() {
                     });
 
                     if (avatarPreview.file) {
-                        const objectId = await uploadImage(avatarPreview.file, `chats/${group.id}/${avatarPreview.file.name}`);
+                        const objectId = await uploadImage(avatarPreview.file, `chats/${group.id}/${fbUser.uid}/${avatarPreview.file.name}`);
                         await api.updateGroupProfile({
                             groupId: group.id,
                             groupProfileDTO: {
@@ -80,6 +76,7 @@ export function NewGroupChat() {
                             }
                         });
                     }
+
                     await api.addGroupMembers({
                         groupId: group.id,
                         requestBody: form.values.groupMembers

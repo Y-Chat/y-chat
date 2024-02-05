@@ -1,10 +1,11 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {Avatar, Group, Indicator, Text, UnstyledButton, useMantineTheme} from "@mantine/core";
 import {Chat} from "../../model/Chat";
 import {useNavigate, useParams} from "react-router-dom";
 import {useMessagesStore} from "../../state/messagesStore";
 import {Message} from "../../model/Message";
 import {IconUser, IconUsersGroup} from "@tabler/icons-react";
+import {useImagesStore} from "../../state/imagesStore";
 
 interface ContactListEntryProps {
     chat: Chat,
@@ -13,9 +14,23 @@ interface ContactListEntryProps {
 
 export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
     const messages = useMessagesStore((state) => state.messages[chat.id]);
+    const fetchMoreMessagesByChat = useMessagesStore((state) => state.fetchMoreMessagesByChat);
+    const avatarUrl = useImagesStore((state) => state.cachedImages[chat.avatarId || ""]);
+    const fetchImageUrl = useImagesStore((state) => state.fetchImageUrl);
     const navigate = useNavigate();
     const {chatId} = useParams();
     const theme = useMantineTheme();
+
+    useEffect(() => {
+        // make sure we have at least the most current messages for every rendered chat
+        fetchMoreMessagesByChat(chat.id, "FUTURE", true);
+    }, []);
+
+    useEffect(() => {
+        if (chat.avatarId) {
+            fetchImageUrl(chat.avatarId);
+        }
+    }, []);
 
     let lastMessage: Message | undefined;
     let lastDate = new Date()
@@ -25,12 +40,12 @@ export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
         lastDate = lastMessage.date
     }
 
-    function renderLastMessage(){
-        if (!lastMessage){
+    function renderLastMessage() {
+        if (!lastMessage) {
             return "";
         }
 
-        if (lastMessage.type === "text"){
+        if (lastMessage.type === "text") {
             return lastMessage.message
         } else {
             <Text inherit fs="italic">Image</Text>
@@ -52,7 +67,7 @@ export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
             <Group justify="space-between" gap={0}>
                 <Group gap="sm">
                     <Indicator disabled={!chat.newMessages} style={{flexGrow: 0}}>
-                        <Avatar size={40} src={chat.avatar} radius={40}>
+                        <Avatar size={40} src={avatarUrl?.url} radius={40}>
                             {chat.groupInfo ? <IconUsersGroup/> : <IconUser/>}
                         </Avatar>
                     </Indicator>
