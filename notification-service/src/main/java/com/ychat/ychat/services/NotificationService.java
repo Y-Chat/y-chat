@@ -107,6 +107,7 @@ public class NotificationService {
 
                 while(currentPageNumber == 0 || currentPage.getChatMembers().size() >= pageSize) {
                     for(ChatMemberDTO user: currentPage.getChatMembers()) {
+                        if(user.getUserId().toString().equals(notification.getNewMessage().getSenderId())) continue;
                         sendNotificationToUser(user.getUserId(), messageBuilder, staleTokens);
                     }
                     removeStaleTokens(staleTokens);
