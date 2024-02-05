@@ -10,6 +10,7 @@ interface ChatsState {
     chats: Chat[],
     getChat: (chatId: string) => Promise<Chat | null>
     fetchChats: () => Promise<void>
+    setChat: (chat: Chat) => Promise<void>
 }
 
 const local: PersistStorage<ChatsState> = {
@@ -65,6 +66,9 @@ export const useChatsStore = create<ChatsState>()(
                     } catch (err) {
                         // TODO handle errors
                     }
+                },
+                setChat: (chat: Chat) => {
+                    const current =
                 }
             }
         ),

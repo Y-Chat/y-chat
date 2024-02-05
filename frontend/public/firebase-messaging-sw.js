@@ -31,11 +31,8 @@ messaging.onBackgroundMessage((payload) => {
         icon: payload.notification.image
     };
     const chatId = payload.data["chat-id"]
-    const channel4Broadcast = new BroadcastChannel('channel4');
+    const channel4Broadcast = new BroadcastChannel('offline-updates');
     channel4Broadcast.postMessage({key: chatId});
-
-    const chats = JSON.parse(localStorage.get("offline-updates"));
-    localStorage.setItem('offline-updates', [chatId, ...chats]);
 
     navigator.serviceWorker.controller.postMessage({
         type: 'CHAT_UPDATE',

@@ -5,6 +5,7 @@ import {api} from "../network/api";
 import {Message} from "../model/Message";
 import {Message as ApiMessage} from "../api-wrapper";
 import {useUserStore} from "./userStore";
+import {useChatsStore} from "./chatsStore";
 
 interface MessagesState {
     // maps chatId to its respective messages
@@ -69,6 +70,7 @@ export const useMessagesStore = create<MessagesState>()(
 
                     if (fetchedMessages.length > 0) {
                         const updatedMessages = get().messages;
+                        useChatsStore.getState().
 
                         if (direction === "PAST") {
                             updatedMessages[chatId] = [...currentMessages, ...fetchedMessages];

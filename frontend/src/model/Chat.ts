@@ -6,7 +6,7 @@ export interface Chat {
     userInfo?: UserInfo // only in FirectChat
     groupInfo?: GroupInfo // only in GroupChat
     archived: boolean
-    date: Date,
+    date?: Date,
 }
 
 interface GroupInfo {
