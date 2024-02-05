@@ -40,7 +40,7 @@ public class CallService {
         callMessageRepository.save(call);
 
         Notification notification = new Notification();
-        AnonymousSchema14 signalingNewOffer = new AnonymousSchema14();
+        AnonymousSchema15 signalingNewOffer = new AnonymousSchema15();
         signalingNewOffer.setCallId(call.getId().toString());
         signalingNewOffer.setCallerId(call.getCallerId().toString());
         signalingNewOffer.setCalleeId(call.getCalleeId().toString());
@@ -61,7 +61,7 @@ public class CallService {
             callMessageRepository.save(call.get());
 
             Notification notification = new Notification();
-            AnonymousSchema33 callEnded = new AnonymousSchema33();
+            AnonymousSchema34 callEnded = new AnonymousSchema34();
             callEnded.setCallId(call.get().getId().toString());
             callEnded.setReceiverId(call.get().getCallerId().toString());
             notification.setCallEnded(callEnded);
@@ -78,7 +78,7 @@ public class CallService {
         callMessageRepository.save(call.get());
 
         Notification notification = new Notification();
-        AnonymousSchema20 signalingNewAnswer = new AnonymousSchema20();
+        AnonymousSchema21 signalingNewAnswer = new AnonymousSchema21();
         signalingNewAnswer.setCallId(call.get().getId().toString());
         signalingNewAnswer.setCalleeId(call.get().getCalleeId().toString());
         signalingNewAnswer.setCallerId(call.get().getCallerId().toString());
@@ -113,7 +113,7 @@ public class CallService {
 
         if(call.get().getCallState().equals(com.ychat.ychat.models.Call.CallState.ONGOING)) {
             Notification notification = new Notification();
-            AnonymousSchema26 signalingNewCandidate = new AnonymousSchema26();
+            AnonymousSchema27 signalingNewCandidate = new AnonymousSchema27();
             signalingNewCandidate.setCallId(call.get().getId().toString());
             signalingNewCandidate.setReceiverId(requesterId.equals(call.get().getCalleeId()) ?
                     call.get().getCallerId().toString() :
@@ -135,7 +135,7 @@ public class CallService {
         callMessageRepository.save(call.get());
 
         Notification notification = new Notification();
-        AnonymousSchema33 anonymousSchema33 = new AnonymousSchema33();
+        AnonymousSchema34 anonymousSchema33 = new AnonymousSchema34();
         anonymousSchema33.setCallId(call.get().getId().toString());
         anonymousSchema33.setReceiverId(requesterId.equals(call.get().getCalleeId()) ?
                 call.get().getCallerId().toString() :
