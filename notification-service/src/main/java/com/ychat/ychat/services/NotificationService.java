@@ -1,9 +1,7 @@
 package com.ychat.ychat.services;
 
 import com.asyncapi.gen.notification.model.Notification;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.*;
 import com.openapi.gen.social.dto.ChatMemberDTO;
 import com.ychat.ychat.enums.NotificationTypeEnum;
 import com.ychat.ychat.models.UserFirebaseTokenMapping;
@@ -95,8 +93,18 @@ public class NotificationService {
                         .setBody("You received a new message!")
                         .build() : null
                 );
-                data.put("chat-id", notification.getNewMessage().getChatId());
+                var chatId = notification.getNewMessage().getChatId();
+                data.put("chat-id", chatId);
                 messageBuilder.putAllData(data);
+                messageBuilder.setWebpushConfig(WebpushConfig.builder()
+                        .setNotification(WebpushNotification.builder()
+                                .setTag("YChat - New Message")
+                                .setImage("https://y-chat.net/logo192.png")
+                                .build()
+                        )
+                        .setFcmOptions(WebpushFcmOptions.builder().setLink("https://y-chat.net/chat/"+chatId).build())
+                        .build()
+                );
 
                 var pageSize = 10;
                 var currentPageNumber = 0;
