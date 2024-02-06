@@ -18,10 +18,10 @@ import {NotFound} from "./404/NotFound";
 import {Welcome} from "./common/Welcome";
 import {isMobile} from "react-device-detect";
 import {HowToInstall} from "./common/HowToInstall";
-import {api} from "../network/api";
+import {accessToken, api} from "../network/api";
 import {getMessaging, getToken} from "firebase/messaging";
 import firebaseApp from "../firebase/firebaseApp";
-import {vapidKey} from "../firebase/messaging";
+import {unsubscribeNotifications, vapidKey} from "../firebase/messaging";
 import {useSettingsStore} from "../state/settingsStore";
 import CallingWrapper from "./shell/CallingWrapper";
 
@@ -35,27 +35,31 @@ function App() {
     useEffect(() => {
         const messaging = getMessaging(firebaseApp);
 
-        if (auth.currentUser === null) return;
-
-        auth.currentUser?.getIdToken().then((accessToken) => {
-            return accessToken;
-        }).then(async (accessToken) => {
-            const notificationToken = await getToken(messaging, {vapidKey: vapidKey});
-
-            if (!notificationToken)
-                console.log('No registration token available. Request permission to generate one.');
-
-            if (process.env.NODE_ENV === "development") {
-                console.log("FBC token: " + notificationToken);
+        auth.onIdTokenChanged((currentUser) => {
+            if(!currentUser) {
+                unsubscribeNotifications()
             }
 
-            return {notificationToken: notificationToken, accessToken: accessToken};
-        }).then((tokens) => {
-            return api.updateToken({notificationToken: tokens.notificationToken}, {headers: new Headers({Authorization: `Bearer ${tokens.accessToken}`})})
-        }).catch((err) => {
-            console.log('An error occurred while retrieving token. ', err);
+            currentUser?.getIdToken().then((accessToken) => {
+                return accessToken;
+            }).then(async (accessToken) => {
+                const notificationToken = await getToken(messaging, {vapidKey: vapidKey});
+
+                if (!notificationToken)
+                    console.log('No registration token available. Request permission to generate one.');
+
+                if (process.env.NODE_ENV === "development") {
+                    console.log("FBC token: " + notificationToken);
+                }
+
+                return {notificationToken: notificationToken, accessToken: accessToken};
+            }).then((tokens) => {
+                return api.updateToken({notificationToken: tokens.notificationToken}, {headers: new Headers({Authorization: `Bearer ${tokens.accessToken}`})})
+            }).catch((err) => {
+                console.log('An error occurred while retrieving token. ', err);
+            })
         })
-    }, [auth.currentUser]);
+    }, []);
 
     return (
         <MantineProvider theme={{primaryColor}} defaultColorScheme="dark" forceColorScheme="dark">
