@@ -49,7 +49,7 @@ async function setupNotifications() {
         }
         const chatId = payload.data["chat-id"]
         useMessagesStore.getState().fetchMoreMessagesByChat(chatId, "FUTURE", true);
-        showNotification(payload.notification?.body || "", payload.notification?.title);
+        showNotification(payload.notification?.body || "", payload.notification?.title, `/chat/${chatId}`);
     });
 
     registerNotificationTypeHandler(null, (payload) => {

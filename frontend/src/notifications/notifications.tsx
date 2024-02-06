@@ -23,11 +23,18 @@ export function showErrorNotification(errorCode: string, title: string = "Error"
     });
 }
 
-export function showNotification(message: string, title: string = "Notification") {
+export function showNotification(message: string, title: string = "Notification", link?: string) {
+    const id = title + (Math.random()*10000000)
     Notifications.show({
+        id: id,
         withBorder: true,
         title: title,
         message: message,
+        onClick: link ? () => {
+            Notifications.hide(id)
+            // This is a workaround. There is no other way to redirect outside component in react router 6.4 <
+            window.location.pathname = link;
+        } : undefined
     });
 }
 
