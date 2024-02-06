@@ -27,9 +27,6 @@ function MessageBubble({message}: MessageBubbleProps) {
         }
     }
 
-    var today = new Date();
-
-
     return (
         <Group justify={message.fromMe ? "flex-end" : "flex-start"}>
             <Paper
@@ -44,8 +41,8 @@ function MessageBubble({message}: MessageBubbleProps) {
                 }}
             >
                 {messageContent()}
-                <Group justify="flex-start" gap={5} c="dimmed">
-                    <Text size="xs">{today.getHours() + ":" + today.getMinutes()}</Text>
+                <Group justify={message.fromMe ? "flex-end" : "flex-start"} gap={5} c="dimmed">
+                    <Text size="xs">{message.date.getHours() + ":" + message.date.getMinutes()}</Text>
                     {/*<IconHourglassEmpty size={10}/>*/}
                     {/*<IconPackage size={10}/>*/}
                     <IconPackageImport size={10}/>

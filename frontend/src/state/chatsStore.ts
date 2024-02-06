@@ -56,17 +56,25 @@ export const useChatsStore = create<ChatsState>()(
                         return;
                     }
                     try {
-                        const resp = await api.getAllChats({
-                            userId: userId,
-                            pageable: {
-                                size: 100 // TODO social service paging does not work reliably atm. Fetch 100 for now
+                        const pageSize = 30
+                        let fetchedChats: Chat[] = []
+                        do {
+                            const resp = await api.getAllChats({
+                                userId: userId,
+                                pageable: {
+                                    size: pageSize
+                                }
+                            });
+                            const chats = resp.content?.map(transformChat) || [];
+                            fetchedChats = fetchedChats.concat(chats);
+                            if (chats.length < pageSize) {
+                                break;
                             }
-                        });
-                        const chats = resp.content?.map(transformChat) || [];
-                        set({chats: chats});
+                        } while (true);
+                        set({chats: fetchedChats});
                         get().refreshAdditionalInfo();
                     } catch (err) {
-                        // TODO handle errors
+                        console.log(err)
                     }
                 },
                 refreshAdditionalInfo: () => {

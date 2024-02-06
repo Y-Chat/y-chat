@@ -14,8 +14,8 @@ function MessageList({chatId}: MessageListProps) {
     const theme = useMantineTheme();
     const scrollableDiv = useRef<HTMLDivElement>(null);
     const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
-    const messages = useMessagesStore(state => state.messages[chatId]) || [];
-    const [moreMessagesToLoad, setMoreMessagesToLoad] = useState(!!messages);
+    const messages = useMessagesStore(state => state.messages[chatId]);
+    const [moreMessagesToLoad, setMoreMessagesToLoad] = useState(true);
     const [showChevron, setShowChevron] = useState(false);
 
     function scrollToBottom() {
@@ -25,13 +25,10 @@ function MessageList({chatId}: MessageListProps) {
     }
 
     useEffect(() => {
-        console.log("test123 todo remove")
-        if (messages.length == 0) {
-            fetchMoreMessagesByChat(chatId, "PAST", false).then(more => setMoreMessagesToLoad(more));
-        } else {
-            fetchMoreMessagesByChat(chatId, "FUTURE", true);
+        if (messages && messages.length == 0) {
+            setMoreMessagesToLoad(false);
         }
-    }, []);
+    }, [messages]);
 
     useEffect(() => {
         const div = scrollableDiv.current;
@@ -76,50 +73,51 @@ function MessageList({chatId}: MessageListProps) {
                     flexDirection: 'column-reverse',
                 }}
             >
-                <InfiniteScroll
-                    scrollableTarget="scrollableDiv"
-                    dataLength={messages.length} //This is important field to render the next data
-                    next={async () => {
-                        const hasMore = await fetchMoreMessagesByChat(chatId, "PAST", false);
-                        setMoreMessagesToLoad(hasMore);
-                    }}
-                    hasMore={moreMessagesToLoad}
-                    loader={
-                        <Center mt={"md"}>
-                            <Loader/>
-                        </Center>
-                    }
-                    endMessage={
-                        <Center>
-                            <Text>Conversation started</Text>
-                        </Center>
-                    }
-                    inverse={true}
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column-reverse',
-                        gap: gapBetweenMessages,
-                        paddingBottom: gapBetweenMessages,
-                        paddingTop: gapBetweenMessages,
-                        paddingLeft: 16,
-                        paddingRight: 16
-                    }}
-                    pullDownToRefresh
-                    refreshFunction={async () => {
-                        await fetchMoreMessagesByChat(chatId, "FUTURE", true)
-                    }
-                    }
-                    pullDownToRefreshThreshold={50}
-                    releaseToRefreshContent={
-                        <Center>
-                            <Text>Release to refresh</Text>
-                        </Center>
-                    }
-                >
-                    {messages.map((msg, i) =>
-                        <MessageBubble key={i} message={msg}/>
-                    )}
-                </InfiniteScroll>
+                {messages !== undefined &&
+                    <InfiniteScroll
+                        scrollableTarget="scrollableDiv"
+                        dataLength={messages.length} //This is important field to render the next data
+                        next={async () => {
+                            const hasMore = await fetchMoreMessagesByChat(chatId, "PAST", false);
+                            setMoreMessagesToLoad(hasMore);
+                        }}
+                        hasMore={moreMessagesToLoad}
+                        loader={
+                            <Center mt={"md"}>
+                                <Loader/>
+                            </Center>
+                        }
+                        endMessage={
+                            <Center>
+                                <Text>Conversation started</Text>
+                            </Center>
+                        }
+                        inverse={true}
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column-reverse',
+                            gap: gapBetweenMessages,
+                            paddingBottom: gapBetweenMessages,
+                            paddingTop: gapBetweenMessages,
+                            paddingLeft: 16,
+                            paddingRight: 16
+                        }}
+                        pullDownToRefresh
+                        refreshFunction={async () => {
+                            await fetchMoreMessagesByChat(chatId, "FUTURE", true)
+                        }
+                        }
+                        pullDownToRefreshThreshold={50}
+                        releaseToRefreshContent={
+                            <Center>
+                                <Text>Release to refresh</Text>
+                            </Center>
+                        }
+                    >
+                        {messages.map((msg, i) =>
+                            <MessageBubble key={i} message={msg}/>
+                        )}
+                    </InfiniteScroll>}
             </div>
         </>
     );

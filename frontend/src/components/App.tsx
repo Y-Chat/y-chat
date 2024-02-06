@@ -24,7 +24,6 @@ import firebaseApp from "../firebase/firebaseApp";
 import {vapidKey} from "../firebase/messaging";
 import {useSettingsStore} from "../state/settingsStore";
 import CallingWrapper from "./shell/CallingWrapper";
-import {useMessagesStore} from "../state/messagesStore";
 
 function App() {
 
@@ -32,16 +31,6 @@ function App() {
     const user = useUserStore((state) => state.user);
     const primaryColor = useSettingsStore((state) => state.primaryColor);
     const showAppInstructions = (isMobile && !window.matchMedia('(display-mode: standalone)').matches) && process.env.NODE_ENV !== "development";
-    const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
-
-    useEffect(() => {
-        // listen to updates that might have happened when the app was closed
-        const channel4Broadcast = new BroadcastChannel('offline-updates');
-        channel4Broadcast.onmessage = (event) => {
-            const chatId: string = event.data.key;
-            fetchMoreMessagesByChat(chatId, "FUTURE", true);
-        }
-    }, []);
 
     useEffect(() => {
         const messaging = getMessaging(firebaseApp);

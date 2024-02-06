@@ -5,6 +5,7 @@ import {useChatsStore} from "../../state/chatsStore";
 import {Chat} from "../../model/Chat";
 import {NewDirectChat} from "../newChat/NewDirectChat";
 import {ContactListEntry} from "./ContactListEntry";
+import {useMessagesStore} from "../../state/messagesStore";
 
 interface ContactListProps {
     toggleNav: () => void
@@ -13,8 +14,26 @@ interface ContactListProps {
 export function ChatsList({toggleNav}: ContactListProps) {
     const [search, setSearch] = useState('');
     const chats = useChatsStore((state) => state.chats);
+    const fetchChats = useChatsStore(state => state.fetchChats);
     const [sortedChats, setSortedChats] = useState<Chat[]>(chats);
-    const fetchChats = useChatsStore((state) => state.fetchChats);
+
+    function refreshChatsAndMessagesOnce() {
+        fetchChats().then(() => {
+            useChatsStore.getState().chats
+                .forEach(c => useMessagesStore.getState()
+                    .fetchMoreMessagesByChat(c.id, "FUTURE", true));
+        })
+    }
+
+    useEffect(() => {
+        // refresh chats once on startup, plus when we go from background to foreground afterwards
+        document.addEventListener('visibilitychange', (e) => {
+            if (!document.hidden) {
+                refreshChatsAndMessagesOnce();
+            }
+        });
+        refreshChatsAndMessagesOnce();
+    }, []);
 
     function filterData() {
         const query = search.toLowerCase().trim();
@@ -39,10 +58,6 @@ export function ChatsList({toggleNav}: ContactListProps) {
         });
         setSortedChats(sorted);
     }
-
-    useEffect(() => {
-        fetchChats();
-    }, []);
 
     useEffect(() => {
         filterData();
