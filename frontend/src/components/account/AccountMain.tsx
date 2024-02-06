@@ -256,6 +256,9 @@ export function AccountMain() {
                                 setLogoutLoading(false);
                                 setUser(null);
                                 localStorage.clear();
+                                navigator.serviceWorker.getRegistrations().then((registrations) => {
+                                    registrations.forEach((x) => x.unregister())
+                                })
                                 navigate("/");
                             }).catch((err) => {
                                 setLogoutLoading(false);
