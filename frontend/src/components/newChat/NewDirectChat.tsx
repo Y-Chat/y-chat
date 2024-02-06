@@ -35,7 +35,6 @@ export function NewDirectChat({email}: NewDirectChatProps) {
                     navigate(`/chat/${chat.chatId}`);
                     await fetchChats();
                 } catch (err) {
-                    // TODO handle err
                     showErrorNotification("It seems like the email you entered is not registered in our system.", "User not found"); // ignore other errors for now
                     setIsLoading(false);
                 }

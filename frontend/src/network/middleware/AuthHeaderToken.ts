@@ -4,8 +4,10 @@ import auth from "../../firebase/auth";
 
 export class AuthHeaderToken implements Middleware {
     public async pre(context: ResponseContext): Promise<FetchParams | void> {
-        const accessToken = await auth.currentUser?.getIdToken()
-        console.log("jwt: " + accessToken) // TODO only print in dev environment
+        const accessToken = await auth.currentUser?.getIdToken();
+        if (process.env.NODE_ENV === "development") {
+            console.log("jwt: " + accessToken);
+        }
 
         return {
             url: context.url,

@@ -13,7 +13,7 @@ export async function getImageUrl(objectId: string): Promise<string | null> {
         const objectRef = ref(storageRef, objectId);
         return await getDownloadURL(objectRef);
     } catch (err) {
-        // TODO handle error
+        console.log(err);
         return null
     }
 
