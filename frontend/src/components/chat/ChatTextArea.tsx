@@ -33,7 +33,6 @@ function ChatTextArea({chatId}: ChatTextAreaProps) {
             message: message
         }
 
-
         try {
             if (image.file) {
                 msg.mediaPath = await uploadImage(image.file, `chats/${chatId}/${fbUser.uid}/${image.file.name}`);

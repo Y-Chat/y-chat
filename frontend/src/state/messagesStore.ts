@@ -35,9 +35,15 @@ export const useMessagesStore = create<MessagesState>()(
                 // messages[<id>][0] is the newest message!
                 messages: {},
                 fetchMoreMessagesByChat: async (chatId: string, direction: "PAST" | "FUTURE", untilEnd: boolean) => {
-                    let currentMessages = get().messages[chatId] || [];
+                    let currentMessages = get().messages[chatId];
                     let d: Date;
                     const pageSize = 10;
+
+                    // most likely someone started a new chat with us, which we don't know about, yet
+                    if (currentMessages === undefined) {
+                        await useChatsStore.getState().fetchChats();
+                        currentMessages = [];
+                    }
 
                     if (currentMessages.length === 0) {
                         // if we have no messages in the storage we have no entry date to fetch from.
@@ -68,21 +74,16 @@ export const useMessagesStore = create<MessagesState>()(
                         return true;
                     }
 
-                    if (fetchedMessages.length > 0) {
-                        const updatedMessages = get().messages;
+                    const updatedMessages = get().messages;
 
-
-                        if (direction === "PAST") {
-                            updatedMessages[chatId] = [...currentMessages, ...fetchedMessages];
-                        } else {
-                            updatedMessages[chatId] = [...fetchedMessages, ...currentMessages];
-                        }
-                        set({messages: updatedMessages});
-                        useChatsStore.getState().refreshAdditionalInfo();
-                        return fetchedMessages.length % pageSize === 0
+                    if (direction === "PAST") {
+                        updatedMessages[chatId] = [...currentMessages, ...fetchedMessages];
                     } else {
-                        return false;
+                        updatedMessages[chatId] = [...fetchedMessages, ...currentMessages];
                     }
+                    set({messages: updatedMessages});
+                    useChatsStore.getState().refreshAdditionalInfo();
+                    return fetchedMessages.length % pageSize === 0 && fetchedMessages.length !== 0;
                 }
             }
         ),
@@ -110,6 +111,6 @@ function transformMessage(msg: ApiMessage): Message {
         mediaId: msg.mediaPath,
         fromMe: msg.senderId === uid,
         status: "sent",
-        date: msg.sentTimestamp,
+        date: msg.sentTimestamp
     }
 }

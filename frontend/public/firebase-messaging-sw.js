@@ -30,13 +30,5 @@ messaging.onBackgroundMessage((payload) => {
         body: payload.notification.body,
         icon: payload.notification.image
     };
-    const chatId = payload.data["chat-id"]
-    const channel4Broadcast = new BroadcastChannel('offline-updates');
-    channel4Broadcast.postMessage({key: chatId});
-
-    navigator.serviceWorker.controller.postMessage({
-        type: 'CHAT_UPDATE',
-        chatId: chatId
-    });
     self.registration.showNotification(notificationTitle, notificationOptions);
 });
