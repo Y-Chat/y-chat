@@ -1,4 +1,4 @@
-import {getMessaging, isSupported, MessagePayload, onMessage} from "firebase/messaging";
+import {getMessaging, isSupported, MessagePayload, onMessage, Unsubscribe} from "firebase/messaging";
 import firebaseApp from "./firebaseApp";
 import {showCallNotification, showErrorNotification, showNotification} from "../notifications/notifications";
 import {useMessagesStore} from "../state/messagesStore";
@@ -6,6 +6,7 @@ import {useMessagesStore} from "../state/messagesStore";
 export const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-wK5JaSIcsFLBY7n8zhVcXTKXm4s7SvTYE";
 const hasPermission = 'Notification' in window && Notification.permission === "granted"
 const notificationTypeHandlers: { [type: string]: (payload: MessagePayload) => void; } = {}
+let unsubscribeFromNotifications: Unsubscribe | null = null;
 
 // if permission already granted -> generate token
 if (hasPermission) {
@@ -78,6 +79,11 @@ export function unregisterNotificationTypeHandler(type: string | string[] | null
     } else {
         type.forEach(x => delete notificationTypeHandlers[x])
     }
+}
+
+export function unsubscribeNotifications() {
+    if(!unsubscribeFromNotifications) return;
+    unsubscribeFromNotifications();
 }
 
 function setupNotificationHandler() {

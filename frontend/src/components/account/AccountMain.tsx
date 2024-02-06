@@ -29,6 +29,7 @@ import {ShellOutletContext} from "../shell/ShellOutletContext";
 import {useSettingsStore} from "../../state/settingsStore";
 import {showErrorNotification} from "../../notifications/notifications";
 import {useImagesStore} from "../../state/imagesStore";
+import {unsubscribeNotifications} from "../../firebase/messaging";
 
 export function AccountMain() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -259,6 +260,7 @@ export function AccountMain() {
                                 navigator.serviceWorker.getRegistrations().then((registrations) => {
                                     registrations.forEach((x) => x.unregister())
                                 })
+                                unsubscribeNotifications()
                                 navigate("/");
                             }).catch((err) => {
                                 setLogoutLoading(false);

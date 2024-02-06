@@ -9,6 +9,7 @@ import {api} from "../../network/api";
 import {showErrorNotification} from "../../notifications/notifications";
 import getUuidByString from "uuid-by-string";
 import {EmailForm} from "./EmailForm";
+import {unsubscribeNotifications} from "../../firebase/messaging";
 
 function AuthMain() {
     const setUser = useUserStore((state) => state.setUser)
@@ -18,8 +19,9 @@ function AuthMain() {
         const fbUser = auth.currentUser
         if (fbUser) {
             api.getUser({userId: getUuidByString(fbUser.uid, 3)})
-                .then(user => {
+                .then((user) => {
                     localStorage.clear();
+                    unsubscribeNotifications()
                     setUser({
                         id: user.id,
                         firstName: user.userProfileDTO.firstName,
