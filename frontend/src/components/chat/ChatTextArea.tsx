@@ -24,6 +24,7 @@ function ChatTextArea({chatId}: ChatTextAreaProps) {
     const fbUser = auth.currentUser!
 
     async function sendMessage() {
+        if(message.length <= 0) return;
         setMessageSending(true);
         let msg: Message = {
             id: "", // Is ignored by server
@@ -68,6 +69,12 @@ function ChatTextArea({chatId}: ChatTextAreaProps) {
                     size="md"
                     style={{
                         flexGrow: 1
+                    }}
+                    onKeyPress={(event) => {
+                        if(event.code === "Enter") {
+                            sendMessage();
+                            event.preventDefault();
+                        }
                     }}
                     maxRows={5}
                     leftSection={image.url ?
