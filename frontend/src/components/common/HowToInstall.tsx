@@ -5,7 +5,7 @@ export function HowToInstall() {
     return (
         <Container p={"md"} mt={"20%"}>
             <Text ta={"center"} size={"lg"}>
-                Please use a mobile device and add the website to your home screen!
+                To use this app, please install this app as a bookmark on your home screen!
             </Text>
         </Container>
     );

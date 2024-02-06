@@ -3,17 +3,15 @@ import {Avatar, Group, Indicator, Text, UnstyledButton, useMantineTheme} from "@
 import {Chat} from "../../model/Chat";
 import {useNavigate, useParams} from "react-router-dom";
 import {useMessagesStore} from "../../state/messagesStore";
-import {Message} from "../../model/Message";
 import {IconUser, IconUsersGroup} from "@tabler/icons-react";
 import {useImagesStore} from "../../state/imagesStore";
 
 interface ContactListEntryProps {
     chat: Chat,
-    toggleNav: () => void
+    toggleNav: () => void,
 }
 
 export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
-    const messages = useMessagesStore((state) => state.messages[chat.id]);
     const fetchMoreMessagesByChat = useMessagesStore((state) => state.fetchMoreMessagesByChat);
     const avatarUrl = useImagesStore((state) => state.cachedImages[chat.avatarId || ""]);
     const fetchImageUrl = useImagesStore((state) => state.fetchImageUrl);
@@ -31,26 +29,6 @@ export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
             fetchImageUrl(chat.avatarId);
         }
     }, []);
-
-    let lastMessage: Message | undefined;
-    let lastDate = new Date()
-
-    if (messages && messages.length > 0) {
-        lastMessage = messages[0];
-        lastDate = lastMessage.date
-    }
-
-    function renderLastMessage() {
-        if (!lastMessage) {
-            return "";
-        }
-
-        if (lastMessage.type === "text") {
-            return lastMessage.message
-        } else {
-            <Text inherit fs="italic">Image</Text>
-        }
-    }
 
     return (
         <UnstyledButton
@@ -82,12 +60,16 @@ export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
                             whiteSpace: "nowrap",
                             textOverflow: "ellipsis"
                         }}>
-                            {renderLastMessage()}
+                            <Text inherit fs="italic">{chat.lastMessage || ""}</Text>
                         </Text>
                     </div>
                 </Group>
-                <Text c="dimmed"
-                      fz="xs">{`${lastDate.getDate()}.${lastDate.getMonth()}.${lastDate.getFullYear()}`}</Text>
+                {chat.date &&
+                    <Text c="dimmed"
+
+                          fz="xs">
+                        {`${chat.date.getDate()}.${chat.date.getMonth()}.${chat.date.getFullYear()}`}
+                    </Text>}
             </Group>
         </UnstyledButton>
     );

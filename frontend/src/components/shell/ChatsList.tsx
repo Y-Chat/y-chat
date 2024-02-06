@@ -22,7 +22,21 @@ export function ChatsList({toggleNav}: ContactListProps) {
                 return item.name.toLowerCase().includes(query);
             }
         );
-        const sorted = filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
+        const sorted = filtered.sort((a, b) => {
+            if (!b.date && !a.date) {
+                return 0;
+            }
+
+            if (!b.date) {
+                return -1;
+            }
+
+            if (!a.date) {
+                return 1;
+            }
+
+            return b.date.getTime() - a.date.getTime();
+        });
         setSortedChats(sorted);
     }
 

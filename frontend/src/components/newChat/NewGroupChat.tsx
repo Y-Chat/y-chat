@@ -80,7 +80,8 @@ export function NewGroupChat() {
                     await api.addGroupMembers({
                         groupId: group.id,
                         requestBody: form.values.groupMembers
-                    })
+                    });
+
                     await fetchChats();
                     navigate(`/chat/${group.id}`);
                     form.reset();
