@@ -70,7 +70,7 @@ export const useMessagesStore = create<MessagesState>()(
 
                     if (fetchedMessages.length > 0) {
                         const updatedMessages = get().messages;
-                        useChatsStore.getState().
+
 
                         if (direction === "PAST") {
                             updatedMessages[chatId] = [...currentMessages, ...fetchedMessages];
@@ -78,6 +78,7 @@ export const useMessagesStore = create<MessagesState>()(
                             updatedMessages[chatId] = [...fetchedMessages, ...currentMessages];
                         }
                         set({messages: updatedMessages});
+                        useChatsStore.getState().refreshAdditionalInfo();
                         return fetchedMessages.length % pageSize === 0
                     } else {
                         return false;

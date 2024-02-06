@@ -5,12 +5,13 @@ import superjson from 'superjson';
 import {Chat} from "../model/Chat";
 import {ChatDTO} from "../api-wrapper";
 import {useUserStore} from "./userStore";
+import {useMessagesStore} from "./messagesStore";
 
 interface ChatsState {
     chats: Chat[],
     getChat: (chatId: string) => Promise<Chat | null>
     fetchChats: () => Promise<void>
-    setChat: (chat: Chat) => Promise<void>
+    refreshAdditionalInfo: () => void // refreshes date and last message
 }
 
 const local: PersistStorage<ChatsState> = {
@@ -63,12 +64,29 @@ export const useChatsStore = create<ChatsState>()(
                         });
                         const chats = resp.content?.map(transformChat) || [];
                         set({chats: chats});
+                        get().refreshAdditionalInfo();
                     } catch (err) {
                         // TODO handle errors
                     }
                 },
-                setChat: (chat: Chat) => {
-                    const current =
+                refreshAdditionalInfo: () => {
+                    const currChats = get().chats;
+                    const currMessages = useMessagesStore.getState().messages;
+                    const updatedChats = currChats.map(chat => {
+                        const msgs = currMessages[chat.id];
+                        if (msgs && msgs.length > 0) {
+                            const recentDate = msgs[0].date;
+                            const recentMessage = msgs[0].mediaId ? "Image" : msgs[0].message;
+                            const newChat: Chat = {
+                                ...chat,
+                                date: recentDate,
+                                lastMessage: recentMessage
+                            }
+                            return newChat;
+                        }
+                        return chat;
+                    });
+                    set({chats: updatedChats});
                 }
             }
         ),
@@ -101,6 +119,5 @@ function transformChat(apiChat: ChatDTO): Chat {
         userInfo: apiChat.userProfileDTO && {status: "Hey there, I'm using Y-Chat"},
         groupInfo: apiChat.groupProfileDTO && {description: apiChat.groupProfileDTO.profileDescription || ""},
         archived: false,
-        date: new Date(), // TODO calc date,
     };
 }

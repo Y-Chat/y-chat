@@ -15,7 +15,7 @@ function MessageList({chatId}: MessageListProps) {
     const scrollableDiv = useRef<HTMLDivElement>(null);
     const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
     const messages = useMessagesStore(state => state.messages[chatId]) || [];
-    const [moreMessagesToLoad, setMoreMessagesToLoad] = useState(true);
+    const [moreMessagesToLoad, setMoreMessagesToLoad] = useState(!!messages);
     const [showChevron, setShowChevron] = useState(false);
 
     function scrollToBottom() {
@@ -25,6 +25,7 @@ function MessageList({chatId}: MessageListProps) {
     }
 
     useEffect(() => {
+        console.log("test123 todo remove")
         if (messages.length == 0) {
             fetchMoreMessagesByChat(chatId, "PAST", false).then(more => setMoreMessagesToLoad(more));
         } else {

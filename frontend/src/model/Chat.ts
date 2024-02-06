@@ -3,10 +3,11 @@ export interface Chat {
     avatarId?: string,
     name: string,
     newMessages: number,
-    userInfo?: UserInfo // only in FirectChat
+    userInfo?: UserInfo // only in DirectChat
     groupInfo?: GroupInfo // only in GroupChat
     archived: boolean
     date?: Date,
+    lastMessage?: string,
 }
 
 interface GroupInfo {
