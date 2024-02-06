@@ -121,13 +121,13 @@ export function AccountMain() {
                                                 profilePictureId: userProfile.profilePictureId || null
                                             })
                                         }).catch(err => {
-                                            // TODO handle error
+                                            console.log(err);
                                         });
                                         setUploadingAvatar(false);
                                     })
-                                } catch (e) {
+                                } catch (err) {
                                     setUploadingAvatar(false);
-                                    // TODO handle error
+                                    console.log(err);
                                 }
                             }}
                             onReject={(files) => console.log('rejected files', files)}
@@ -257,9 +257,9 @@ export function AccountMain() {
                                 setUser(null);
                                 localStorage.clear();
                                 navigate("/");
-                            }).catch(() => {
+                            }).catch((err) => {
                                 setLogoutLoading(false);
-                                // TODO maybe handle error
+                                console.log(err)
                             })
                         }}
                     >

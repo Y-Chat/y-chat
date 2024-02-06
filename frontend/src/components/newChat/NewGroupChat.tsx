@@ -87,8 +87,8 @@ export function NewGroupChat() {
                     form.reset();
                     setAvatarPreview({file: null, previewUrl: ""})
                 } catch (err) {
-                    // TODO handle error
                     setFormLoading(false);
+                    console.log(err);
                 }
                 setFormLoading(false);
             })}>
