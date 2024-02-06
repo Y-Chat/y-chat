@@ -36,7 +36,7 @@ public class NotificationService {
     }
 
     public void updateToken(UUID userId, String token) {
-        var mapping = userFirebaseTokenMappingRepository.findById(userId).orElseGet(() -> new UserFirebaseTokenMapping(userId, new ArrayList<>()));
+        var mapping = userFirebaseTokenMappingRepository.findById(userId).orElseGet(() -> new UserFirebaseTokenMapping(userId, new HashSet<>()));
         if(mapping.getFcmTokens().stream().noneMatch(x -> x.getToken().equals(token))) {
             var fcmTokens = mapping.getFcmTokens();
             fcmTokens.add(new UserFirebaseTokenMapping.FirebaseToken(token, LocalDateTime.now()));
@@ -220,7 +220,7 @@ public class NotificationService {
     private void removeStaleTokens(Map<UUID, List<String>> staleTokens) {
         for(UserFirebaseTokenMapping uftm : userFirebaseTokenMappingRepository.findAllById(staleTokens.keySet())) {
             var userStaleTokens = staleTokens.get(uftm.getUserId());
-            uftm.setFcmTokens(uftm.getFcmTokens().stream().filter(x -> !userStaleTokens.contains(x.getToken())).collect(Collectors.toList()));
+            uftm.setFcmTokens(uftm.getFcmTokens().stream().filter(x -> !userStaleTokens.contains(x.getToken())).collect(Collectors.toSet()));
             userFirebaseTokenMappingRepository.save(uftm);
             userStaleTokens.forEach(x -> logger.warn("Deleted fcm token: " + x +" of UUID " + uftm.getUserId() + " because it was reported as stale by firebase"));
         }
