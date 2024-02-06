@@ -35,31 +35,29 @@ function App() {
     useEffect(() => {
         const messaging = getMessaging(firebaseApp);
 
-        auth.onIdTokenChanged((currentUser) => {
-            if(!currentUser) {
-                unsubscribeNotifications()
+        if(!auth.currentUser) {
+            unsubscribeNotifications()
+        }
+
+        auth.currentUser?.getIdToken().then((accessToken) => {
+            return accessToken;
+        }).then(async (accessToken) => {
+            const notificationToken = await getToken(messaging, {vapidKey: vapidKey});
+
+            if (!notificationToken)
+                console.log('No registration token available. Request permission to generate one.');
+
+            if (process.env.NODE_ENV === "development") {
+                console.log("FBC token: " + notificationToken);
             }
 
-            currentUser?.getIdToken().then((accessToken) => {
-                return accessToken;
-            }).then(async (accessToken) => {
-                const notificationToken = await getToken(messaging, {vapidKey: vapidKey});
-
-                if (!notificationToken)
-                    console.log('No registration token available. Request permission to generate one.');
-
-                if (process.env.NODE_ENV === "development") {
-                    console.log("FBC token: " + notificationToken);
-                }
-
-                return {notificationToken: notificationToken, accessToken: accessToken};
-            }).then((tokens) => {
-                return api.updateToken({notificationToken: tokens.notificationToken}, {headers: new Headers({Authorization: `Bearer ${tokens.accessToken}`})})
-            }).catch((err) => {
-                console.log('An error occurred while retrieving token. ', err);
-            })
+            return {notificationToken: notificationToken, accessToken: accessToken};
+        }).then((tokens) => {
+            return api.updateToken({notificationToken: tokens.notificationToken}, {headers: new Headers({Authorization: `Bearer ${tokens.accessToken}`})})
+        }).catch((err) => {
+            console.log('An error occurred while retrieving token. ', err);
         })
-    }, []);
+    }, [auth.currentUser, navigator.serviceWorker.controller?.state]);
 
     return (
         <MantineProvider theme={{primaryColor}} defaultColorScheme="dark" forceColorScheme="dark">
