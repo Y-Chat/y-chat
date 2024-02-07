@@ -21,14 +21,29 @@ firebase.initializeApp({
 // messages.
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-    if (!payload.data || !payload.data["chat-id"]) {
+self.addEventListener('push', event => {
+    const data = event.data;
+    /*if (!data || !("type" in data)) {
         return;
-    }
-    const notificationTitle = payload.notification.title;
-    const notificationOptions = {
-        body: payload.notification.body,
-        icon: payload.notification.image
-    };
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    }*/
+    event.waitUntil(
+        // in here we pass showNotification, but if you pass a promise, like fetch,
+        // then you should return showNotification inside of it. like above example.
+        self.registration.showNotification("Hallo Freundeee", {
+            body: "You received a new message!",
+            tag: "YChat - New Message",
+            icon: "https://y-chat.net/logo192.png",
+            renotify: true,
+            data: {
+                url: "https://y-chat.net"
+            }
+        })
+    );
 });
+
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    event.waitUntil(
+        clients.openWindow(event.data.url)
+    );
+})

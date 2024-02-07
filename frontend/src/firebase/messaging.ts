@@ -106,7 +106,7 @@ function setupNotificationHandler() {
 }
 
 function setupServiceFirebaseCloudMessaging() {
-    navigator.serviceWorker.register('/firebase-messaging-sw.js').then((reg) => {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js', {scope: "/firebase-cloud-messaging-push-scope"}).then((reg) => {
         let serviceWorker: ServiceWorker | undefined = undefined;
         if (reg.installing) {
             serviceWorker = reg.installing;
