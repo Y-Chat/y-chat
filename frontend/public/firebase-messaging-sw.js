@@ -21,28 +21,51 @@ firebase.initializeApp({
 // messages.
 const messaging = firebase.messaging();
 
+let newMessageCounter = 0;
+
+async function checkClientIsVisible() {
+    const windowClients = await clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+    });
+
+    for (var i = 0; i < windowClients.length; i++) {
+        if (windowClients[i].visibilityState === "visible") {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 self.addEventListener('push', event => {
     const data = event.data;
-    /*if (!data || !("type" in data)) {
-        return;
-    }*/
     event.waitUntil(
         // in here we pass showNotification, but if you pass a promise, like fetch,
         // then you should return showNotification inside of it. like above example.
-        self.registration.showNotification("Hallo Freundeee", {
-            body: "You received a new message!",
-            tag: "YChat - New Message",
-            icon: "https://y-chat.net/logo192.png",
-            renotify: true,
-            data: {
-                url: "https://y-chat.net"
-            }
+        checkClientIsVisible().then(async (isVisible) => {
+              if(isVisible) {
+                  event.preventDefault();
+                  return;
+              }
+            newMessageCounter += 1;
+            await self.registration.showNotification("New Message", {
+                // body: JSON.stringify(event),
+                body: `You have ${newMessageCounter} new message${newMessageCounter > 1 ? "s" : ""}`,
+                tag: "YChat - New Message",
+                icon: "https://y-chat.net/logo192.png",
+                renotify: true,
+                data: {
+                  url: "https://y-chat.net"
+                }
+            })
         })
     );
 });
 
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
+    newMessageCounter = 0;
     event.waitUntil(
         clients.openWindow(event.data.url)
     );
