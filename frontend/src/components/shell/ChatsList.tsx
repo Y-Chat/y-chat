@@ -17,24 +17,6 @@ export function ChatsList({toggleNav}: ContactListProps) {
     const fetchChats = useChatsStore(state => state.fetchChats);
     const [sortedChats, setSortedChats] = useState<Chat[]>(chats);
 
-    function refreshChatsAndMessagesOnce() {
-        fetchChats().then(() => {
-            useChatsStore.getState().chats
-                .forEach(c => useMessagesStore.getState()
-                    .fetchMoreMessagesByChat(c.id, "FUTURE", true));
-        })
-    }
-
-    useEffect(() => {
-        // refresh chats once on startup, plus when we go from background to foreground afterwards
-        document.addEventListener('visibilitychange', (e) => {
-            if (!document.hidden) {
-                refreshChatsAndMessagesOnce();
-            }
-        });
-        refreshChatsAndMessagesOnce();
-    }, []);
-
     function filterData() {
         const query = search.toLowerCase().trim();
         const filtered = chats.filter((item) => {

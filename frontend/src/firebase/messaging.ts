@@ -110,7 +110,9 @@ function handleStartupInAppNotification(notification: Notification, aggregate: H
 }
 
 function handleStartupInAppNotificationFinished(aggregate: HandleStartupInAppNotificationAggregate) {
-    console.log("handleStartupInAppNotificationFinished", aggregate)
+    aggregate.chatsWithNewMessages.forEach((chatId) => {
+        useMessagesStore.getState().fetchMoreMessagesByChat(chatId, "FUTURE", true);
+    })
 }
 
 export function setupNotificationHandler(userUid: string) {
