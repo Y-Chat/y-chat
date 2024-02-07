@@ -30,6 +30,8 @@ import {useSettingsStore} from "../../state/settingsStore";
 import {showErrorNotification} from "../../notifications/notifications";
 import {useImagesStore} from "../../state/imagesStore";
 import {unsubscribeNotifications} from "../../firebase/messaging";
+import { getMessaging, deleteToken } from "firebase/messaging";
+import firebaseApp from "../../firebase/firebaseApp";
 
 export function AccountMain() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -257,9 +259,8 @@ export function AccountMain() {
                                 setLogoutLoading(false);
                                 setUser(null);
                                 localStorage.clear();
-                                navigator.serviceWorker.getRegistrations().then((registrations) => {
-                                    registrations.forEach((x) => x.unregister())
-                                })
+                                const messaging = getMessaging(firebaseApp)
+                                deleteToken(messaging)
                                 unsubscribeNotifications()
                                 navigate("/");
                             }).catch((err) => {

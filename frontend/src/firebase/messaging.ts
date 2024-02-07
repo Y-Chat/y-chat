@@ -32,7 +32,7 @@ export async function requestNotificationPermissions() {
 }
 
 async function setupNotifications() {
-    setupNotificationHandler();
+    setupServiceFirebaseCloudMessaging();
 
     registerNotificationTypeHandler("SIGNALING_NEW_OFFER", (payload: MessagePayload) => {
         console.log('Received SIGNALING_NEW_OFFER', payload);
@@ -103,4 +103,32 @@ function setupNotificationHandler() {
 
         console.error(`Received notification of type ${type} but no handler was registered`, payload)
     });
+}
+
+function setupServiceFirebaseCloudMessaging() {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js').then((reg) => {
+        let serviceWorker: ServiceWorker | undefined = undefined;
+        if (reg.installing) {
+            serviceWorker = reg.installing;
+            // console.log('Service worker installing');
+        } else if (reg.waiting) {
+            serviceWorker = reg.waiting;
+            // console.log('Service worker installed & waiting');
+        } else if (reg.active) {
+            serviceWorker = reg.active;
+            // console.log('Service worker active');
+        }
+
+        if(serviceWorker) {
+            console.log("sw current state", serviceWorker.state);
+            if (serviceWorker.state == "activated") {
+                setupNotificationHandler();
+            }
+            serviceWorker.onstatechange = (e) => {
+                if(serviceWorker?.state === "activated") {
+                    setupNotificationHandler();
+                }
+            }
+        }
+    })
 }
