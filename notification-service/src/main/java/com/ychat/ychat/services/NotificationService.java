@@ -106,29 +106,9 @@ public class NotificationService {
 
         switch (notificationType) {
             case NEW_MESSAGE -> {
-                /*messageBuilder.setNotification(notification.getNewMessage() != null ? com.google.firebase.messaging.Notification.builder()
-                        .setTitle("Y-Chat - New Message")
-                        .setImage("https://y-chat.net/logo192.png")
-                        .setBody("You received a new message!")
-                        .build() : null
-                );*/
                 var chatId = notification.getNewMessage().getChatId();
                 data.put("chatId", chatId);
                 messageBuilder.putAllData(data);
-                /*messageBuilder.setWebpushConfig(WebpushConfig.builder()
-                        .setNotification(WebpushNotification.builder()
-                                .setTag("YChat - New Message")
-                                .setTitle("New Message")
-                                .setBody("You received a new message!")
-                                .setIcon("https://y-chat.net/logo192.png")
-                                .setRenotify(true)
-                                .build()
-                        )
-                        .setFcmOptions(WebpushFcmOptions.builder()
-                                .setLink("https://y-chat.net/chat/"+chatId)
-                                .build())
-                        .build()
-                );*/
 
                 var pageSize = 10;
                 var currentPageNumber = 0;

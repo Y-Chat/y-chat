@@ -38,35 +38,31 @@ async function checkClientIsVisible() {
     return false;
 }
 
-self.addEventListener('push', event => {
-    const data = event.data;
-    event.waitUntil(
-        // in here we pass showNotification, but if you pass a promise, like fetch,
-        // then you should return showNotification inside of it. like above example.
-        checkClientIsVisible().then(async (isVisible) => {
-              if(isVisible) {
-                  event.preventDefault();
-                  return;
-              }
-            newMessageCounter += 1;
-            await self.registration.showNotification("New Message", {
-                // body: JSON.stringify(event),
-                body: `You have ${newMessageCounter} new message${newMessageCounter > 1 ? "s" : ""}`,
-                tag: "YChat - New Message",
-                icon: "https://y-chat.net/logo192.png",
-                renotify: true,
-                data: {
-                  url: "https://y-chat.net"
-                }
-            })
-        })
-    );
+let newestUrl = null;
+
+messaging.onBackgroundMessage((payload) => {
+    if (!payload.data || !("type" in payload.data)) {
+        return;
+    }
+    const type = payload.data["type"]
+    if(type !== "NEW_MESSAGE") {
+        return;
+    }
+    newMessageCounter += 1;
+    newestUrl = `/chat/${payload.data["chatId"]}`;
+    self.registration.showNotification("New Message", {
+        body: `You have ${newMessageCounter} new message${newMessageCounter > 1 ? "s" : ""}`,
+        tag: "YChat - New Message",
+        icon: "https://y-chat.net/logo192.png",
+        renotify: true,
+    });
 });
 
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
     newMessageCounter = 0;
+    if(newestUrl === null) return;
     event.waitUntil(
-        clients.openWindow(event.data.url)
+        clients.openWindow(newestUrl)
     );
 })
