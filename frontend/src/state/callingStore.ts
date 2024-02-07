@@ -197,6 +197,11 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                 remoteVideo: remoteVideo
             }})
         }
+        const audio = new Audio("/start_call.mp3")
+        audio.volume = 0.1
+        audio.play().catch(() => {
+            console.error("can't start notification audio autoplay, because it's being blocked by the browser")
+        })
     },
     acceptCall: async (callId: string, offerSdp: string, offerType: string) => {
         const oldSignaling = get().signaling;
@@ -322,6 +327,11 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         signaling.peerConnection.close()
         signaling.localStream.getTracks().forEach((x) => x.stop())
         set({signaling: null})
+        const audio = new Audio("/call_end.mp3")
+        audio.volume = 0.1
+        audio.play().catch(() => {
+            console.error("can't start notification audio autoplay, because it's being blocked by the browser")
+        })
     },
     handleNotifications: (payload) => {
         if(payload.type === "SIGNALING_NEW_ANSWER") {
