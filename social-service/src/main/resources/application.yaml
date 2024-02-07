@@ -16,6 +16,7 @@ spring:
     driverClassName: org.postgresql.Driver
   jpa:
     show-sql: true
+    # Change to false when schema is given
     generate-ddl: true
     open-in-view: true
   security:

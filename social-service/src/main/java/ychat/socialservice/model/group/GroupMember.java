@@ -23,17 +23,14 @@ public class GroupMember extends ChatMember {
         this.groupRole = GroupRole.GROUP_MEMBER;
     }
 
-    // How has this ever worked???
+    /**
+     * I would have prefered to have a Group variable here as well but Hibernate will not allow it
+     * for the composite key and thus the polymorphic queries. The data model is not broken because
+     * of this because GroupMember can only be initialized with a Group not another type of Chat
+     * and the Chat cannot be changed.
+     */
     public Group getGroup() {
         return (Group) getChat();
-    }
-
-    // Workaround for broken data model
-    public Group getGroupFixed(GroupRepository groupRepository) {
-        var chat = getChat();
-        var group = groupRepository.findById(chat.getId());
-        if(group.isEmpty()) throw new RuntimeException("Chat of of group member is not a Group. Invariant broken");
-        return group.get();
     }
 
     public GroupRole getGroupRole() {

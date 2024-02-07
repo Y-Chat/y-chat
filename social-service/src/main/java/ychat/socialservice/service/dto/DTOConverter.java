@@ -98,17 +98,15 @@ public class DTOConverter {
         );
     }
 
-    public static ChatDTO convertToDTO(Chat chat, User user, GroupRepository groupRepo, DirectChatRepository directChatRepo) {
-        // Workaround for broken data model:
-        var directChat = directChatRepo.findById(chat.getId());
-        var groupChat = groupRepo.findById(chat.getId());
-        if(directChat.isPresent()) {
-            return convertToDTO(directChat.get(), user);
-        } else if (groupChat.isPresent()) {
-            return convertToChatDTO(groupChat.get());
-        } else {
-            throw new RuntimeException("Found chat that is neither directchat nor group chat. Invariant broken");
-        }
+    /**
+     * When you have a polymorphic model and you want to serialize it, earlier or later you have
+     * to check for the class. That does not mean that the domain model is broken. This could be
+     * done without the class check but then the logic would have to live in the model where it
+     * does not belong.
+     */
+    public static ChatDTO convertToDTO(Chat chat, User user) {
+        return chat.getClass() == DirectChat.class
+            ? convertToDTO((DirectChat) chat, user) : convertToChatDTO((Group) chat);
     }
 
     public static ChatMemberDTO convertToDTO(DirectChatMember directChatMember) {

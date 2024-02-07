@@ -3,15 +3,13 @@ package ychat.socialservice.controller;
 import com.google.firebase.auth.FirebaseAuthException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ychat.socialservice.SecurityConfig;
+import ychat.socialservice.model.user.User;
 import ychat.socialservice.service.dto.UserProfileDTO;
 import ychat.socialservice.service.dto.UserSettingsDTO;
 import ychat.socialservice.service.dto.BlockedUserDTO;
@@ -62,16 +60,14 @@ public class UserController {
         return userService.getUser(userId);
     }
 
-    // TODO write integration test
     @GetMapping("/byEmail")
     @Operation(
         summary = "Get the user id for an email.",
         description = "Returns the user id if it exists."
     )
-    public ResponseEntity<UUID> getUserIdByEmail(String email) throws FirebaseAuthException {
-        var uuid = userService.getUserIdByEmail(email);
-        if(uuid == null) return ResponseEntity.status(404).build();
-        return ResponseEntity.ok(uuid);
+    public UUID getUserIdByEmail(@RequestParam String email) throws FirebaseAuthException {
+        User user = userService.getUserIdByEmail(email);
+        return user.getId();
     }
 
     @DeleteMapping("/{userId}")
@@ -93,7 +89,7 @@ public class UserController {
         summary = "Fetch the profile of a user.",
         description = "All returned fields are populated. RemoveProfilePictureId is null."
     )
-    public UserProfileDTO getUserProfile(@PathVariable @NotNull UUID userId) {
+    public UserProfileDTO getUserProfile(@PathVariable UUID userId) {
         return userService.getUserProfile(userId);
     }
 
