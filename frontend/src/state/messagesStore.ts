@@ -69,6 +69,8 @@ export const useMessagesStore = create<MessagesState>()(
                             if (n.length < pageSize) {
                                 break;
                             }
+                            // use the date from either the last or first message, we have, and fetch into the past or future
+                            d = direction === "PAST" ? new Date(fetchedMessages[fetchedMessages.length - 1].date) : new Date(fetchedMessages[0].date);
                         } while (untilEnd)
                     } catch (err) {
                         return true;
