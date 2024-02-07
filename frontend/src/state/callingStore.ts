@@ -5,6 +5,7 @@ import {Notifications} from "@mantine/notifications";
 import {MessagePayload} from "firebase/messaging";
 import {callIdToCallNotificationId} from "../notifications/notifications";
 import adapter from "webrtc-adapter"
+import { Notification } from "../firebase/messaging";
 
 const servers = {
     iceServers: [
@@ -55,7 +56,7 @@ interface CallingState {
     denyCall: (callId: string) => Promise<void>,
     endCall: () => Promise<void>,
     switchCamera: () => Promise<void>,
-    handleNotifications: (payload: MessagePayload) => void,
+    handleNotifications: (payload: Notification) => void,
     setMicState: (micState: boolean) => void;
 }
 
@@ -323,22 +324,16 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         set({signaling: null})
     },
     handleNotifications: (payload) => {
-        if(!payload.data || !("type" in payload.data)) return;
-        const type = payload.data["type"]
-
-        if(type === "SIGNALING_NEW_ANSWER") {
-            const callId = payload.data["call-id"];
-            const calleeId = payload.data["callee-id"];
-            const answerSdp = payload.data["answer-sdp"];
-            const answerType = payload.data["answer-type"];
+        if(payload.type === "SIGNALING_NEW_ANSWER") {
+            if(!payload || !payload.callId || !payload.calleeId || !payload.answerSdp || !payload.answerType) return;
             console.log("Got new SIGNALING_NEW_ANSWER")
 
             const signaling = get().signaling;
             if(!signaling || signaling.callState !== "PENDING") return;
 
             const answerDescription = new RTCSessionDescription({
-                type: answerType as RTCSdpType,
-                sdp: answerSdp
+                type: payload.answerType as RTCSdpType,
+                sdp: payload.answerSdp
             });
             signaling.peerConnection.setRemoteDescription(answerDescription)
 
@@ -350,7 +345,7 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                 } : null,
             }))
 
-            api.getSignalingCandidates({callId: callId}).then((candidates) => {
+            api.getSignalingCandidates({callId: payload.callId}).then((candidates) => {
                 candidates.forEach((candidate) => {
                     const iceCandidate = new RTCIceCandidate({
                         candidate: candidate.candidate,
@@ -361,27 +356,23 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                     get().signaling?.peerConnection?.addIceCandidate(iceCandidate)
                 })
             }).catch((err) => console.error(err))
-        } else if(type === "SIGNALING_NEW_CANDIDATE") {
-            const callId = payload.data["call-id"];
-            const candidate = payload.data["candidate-candidate"];
-            const sdpMid = payload.data["candidate-sdp-mid"];
-            const usernameFragment = payload.data["candidate-username-fragment"];
-            const sdpMLineIndex = payload.data["candidate-sdp-m-line-index"];
+        } else if(payload.type === "SIGNALING_NEW_CANDIDATE") {
+            if(!payload || !payload.candidateCandidate || !payload.candidateSdpMid || !payload.candidateSdpMLineIndex || !payload.candidateUsernameFragment) return;
             console.log("Got new SIGNALING_NEW_CANDIDATE")
 
             const signaling = get().signaling;
             if(!signaling) return;
             const iceCandidate = new RTCIceCandidate({
-                candidate: candidate,
-                sdpMid: sdpMid,
-                sdpMLineIndex: Number.parseInt(sdpMLineIndex),
-                usernameFragment: usernameFragment
+                candidate: payload.candidateCandidate,
+                sdpMid: payload.candidateSdpMid,
+                sdpMLineIndex: Number.parseInt(payload.candidateSdpMLineIndex),
+                usernameFragment: payload.candidateUsernameFragment
             })
             signaling.peerConnection.addIceCandidate(iceCandidate)
-        } else if(type === "CALL_ENDED") {
-            const callId = payload.data["call-id"];
-            Notifications.hide(callIdToCallNotificationId(callId))
-            if(!get().signaling || get().signaling?.callId !== callId) return;
+        } else if(payload.type === "CALL_ENDED") {
+            if(!payload || !payload.callId) return;
+            Notifications.hide(callIdToCallNotificationId(payload.callId))
+            if(!get().signaling || get().signaling?.callId !== payload.callId) return;
             get().endCall()
         }
     }

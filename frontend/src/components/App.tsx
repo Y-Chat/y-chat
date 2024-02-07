@@ -21,9 +21,10 @@ import {HowToInstall} from "./common/HowToInstall";
 import {accessToken, api} from "../network/api";
 import {getMessaging, getToken} from "firebase/messaging";
 import firebaseApp from "../firebase/firebaseApp";
-import {unsubscribeNotifications, vapidKey} from "../firebase/messaging";
+import {setupNotificationHandler, unsubscribeNotifications, vapidKey} from "../firebase/messaging";
 import {useSettingsStore} from "../state/settingsStore";
 import CallingWrapper from "./shell/CallingWrapper";
+import getUuidByString from "uuid-by-string";
 
 function App() {
 
@@ -37,6 +38,8 @@ function App() {
 
         if(!auth.currentUser) {
             unsubscribeNotifications()
+        } else {
+            setupNotificationHandler(auth.currentUser.uid)
         }
 
         auth.currentUser?.getIdToken().then((accessToken) => {

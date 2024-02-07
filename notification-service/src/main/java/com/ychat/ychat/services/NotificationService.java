@@ -1,6 +1,8 @@
 package com.ychat.ychat.services;
 
 import com.asyncapi.gen.notification.model.Notification;
+import com.google.cloud.firestore.Firestore;
+import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.messaging.*;
 import com.openapi.gen.social.dto.ChatMemberDTO;
 import com.ychat.ychat.enums.NotificationTypeEnum;
@@ -13,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,8 +37,9 @@ public class NotificationService {
         this.socialServiceConnector = socialServiceConnector;
     }
 
-    public void updateToken(UUID userId, String token) {
+    public void updateToken(UUID userId, String userFirebaseUid, String token) {
         var mapping = userFirebaseTokenMappingRepository.findById(userId).orElseGet(() -> new UserFirebaseTokenMapping(userId, new HashSet<>()));
+        mapping.setFirebaseUid(userFirebaseUid);
         if(mapping.getFcmTokens().stream().noneMatch(x -> x.getToken().equals(token))) {
             var fcmTokens = mapping.getFcmTokens();
             fcmTokens.add(new UserFirebaseTokenMapping.FirebaseToken(token, LocalDateTime.now()));
@@ -43,12 +48,25 @@ public class NotificationService {
         userFirebaseTokenMappingRepository.save(mapping);
     }
 
-    private void sendNotificationToUser(UUID userUUID, Message.Builder messageBuilder, Map<UUID, List<String>> staleTokens) {
+    private void sendInAppNotification(UUID userUUID, Map<String, String> data) {
+        Firestore db = FirestoreClient.getFirestore();
+        var usersCollection = db.collection("users");
+        var userFirebaseTokenMapping = userFirebaseTokenMappingRepository.findById(userUUID);
+        if(userFirebaseTokenMapping.isEmpty()) {
+            logger.warn("In App Notification should be sent to user with UUID " + userUUID + " but they don't have a fcm uid registered");
+            return;
+        }
+
+        usersCollection.document(userFirebaseTokenMapping.get().getFirebaseUid()).collection("notifications").document(""+LocalDateTime.now().toEpochSecond(OffsetDateTime.now().getOffset())).set(data);
+        logger.info("Sent in app notification to UUID: " + userUUID + " with uid: " + userFirebaseTokenMapping.get().getFirebaseUid());
+    }
+
+    private void sendOfflineNotificationToUser(UUID userUUID, Message.Builder messageBuilder, Map<UUID, List<String>> staleTokens) {
         var firebaseMessaging = FirebaseMessaging.getInstance();
 
         var userFirebaseTokenMapping = userFirebaseTokenMappingRepository.findById(userUUID);
         if(userFirebaseTokenMapping.isEmpty()) {
-            logger.warn("Notification should be sent to user with UUID " + userUUID + " but they don't have a fcm token registered");
+            logger.warn("Offline Notification should be sent to user with UUID " + userUUID + " but they don't have a fcm token registered");
             return;
         }
         for (UserFirebaseTokenMapping.FirebaseToken token : userFirebaseTokenMapping.get().getFcmTokens()) {
@@ -57,7 +75,7 @@ public class NotificationService {
                         .setToken(token.getToken())
                         .build()
                 );
-                logger.info("Sent notification to UUID: " + userUUID + " with token: " + token.getToken());
+                logger.info("Sent offline notification to UUID: " + userUUID + " with token: " + token.getToken());
             } catch (FirebaseMessagingException e) {
                 switch (e.getMessagingErrorCode()){
                     case QUOTA_EXCEEDED -> {
@@ -88,23 +106,29 @@ public class NotificationService {
 
         switch (notificationType) {
             case NEW_MESSAGE -> {
-                messageBuilder.setNotification(notification.getNewMessage() != null ? com.google.firebase.messaging.Notification.builder()
+                /*messageBuilder.setNotification(notification.getNewMessage() != null ? com.google.firebase.messaging.Notification.builder()
                         .setTitle("Y-Chat - New Message")
+                        .setImage("https://y-chat.net/logo192.png")
                         .setBody("You received a new message!")
                         .build() : null
-                );
+                );*/
                 var chatId = notification.getNewMessage().getChatId();
-                data.put("chat-id", chatId);
+                data.put("chatId", chatId);
                 messageBuilder.putAllData(data);
-                messageBuilder.setWebpushConfig(WebpushConfig.builder()
+                /*messageBuilder.setWebpushConfig(WebpushConfig.builder()
                         .setNotification(WebpushNotification.builder()
                                 .setTag("YChat - New Message")
-                                .setImage("https://y-chat.net/logo192.png")
+                                .setTitle("New Message")
+                                .setBody("You received a new message!")
+                                .setIcon("https://y-chat.net/logo192.png")
+                                .setRenotify(true)
                                 .build()
                         )
-                        .setFcmOptions(WebpushFcmOptions.builder().setLink("https://y-chat.net/chat/"+chatId).build())
+                        .setFcmOptions(WebpushFcmOptions.builder()
+                                .setLink("https://y-chat.net/chat/"+chatId)
+                                .build())
                         .build()
-                );
+                );*/
 
                 var pageSize = 10;
                 var currentPageNumber = 0;
@@ -116,7 +140,8 @@ public class NotificationService {
                 while(currentPageNumber == 0 || currentPage.getChatMembers().size() >= pageSize) {
                     for(ChatMemberDTO user: currentPage.getChatMembers()) {
                         if(user.getUserId().toString().equals(notification.getNewMessage().getSenderId())) continue;
-                        sendNotificationToUser(user.getUserId(), messageBuilder, staleTokens);
+                        sendInAppNotification(user.getUserId(), data);
+                        sendOfflineNotificationToUser(user.getUserId(), messageBuilder, staleTokens);
                     }
                     removeStaleTokens(staleTokens);
                     staleTokens.clear();
@@ -139,58 +164,34 @@ public class NotificationService {
                 // Will not be implemented for now
             }
             case SIGNALING_NEW_OFFER -> {
-                data.put("offer-sdp", notification.getSignalingNewOffer().getOffer().getSdp());
-                data.put("offer-type", notification.getSignalingNewOffer().getOffer().getType());
-                data.put("call-id", notification.getSignalingNewOffer().getCallId());
-                data.put("caller-id", notification.getSignalingNewOffer().getCallerId());
+                data.put("offerSdp", notification.getSignalingNewOffer().getOffer().getSdp());
+                data.put("offerType", notification.getSignalingNewOffer().getOffer().getType());
+                data.put("callId", notification.getSignalingNewOffer().getCallId());
+                data.put("callerId", notification.getSignalingNewOffer().getCallerId());
 
-                messageBuilder.putAllData(data);
-                sendNotificationToUser(
-                        UUID.fromString(notification.getSignalingNewOffer().getCalleeId()),
-                        messageBuilder,
-                        staleTokens
-                );
-                removeStaleTokens(staleTokens);
+                sendInAppNotification(UUID.fromString(notification.getSignalingNewOffer().getCalleeId()), data);
             }
             case SIGNALING_NEW_ANSWER -> {
-                data.put("answer-sdp", notification.getSignalingNewAnswer().getAnswer().getSdp());
-                data.put("answer-type", notification.getSignalingNewAnswer().getAnswer().getType());
-                data.put("call-id", notification.getSignalingNewAnswer().getCallId());
-                data.put("callee-id", notification.getSignalingNewAnswer().getCalleeId());
+                data.put("answerSdp", notification.getSignalingNewAnswer().getAnswer().getSdp());
+                data.put("answerType", notification.getSignalingNewAnswer().getAnswer().getType());
+                data.put("callId", notification.getSignalingNewAnswer().getCallId());
+                data.put("calleeId", notification.getSignalingNewAnswer().getCalleeId());
 
-                messageBuilder.putAllData(data);
-                sendNotificationToUser(
-                        UUID.fromString(notification.getSignalingNewAnswer().getCallerId()),
-                        messageBuilder,
-                        staleTokens
-                );
-                removeStaleTokens(staleTokens);
+                sendInAppNotification(UUID.fromString(notification.getSignalingNewOffer().getCallerId()), data);
             }
             case SIGNALING_NEW_CANDIDATE -> {
-                data.put("call-id", notification.getSignalingNewCandidate().getCallId());
-                data.put("candidate-candidate", notification.getSignalingNewCandidate().getCandidate().getCandidate());
-                data.put("candidate-sdp-mid", notification.getSignalingNewCandidate().getCandidate().getSdpMid());
-                data.put("candidate-username-fragment", notification.getSignalingNewCandidate().getCandidate().getUsernameFragment());
-                data.put("candidate-sdp-m-line-index", ""+notification.getSignalingNewCandidate().getCandidate().getSdpMLineIndex());
+                data.put("callId", notification.getSignalingNewCandidate().getCallId());
+                data.put("candidateCandidate", notification.getSignalingNewCandidate().getCandidate().getCandidate());
+                data.put("candidateSdpMid", notification.getSignalingNewCandidate().getCandidate().getSdpMid());
+                data.put("candidateUsernameFragment", notification.getSignalingNewCandidate().getCandidate().getUsernameFragment());
+                data.put("candidateSdpMLineIndex", ""+notification.getSignalingNewCandidate().getCandidate().getSdpMLineIndex());
 
-                messageBuilder.putAllData(data);
-                sendNotificationToUser(
-                        UUID.fromString(notification.getSignalingNewCandidate().getReceiverId()),
-                        messageBuilder,
-                        staleTokens
-                );
-                removeStaleTokens(staleTokens);
+                sendInAppNotification(UUID.fromString(notification.getSignalingNewCandidate().getReceiverId()), data);
             }
             case CALL_ENDED -> {
-                data.put("call-id", notification.getCallEnded().getCallId());
+                data.put("callId", notification.getCallEnded().getCallId());
 
-                messageBuilder.putAllData(data);
-                sendNotificationToUser(
-                        UUID.fromString(notification.getCallEnded().getReceiverId()),
-                        messageBuilder,
-                        staleTokens
-                );
-                removeStaleTokens(staleTokens);
+                sendInAppNotification(UUID.fromString(notification.getCallEnded().getReceiverId()), data);
             }
         }
     }

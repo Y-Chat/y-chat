@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -23,7 +24,8 @@ public class NotificationController implements NotificationApi {
     @Override
     public ResponseEntity<Void> updateToken(String notificationToken) {
         var requesterUUID = SecurityConfig.getRequesterUUID();
-        notificationService.updateToken(requesterUUID, notificationToken);
+        var requesterFirebaseUid = SecurityContextHolder.getContext().getAuthentication().getName();
+        notificationService.updateToken(requesterUUID, requesterFirebaseUid, notificationToken);
         return ResponseEntity.ok().build();
     }
 

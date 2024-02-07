@@ -14,6 +14,8 @@ public class UserFirebaseTokenMapping {
     @Id
     private UUID userId;
 
+    private String firebaseUid;
+
     private Set<FirebaseToken> fcmTokens;
 
     public UserFirebaseTokenMapping(UUID userId, Set<FirebaseToken> fcmTokens) {
@@ -35,6 +37,14 @@ public class UserFirebaseTokenMapping {
 
     public void setFcmTokens(Set<FirebaseToken> fcmTokens) {
         this.fcmTokens = fcmTokens;
+    }
+
+    public String getFirebaseUid() {
+        return firebaseUid;
+    }
+
+    public void setFirebaseUid(String firebaseUid) {
+        this.firebaseUid = firebaseUid;
     }
 
     public static class FirebaseToken {
