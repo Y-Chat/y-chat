@@ -23,17 +23,24 @@ export function showErrorNotification(errorCode: string, title: string = "Error"
     });
 }
 
-export function showNotification(message: string, title: string = "Notification", link?: string) {
+export function showNotification(message: string, title: string = "Notification", options?: {link?: string, sound?: string}) {
     const id = title + (Math.random()*10000000)
     Notifications.show({
         id: id,
         withBorder: true,
         title: title,
         message: message,
-        onClick: link ? () => {
+        onClick: options?.link ? () => {
             Notifications.hide(id)
             // This is a workaround. There is no other way to redirect outside component in react router 6.4 <
-            window.location.pathname = link;
+            window.location.pathname = options.link!;
+        } : undefined,
+        onOpen: options?.sound ? () => {
+            const audio = new Audio(options.sound)
+            audio.volume = 0.1
+            audio.play().catch(() => {
+                console.error("can't start notification audio autoplay, because it's being blocked by the browser")
+            })
         } : undefined
     });
 }

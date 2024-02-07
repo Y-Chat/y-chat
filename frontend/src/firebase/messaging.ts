@@ -66,7 +66,7 @@ async function setupNotifications() {
             return;
         }
         useMessagesStore.getState().fetchMoreMessagesByChat(payload.chatId, "FUTURE", true);
-        showNotification("You received a new message", "New Message", `/chat/${payload.chatId}`);
+        showNotification("You received a new message", "New Message", {link: `/chat/${payload.chatId}`, sound: "/new_message.mp3"});
     });
 }
 
