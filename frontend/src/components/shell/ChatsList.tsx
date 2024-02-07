@@ -17,6 +17,23 @@ export function ChatsList({toggleNav}: ContactListProps) {
     const fetchChats = useChatsStore(state => state.fetchChats);
     const [sortedChats, setSortedChats] = useState<Chat[]>(chats);
 
+    function fetchChatsForFirstTime() {
+        const existingChatIds: { [id: string] : boolean; } = {};
+        chats.forEach((x) => existingChatIds[x.id] = true)
+
+        fetchChats().then(() => {
+            useChatsStore
+                .getState()
+                .chats
+                .filter((x) => !(x.id in existingChatIds))
+                .forEach(c => useMessagesStore.getState().fetchMoreMessagesByChat(c.id, "FUTURE", true));
+        })
+    }
+
+    useEffect(() => {
+        fetchChatsForFirstTime();
+    }, []);
+
     function filterData() {
         const query = search.toLowerCase().trim();
         const filtered = chats.filter((item) => {
