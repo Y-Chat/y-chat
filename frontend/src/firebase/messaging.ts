@@ -1,6 +1,6 @@
-import {getMessaging, isSupported, MessagePayload, onMessage, Unsubscribe} from "firebase/messaging";
+import { Unsubscribe } from "firebase/messaging";
 import firebaseApp from "./firebaseApp";
-import {showCallNotification, showErrorNotification, showNotification} from "../notifications/notifications";
+import {showCallNotification, showNotification} from "../notifications/notifications";
 import { getFirestore, onSnapshot, collection , deleteDoc, query, orderBy, startAfter, limit, documentId, getDocs } from "firebase/firestore";
 import {useMessagesStore} from "../state/messagesStore";
 import {useChatsStore} from "../state/chatsStore";
@@ -30,29 +30,26 @@ export const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-w
 const hasPermission = 'Notification' in window && Notification.permission === "granted"
 const notificationTypeHandlers: { [type: string]: (payload: Notification) => void; } = {}
 let unsubscribeFromNotifications: Unsubscribe | null = null;
-export let notificationNavigate: NavigateFunction | undefined = undefined;
-
-export function setNotificationNavigate(navigate: NavigateFunction) {
-    notificationNavigate = navigate;
-}
 
 // if permission already granted -> generate token
 if (hasPermission) {
     setupNotifications();
 } else {
-    requestNotificationPermissions();
+    requestNotificationPermissions()
 }
 
 // request notification permissions and then generate token
 export async function requestNotificationPermissions() {
-    const permissions = await Notification.requestPermission();
-    if (permissions !== "granted") {
-        showNotification("Please give us permission to send notifications to your browser. This is necessary for you to receive offline notifications", "Notifications Blocked")
-        return false;
-    }
-
-    await setupNotifications();
-    return true;
+    showNotification(
+        "Please give us permission to send notifications to your browser. This is necessary to receive chat messages when YChat is closed",
+        "Offline Notification Permissions",
+        {autoClose: false, action: {text: "Grant permission", callback: async () => {
+            console.log("Requesting Permission from browser...")
+            const status = await Notification.requestPermission();
+            console.log("status", status)
+            await setupNotifications();
+        }}}
+    )
 }
 
 async function setupNotifications() {
@@ -71,7 +68,7 @@ async function setupNotifications() {
         await useMessagesStore.getState().fetchMoreMessagesByChat(payload.chatId, "FUTURE", true);
         if(window.location.pathname !== `/chat/${payload.chatId}`) {
             const chat = await useChatsStore.getState().getChat(payload.chatId)
-            showNotification(chat?.lastMessage ? chat.lastMessage : "You received a new message", chat ? chat.name : "New Message", {link: `/chat/${payload.chatId}`, sound: "/new_message.mp3"});
+            showNotification(chat?.lastMessage ? chat.lastMessage : "You received a new message", chat ? chat.name : "New Message", {action: {link: `/chat/${payload.chatId}`, text: "To the chat"}, sound: "/new_message.mp3"});
         } else {
             const audio = new Audio("/new_message.mp3")
             audio.volume = 0.1

@@ -6,7 +6,7 @@ import {ShellOutletContext} from "./ShellOutletContext";
 import AccountBtn from "./AccountBtn";
 import {ChatsList} from "./ChatsList";
 import {IconBar} from "./IconBar";
-import {setNotificationNavigate} from "../../firebase/messaging";
+import {setNotificationNavigate} from "../../notifications/notifications";
 
 
 function Shell() {
