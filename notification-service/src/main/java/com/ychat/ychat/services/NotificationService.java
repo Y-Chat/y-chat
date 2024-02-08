@@ -157,7 +157,7 @@ public class NotificationService {
                 data.put("callId", notification.getSignalingNewAnswer().getCallId());
                 data.put("calleeId", notification.getSignalingNewAnswer().getCalleeId());
 
-                sendInAppNotification(UUID.fromString(notification.getSignalingNewOffer().getCallerId()), data);
+                sendInAppNotification(UUID.fromString(notification.getSignalingNewAnswer().getCallerId()), data);
             }
             case SIGNALING_NEW_CANDIDATE -> {
                 data.put("callId", notification.getSignalingNewCandidate().getCallId());

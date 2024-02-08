@@ -128,6 +128,8 @@ export const useCallingStore = create<CallingState>((set,get) => ({
             peerConnection.addTrack(track, localStream)
         })
 
+        peerConnection.createDataChannel("callData", { negotiated: true, id: 100, ordered: false });
+
         peerConnection.ontrack = (event) => {
             console.log("ontrack")
             event.streams[0].getTracks().forEach((track) => {
@@ -177,7 +179,6 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         };
         console.log("created offer", offer)
 
-        // TODO Change to chatId instead of calleeId (blocked by social service)
         const call = await api.createCall({createCallRequest: {
             calleeId: calleeId,
             offer: offer
@@ -230,6 +231,8 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         localStream?.getTracks().forEach((track) => {
             peerConnection.addTrack(track, localStream)
         })
+
+        peerConnection.createDataChannel("callData", { negotiated: true, id: 100, ordered: false });
 
         peerConnection.ontrack = (event) => {
             console.log("ontrack")
@@ -345,33 +348,32 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                 type: payload.answerType as RTCSdpType,
                 sdp: payload.answerSdp
             });
-            signaling.peerConnection.setRemoteDescription(answerDescription)
-
-            set((state) => ({
-                ...state,
-                signaling: state.signaling ? {
-                    ...state.signaling,
-                    callState: "ONGOING"
-                } : null,
-            }))
-
-            api.getSignalingCandidates({callId: payload.callId}).then((candidates) => {
+            signaling.peerConnection.setRemoteDescription(answerDescription).then((x) => {
+                set((state) => ({
+                    ...state,
+                    signaling: state.signaling ? {
+                        ...state.signaling,
+                        callState: "ONGOING"
+                    } : null,
+                }))
+            }).then(async () => {
+                const candidates = await api.getSignalingCandidates({callId: payload.callId!});
                 candidates.forEach((candidate) => {
                     const iceCandidate = new RTCIceCandidate({
                         candidate: candidate.candidate,
                         sdpMid: candidate.sdpMid,
                         sdpMLineIndex: candidate.sdpMLineIndex,
                         usernameFragment: candidate.usernameFragment
-                    })
-                    get().signaling?.peerConnection?.addIceCandidate(iceCandidate)
-                })
+                    });
+                    get().signaling?.peerConnection?.addIceCandidate(iceCandidate);
+                });
             }).catch((err) => console.error(err))
         } else if(payload.type === "SIGNALING_NEW_CANDIDATE") {
             if(!payload || !payload.candidateCandidate || !payload.candidateSdpMid || !payload.candidateSdpMLineIndex || !payload.candidateUsernameFragment) return;
             console.log("Got new SIGNALING_NEW_CANDIDATE")
 
             const signaling = get().signaling;
-            if(!signaling) return;
+            if(!signaling || !signaling.peerConnection.remoteDescription) return;
             const iceCandidate = new RTCIceCandidate({
                 candidate: payload.candidateCandidate,
                 sdpMid: payload.candidateSdpMid,
