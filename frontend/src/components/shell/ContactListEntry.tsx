@@ -63,7 +63,7 @@ export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
                           fz="xs">
                         {
                             chat.date.toDateString() === new Date().toDateString() ?
-                                `${chat.date.getHours()}:${chat.date.getMinutes()}`
+                                `${chat.date.getHours()}:${(chat.date.getMinutes().toString().padStart(2,"0"))}`
                                 : `${chat.date.getDate()}.${chat.date.getMonth()+1}.${chat.date.getFullYear()}`
                         }
                     </Text>}
