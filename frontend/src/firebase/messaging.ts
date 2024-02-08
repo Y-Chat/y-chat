@@ -39,19 +39,15 @@ export function setNotificationNavigate(navigate: NavigateFunction) {
 // if permission already granted -> generate token
 if (hasPermission) {
     setupNotifications();
+} else {
+    requestNotificationPermissions();
 }
 
 // request notification permissions and then generate token
 export async function requestNotificationPermissions() {
-    const supported = await isSupported();
-    if (!supported || !('serviceWorker' in navigator)) {
-        showNotification("Your browser is not support.", "Browser Not Supported")
-        return false;
-    }
-
     const permissions = await Notification.requestPermission();
     if (permissions !== "granted") {
-        showNotification("Please give us permission to send notifications to your browser. This is necessary for the app to work properly.", "Notifications Blocked")
+        showNotification("Please give us permission to send notifications to your browser. This is necessary for you to receive offline notifications", "Notifications Blocked")
         return false;
     }
 

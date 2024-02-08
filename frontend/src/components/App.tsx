@@ -9,7 +9,6 @@ import {AccountMain} from "./account/AccountMain";
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import {Notifications} from "@mantine/notifications";
-import {PermissionsModal} from "./common/PermissionsModal";
 import {useAuthState} from "react-firebase-hooks/auth";
 import auth from "../firebase/auth";
 import ChatCall from "./chat/ChatCall";
@@ -66,7 +65,6 @@ function App() {
         <MantineProvider theme={{primaryColor}} defaultColorScheme="dark" forceColorScheme="dark">
             {!showAppInstructions ?
                 <>
-                    <PermissionsModal/>
                     <Notifications zIndex={10000} autoClose={5000} position="top-right"/>
                     <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
                     <Router>
