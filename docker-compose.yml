@@ -208,6 +208,8 @@ services:
             dockerfile: Dockerfile
         ports:
           - "7506:8080"
+        environment:
+          - ychat.social.url=http://ychat-social:80
     # Social Service
     ychat-social-db:
       container_name: "ychat-social-db"

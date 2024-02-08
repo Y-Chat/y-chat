@@ -1,3 +1,5 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.2.1'
@@ -36,7 +38,7 @@ dependencies {
 	implementation 'com.google.firebase:firebase-admin:9.2.0'
 }
 
-openApiGenerate {
+task openApiGenerateMedia(type: GenerateTask) {
 	generatorName.set("spring")
 	outputDir.set("$rootDir/generated/openapi/media")
 	inputSpec.set("$rootDir/api-specs/media/openapi.yml")
@@ -60,8 +62,34 @@ openApiGenerate {
 	])
 }
 
+task openApiGenerateSocial(type: GenerateTask) {
+	generatorName.set("java")
+	outputDir.set("$rootDir/generated/openapi/social")
+	inputSpec.set("$rootDir/api-specs/social/openapi.yml")
+	apiPackage.set("com.openapi.gen.social.api")
+	modelPackage.set("com.openapi.gen.social.dto")
+	configOptions.set([
+			serializableModel: "true",
+			useJakartaEe: "true",
+			documentationProvider: "none",
+			performBeanValidation: "true",
+			useBeanValidation: "true",
+			dateLibrary: "java8-localdatetime",
+			library: "native"
+	])
+	typeMappings.set([
+			"string+date-time": "LocalDateTime",
+			"string+ObjectId": "UUID"
+	])
+}
+
+task generateOpenAPI {
+	description = "Generate OpenAPI files"
+	dependsOn openApiGenerateMedia, openApiGenerateSocial
+}
+
 compileJava {
-	dependsOn "openApiGenerate"
+	dependsOn "generateOpenAPI"
 }
 
 clean {
@@ -74,6 +102,7 @@ sourceSets {
 		java {
 			srcDirs "src/main/java"
 			srcDirs "generated/openapi/media/src/main/java"
+			srcDirs "generated/openapi/social/src/main/java"
 		}
 	}
 }
