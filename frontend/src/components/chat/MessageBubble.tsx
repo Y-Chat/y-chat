@@ -42,7 +42,7 @@ function MessageBubble({message}: MessageBubbleProps) {
             >
                 {messageContent()}
                 <Group justify={message.fromMe ? "flex-end" : "flex-start"} gap={5} c="dimmed">
-                    <Text size="xs">{message.date.getHours() + ":" + message.date.getMinutes()}</Text>
+                    <Text size="xs">{message.date.getHours() + ":" + (message.date.getMinutes().toString().padStart(2,"0"))}</Text>
                     {/*<IconHourglassEmpty size={10}/>*/}
                     {/*<IconPackage size={10}/>*/}
                     <IconPackageImport size={10}/>
