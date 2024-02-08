@@ -57,7 +57,7 @@ public class NotificationService {
             return;
         }
 
-        usersCollection.document(userFirebaseTokenMapping.get().getFirebaseUid()).collection("notifications").document(""+LocalDateTime.now().toEpochSecond(OffsetDateTime.now().getOffset())).set(data);
+        usersCollection.document(userFirebaseTokenMapping.get().getFirebaseUid()).collection("notifications").document(LocalDateTime.now().toEpochSecond(OffsetDateTime.now().getOffset()) + "_" + UUID.randomUUID()).set(data);
         logger.info("Sent in app notification to UUID: " + userUUID + " with uid: " + userFirebaseTokenMapping.get().getFirebaseUid());
     }
 
