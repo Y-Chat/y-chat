@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import {LoadingOverlay, MantineProvider} from "@mantine/core";
-import {useUserStore} from "../state/userStore";
+import {transformUser, useUserStore} from "../state/userStore";
 import AuthMain from "./auth/AuthMain";
 import Shell from "./shell/Shell";
 import ChatLoader from "./chat/ChatLoader";
@@ -31,6 +31,14 @@ function App() {
     const user = useUserStore((state) => state.user);
     const primaryColor = useSettingsStore((state) => state.primaryColor);
     const showAppInstructions = (isMobile && !window.matchMedia('(display-mode: standalone)').matches) && process.env.NODE_ENV !== "development";
+    const setUser = useUserStore((state) => state.setUser)
+
+    useEffect(() => {
+        if(!auth.currentUser) return;
+        api.getUser({userId: getUuidByString(auth.currentUser.uid, 3)}).then((user) => {
+            setUser(transformUser(user, auth.currentUser?.email!))
+        })
+    }, [auth.currentUser]);
 
     useEffect(() => {
         const messaging = getMessaging(firebaseApp);

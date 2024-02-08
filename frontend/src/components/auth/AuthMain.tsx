@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {Center, Container, Divider, Group, Paper, rem,} from "@mantine/core";
 import Logo from "../common/Logo";
-import {useUserStore} from "../../state/userStore";
+import {transformUser, useUserStore} from "../../state/userStore";
 import {GoogleButton} from "./GoogleButton";
 import {AppleButton} from "./AppleButton";
 import auth from "../../firebase/auth";
@@ -22,14 +22,7 @@ function AuthMain() {
                 .then((user) => {
                     localStorage.clear();
                     unsubscribeNotifications()
-                    setUser({
-                        id: user.id,
-                        firstName: user.userProfileDTO.firstName,
-                        lastName: user.userProfileDTO.lastName,
-                        email: fbUser.email!,
-                        profilePictureId: user.userProfileDTO.profilePictureId || null,
-                        balance: 0
-                    });
+                    setUser(transformUser(user, fbUser.email!));
                     setUserLoading(false);
                 })
                 .catch(_ => {
