@@ -37,7 +37,7 @@ function App() {
         if(!auth.currentUser) return;
         api.getUser({userId: getUuidByString(auth.currentUser.uid, 3)}).then((user) => {
             setUser(transformUser(user, auth.currentUser?.email!))
-        })
+        }).catch((err) => console.error(err));
     }, [auth.currentUser]);
 
     useEffect(() => {

@@ -180,7 +180,7 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                         sdpMLineIndex: event.candidate.sdpMLineIndex ?? undefined,
                         usernameFragment: event.candidate.usernameFragment ?? undefined
                     }
-                }})
+                }}).catch((err) => console.error(err))
             }
         }
 
@@ -209,7 +209,7 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                                 sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
                                 usernameFragment: candidate.usernameFragment ?? undefined
                             }
-                        }})
+                        }}).catch((err) => console.error(err))
                 })
                 return {...state, localCachedIceCandidates: []};
             })
@@ -325,7 +325,7 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                     sdpMLineIndex: event.candidate.sdpMLineIndex ?? undefined,
                     usernameFragment: event.candidate.usernameFragment ?? undefined
                 }
-            }})
+            }}).catch((err) => console.error(err))
         }
 
         const offer: RTCSessionDescriptionInit = {
