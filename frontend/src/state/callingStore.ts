@@ -80,6 +80,12 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                 const sender = signaling.peerConnection.getSenders().find((s) => s.track?.kind === videoTrack.kind);
                 console.log("Found sender, replacing track", sender)
                 sender?.replaceTrack(videoTrack)
+                set((state) => ({...state, facingMode: newFacingMode, signaling: state.signaling ? {...state.signaling, localStream: stream} : null}))
+                signaling.localStream = stream;
+                const webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
+                if(webcamVideo) {
+                    webcamVideo.srcObject = stream;
+                }
             })
             .catch((x) => {
                 console.error(x)
