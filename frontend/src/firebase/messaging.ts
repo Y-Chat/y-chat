@@ -3,6 +3,8 @@ import firebaseApp from "./firebaseApp";
 import {showCallNotification, showErrorNotification, showNotification} from "../notifications/notifications";
 import { getFirestore, onSnapshot, collection , deleteDoc, query, orderBy, startAfter, limit, documentId, getDocs } from "firebase/firestore";
 import {useMessagesStore} from "../state/messagesStore";
+import {useChatsStore} from "../state/chatsStore";
+import {NavigateFunction} from "react-router-dom";
 
 export type Notification = {
     type: "NEW_MESSAGE" | "SIGNALING_NEW_OFFER" | "SIGNALING_NEW_ANSWER" | "SIGNALING_NEW_CANDIDATE" | "CALL_ENDED" | undefined,
@@ -28,6 +30,11 @@ export const vapidKey = "BLkE7yXd0U01gJTC3sEDr3XYzlp4YZxKgNKyJEJyf2MipMm14IUNt-w
 const hasPermission = 'Notification' in window && Notification.permission === "granted"
 const notificationTypeHandlers: { [type: string]: (payload: Notification) => void; } = {}
 let unsubscribeFromNotifications: Unsubscribe | null = null;
+export let notificationNavigate: NavigateFunction | undefined = undefined;
+
+export function setNotificationNavigate(navigate: NavigateFunction) {
+    notificationNavigate = navigate;
+}
 
 // if permission already granted -> generate token
 if (hasPermission) {
@@ -61,13 +68,14 @@ async function setupNotifications() {
         showCallNotification(payload.callId, payload.callerId, payload.offerSdp, payload.offerType);
     })
 
-    registerNotificationTypeHandler("NEW_MESSAGE", (payload) => {
+    registerNotificationTypeHandler("NEW_MESSAGE", async (payload) => {
         if (!payload || !payload.chatId) {
             return;
         }
-        useMessagesStore.getState().fetchMoreMessagesByChat(payload.chatId, "FUTURE", true);
+        await useMessagesStore.getState().fetchMoreMessagesByChat(payload.chatId, "FUTURE", true);
         if(window.location.pathname !== `/chat/${payload.chatId}`) {
-            showNotification("You received a new message", "New Message", {link: `/chat/${payload.chatId}`, sound: "/new_message.mp3"});
+            const chat = await useChatsStore.getState().getChat(payload.chatId)
+            showNotification(chat?.lastMessage ? chat.lastMessage : "You received a new message", chat ? chat.name : "New Message", {link: `/chat/${payload.chatId}`, sound: "/new_message.mp3"});
         } else {
             const audio = new Audio("/new_message.mp3")
             audio.volume = 0.1

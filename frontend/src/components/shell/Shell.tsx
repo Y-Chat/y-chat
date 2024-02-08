@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react";
-import {Outlet, useLocation} from "react-router-dom";
+import {Outlet, useLocation, useNavigate} from "react-router-dom";
 import {AppShell, Burger, Center, Container, Divider, em, Group, ScrollArea} from "@mantine/core";
 import {useDisclosure, useMediaQuery} from "@mantine/hooks";
 import {ShellOutletContext} from "./ShellOutletContext";
 import AccountBtn from "./AccountBtn";
 import {ChatsList} from "./ChatsList";
 import {IconBar} from "./IconBar";
+import {setNotificationNavigate} from "../../firebase/messaging";
 
 
 function Shell() {
@@ -14,6 +15,8 @@ function Shell() {
     const [hideShell, setHideShell] = useState(false);
     const isMobile = useMediaQuery(`(max-width: ${em(770)})`);
     const location = useLocation();
+    const navigate = useNavigate();
+    setNotificationNavigate(navigate)
 
     // this just exists to guarantee type safety for ShellOutletContext
     const outletContext: ShellOutletContext = {

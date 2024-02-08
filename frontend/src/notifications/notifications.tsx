@@ -3,6 +3,7 @@ import {IconExclamationCircle, IconPhone, IconPhoneOff, IconCircleCheck} from "@
 import {ActionIcon, Group, rem, Text} from "@mantine/core";
 import React from "react";
 import IncomingCallNotification from "../components/notifications/IncomingCallNotification";
+import GeneralNotification from "../components/notifications/GeneralNotification";
 
 function codeToError(errorCode: string): string {
     const errorMap = new Map<string, string>([
@@ -29,19 +30,7 @@ export function showNotification(message: string, title: string = "Notification"
         id: id,
         withBorder: true,
         title: title,
-        message: message,
-        onClick: options?.link ? () => {
-            Notifications.hide(id)
-            // This is a workaround. There is no other way to redirect outside component in react router 6.4 <
-            window.location.pathname = options.link!;
-        } : undefined,
-        onOpen: options?.sound ? () => {
-            const audio = new Audio(options.sound)
-            audio.volume = 0.1
-            audio.play().catch(() => {
-                console.error("can't start notification audio autoplay, because it's being blocked by the browser")
-            })
-        } : undefined
+        message: <GeneralNotification notificationId={id} message={message} action={options?.link ? {link: options.link, text: "To the chat"} : undefined} audioPath={options?.sound}/>,
     });
 }
 
