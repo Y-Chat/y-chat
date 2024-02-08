@@ -11,7 +11,8 @@ interface ChatsState {
     chats: Chat[],
     getChat: (chatId: string) => Promise<Chat | null>
     fetchChats: () => Promise<void>
-    refreshAdditionalInfo: () => void // refreshes date and last message
+    refreshAdditionalInfo: () => void // refreshes date and last message,
+    setNewestReadMessageDate: (chatId: string, date: Date) => void,
 }
 
 const local: PersistStorage<ChatsState> = {
@@ -71,6 +72,14 @@ export const useChatsStore = create<ChatsState>()(
                                 break;
                             }
                         } while (true);
+                        const oldChats = get().chats;
+                        const oldChatMap: {[id: string]: Chat} = {}
+                        oldChats.forEach(x => oldChatMap[x.id] = x)
+                        fetchedChats.forEach(x => {
+                            if(x.id in oldChatMap) {
+                                x.newestReadMessageDate = oldChatMap[x.id].newestReadMessageDate;
+                            }
+                        })
                         set({chats: fetchedChats});
                         get().refreshAdditionalInfo();
                     } catch (err) {
@@ -95,6 +104,18 @@ export const useChatsStore = create<ChatsState>()(
                         return chat;
                     });
                     set({chats: updatedChats});
+                },
+                setNewestReadMessageDate: (chatId: string, date: Date) => {
+                    set((state) => {
+                        const chat = state.chats.find((x) => x.id === chatId);
+                        if(!chat) return state;
+                        chat.newestReadMessageDate = date;
+
+                        return {
+                            ...state,
+                            chats: [...state.chats.filter(x => x.id !== chatId), chat]
+                        }
+                    })
                 }
             }
         ),
@@ -123,7 +144,7 @@ function transformChat(apiChat: ChatDTO): Chat {
         id: apiChat.chatId,
         avatarId: avatar,
         name: name,
-        newMessages: 1,
+        newestReadMessageDate: null,
         userInfo: apiChat.userProfileDTO && {status: "Hey there, I'm using Y-Chat"},
         groupInfo: apiChat.groupProfileDTO && {description: apiChat.groupProfileDTO.profileDescription || ""},
         archived: false,

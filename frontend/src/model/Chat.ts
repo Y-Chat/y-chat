@@ -2,7 +2,7 @@ export interface Chat {
     id: string
     avatarId?: string,
     name: string,
-    newMessages: number,
+    newestReadMessageDate: Date | null,
     userInfo?: UserInfo // only in DirectChat
     groupInfo?: GroupInfo // only in GroupChat
     archived: boolean

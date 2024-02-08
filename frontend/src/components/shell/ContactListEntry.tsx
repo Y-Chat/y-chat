@@ -37,7 +37,7 @@ export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
             }}>
             <Group justify="space-between" gap={0}>
                 <Group gap="sm">
-                    <Indicator disabled={!chat.newMessages} style={{flexGrow: 0}}>
+                    <Indicator disabled={chat.newestReadMessageDate !== null && chat.date !== undefined && chat.newestReadMessageDate >= chat.date} style={{flexGrow: 0}}>
                         <Avatar size={40} src={avatarUrl?.url} radius={40}>
                             {chat.groupInfo ? <IconUsersGroup/> : <IconUser/>}
                         </Avatar>
@@ -61,7 +61,11 @@ export function ContactListEntry({chat, toggleNav}: ContactListEntryProps) {
                     <Text c="dimmed"
 
                           fz="xs">
-                        {`${chat.date.getDate()}.${chat.date.getMonth()}.${chat.date.getFullYear()}`}
+                        {
+                            chat.date.toDateString() === new Date().toDateString() ?
+                                `${chat.date.getHours()}:${chat.date.getMinutes()}`
+                                : `${chat.date.getDate()}.${chat.date.getMonth()+1}.${chat.date.getFullYear()}`
+                        }
                     </Text>}
             </Group>
         </UnstyledButton>

@@ -65,7 +65,7 @@ export function ChatWindow({chat}: ChatWindowProps) {
                 </Group>
 
                 <Container style={{flexGrow: 0}}>
-                    <ActionIcon variant="transparent" c="lightgray"
+                    <ActionIcon variant="transparent" c={(chatMembersFirstPage?.content?.length ?? 0) > 2 ? undefined : "lightgray"}
                                 disabled={(chatMembersFirstPage?.content?.length ?? 0) > 2}>
                         {chat?.userInfo ? <IconVideo onClick={() => {
                             const otherMember = chatMembersFirstPage?.content?.find((x) => x.userId !== user.id);

@@ -4,6 +4,7 @@ import MessageBubble from "./MessageBubble";
 import {IconCircleChevronDown} from "@tabler/icons-react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import {useMessagesStore} from "../../state/messagesStore";
+import {useChatsStore} from "../../state/chatsStore";
 
 interface MessageListProps {
     chatId: string
@@ -15,6 +16,7 @@ function MessageList({chatId}: MessageListProps) {
     const scrollableDiv = useRef<HTMLDivElement>(null);
     const fetchMoreMessagesByChat = useMessagesStore(state => state.fetchMoreMessagesByChat);
     const messages = useMessagesStore(state => state.messages[chatId]);
+    const setNewestReadMessageDate = useChatsStore(state => state.setNewestReadMessageDate);
     const [moreMessagesToLoad, setMoreMessagesToLoad] = useState(true);
     const [showChevron, setShowChevron] = useState(false);
 
@@ -27,6 +29,10 @@ function MessageList({chatId}: MessageListProps) {
     useEffect(() => {
         if (messages && messages.length == 0) {
             setMoreMessagesToLoad(false);
+        }
+        if(messages && messages.length > 0) {
+            const newestMessage = messages[0];
+            setNewestReadMessageDate(chatId, newestMessage.date)
         }
     }, [messages]);
 

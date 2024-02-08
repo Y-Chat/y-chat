@@ -66,7 +66,15 @@ async function setupNotifications() {
             return;
         }
         useMessagesStore.getState().fetchMoreMessagesByChat(payload.chatId, "FUTURE", true);
-        showNotification("You received a new message", "New Message", {link: `/chat/${payload.chatId}`, sound: "/new_message.mp3"});
+        if(window.location.pathname !== `/chat/${payload.chatId}`) {
+            showNotification("You received a new message", "New Message", {link: `/chat/${payload.chatId}`, sound: "/new_message.mp3"});
+        } else {
+            const audio = new Audio("/new_message.mp3")
+            audio.volume = 0.1
+            audio.play().catch(() => {
+                console.error("can't start notification audio autoplay, because it's being blocked by the browser")
+            })
+        }
     });
 }
 
