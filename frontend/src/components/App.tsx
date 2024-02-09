@@ -15,8 +15,6 @@ import ChatCall from "./chat/ChatCall";
 import {NewGroupChat} from "./newChat/NewGroupChat";
 import {NotFound} from "./404/NotFound";
 import {Welcome} from "./common/Welcome";
-import {isMobile} from "react-device-detect";
-import {HowToInstall} from "./common/HowToInstall";
 import {accessToken, api} from "../network/api";
 import {getMessaging, getToken} from "firebase/messaging";
 import firebaseApp from "../firebase/firebaseApp";
@@ -30,7 +28,6 @@ function App() {
     const [firebaseUser, loading] = useAuthState(auth);
     const user = useUserStore((state) => state.user);
     const primaryColor = useSettingsStore((state) => state.primaryColor);
-    const showAppInstructions = (isMobile && !window.matchMedia('(display-mode: standalone)').matches) && process.env.NODE_ENV !== "development";
     const setUser = useUserStore((state) => state.setUser)
 
     useEffect(() => {
@@ -67,38 +64,35 @@ function App() {
         }).catch((err) => {
             console.log('An error occurred while retrieving token. ', err);
         })
-    }, [auth.currentUser, navigator.serviceWorker.controller?.state]);
+    }, [auth.currentUser, navigator.serviceWorker?.controller?.state]);
 
     return (
         <MantineProvider theme={{primaryColor}} defaultColorScheme="dark" forceColorScheme="dark">
-            {!showAppInstructions ?
-                <>
-                    <Notifications zIndex={10000} autoClose={5000} position="top-right"/>
-                    <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
-                    <Router>
-                        {user && firebaseUser ?
-                            <Routes>
-                                <Route path={"/"} element={<CallingWrapper/>}>
-                                    <Route path="/" element={<Shell/>}>
-                                        <Route path="/" element={<Welcome/>}/>
-                                        <Route path="/account" element={<AccountMain/>}/>
-                                        <Route path="/newGroup" element={<NewGroupChat/>}/>
-                                        <Route path="/chat/:chatId" element={<ChatLoader/>}/>
-                                        <Route path={"/call"} element={<ChatCall/>}/>
-                                        <Route path="/*" element={<NotFound/>}/>
-                                    </Route>
+            <>
+                <Notifications zIndex={10000} autoClose={5000} position="top-right"/>
+                <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{radius: 0, blur: 10}}/>
+                <Router>
+                    {user && firebaseUser ?
+                        <Routes>
+                            <Route path={"/"} element={<CallingWrapper/>}>
+                                <Route path="/" element={<Shell/>}>
+                                    <Route path="/" element={<Welcome/>}/>
+                                    <Route path="/account" element={<AccountMain/>}/>
+                                    <Route path="/newGroup" element={<NewGroupChat/>}/>
+                                    <Route path="/chat/:chatId" element={<ChatLoader/>}/>
+                                    <Route path={"/call"} element={<ChatCall/>}/>
+                                    <Route path="/*" element={<NotFound/>}/>
                                 </Route>
-                            </Routes>
-                            :
-                            <Routes>
-                                <Route path="/" element={<AuthMain/>}/>
-                                <Route path="/*" element={<NotFound/>}/>
-                            </Routes>
-                        }
-                    </Router>
-                </>
-                :
-                <HowToInstall/>}
+                            </Route>
+                        </Routes>
+                        :
+                        <Routes>
+                            <Route path="/" element={<AuthMain/>}/>
+                            <Route path="/*" element={<NotFound/>}/>
+                        </Routes>
+                    }
+                </Router>
+            </>
         </MantineProvider>
     );
 }
