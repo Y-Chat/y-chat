@@ -3,7 +3,7 @@ services:
         container_name: ychat-frontend
         image: 'mrsarius/yc-frontend:latest'
         restart: unless-stopped
-        pull_policy: missing
+        pull_policy: never
         build:
             context: frontend
             dockerfile: Dockerfile
@@ -13,7 +13,7 @@ services:
         container_name: ychat-api-gateway
         image: 'mrsarius/yc-api-gateway'
         restart: unless-stopped
-        pull_policy: missing
+        pull_policy: never
         build:
             context: api-gateway
             dockerfile: Dockerfile
@@ -78,7 +78,7 @@ services:
         container_name: ychat-messaging
         image: 'mrsarius/yc-messaging'
         restart: unless-stopped
-        pull_policy: missing
+        pull_policy: never
         build:
             context: messaging-service
             dockerfile: Dockerfile
@@ -113,7 +113,7 @@ services:
         container_name: ychat-notification
         image: 'mrsarius/yc-notification'
         restart: unless-stopped
-        pull_policy: missing
+        pull_policy: never
         build:
             context: notification-service
             dockerfile: Dockerfile
@@ -148,7 +148,7 @@ services:
         container_name: ychat-calling
         image: 'mrsarius/yc-calling'
         restart: unless-stopped
-        pull_policy: missing
+        pull_policy: never
         build:
             context: calling-service
             dockerfile: Dockerfile
@@ -182,7 +182,7 @@ services:
         container_name: ychat-payment
         image: 'mrsarius/yc-payment'
         restart: unless-stopped
-        pull_policy: missing
+        pull_policy: never
         build:
             context: payment-service
             dockerfile: Dockerfile
@@ -202,7 +202,7 @@ services:
         container_name: ychat-media
         image: 'mrsarius/yc-media'
         restart: unless-stopped
-        pull_policy: missing
+        pull_policy: never
         build:
             context: media-service
             dockerfile: Dockerfile
@@ -230,7 +230,7 @@ services:
       container_name: "ychat-social-service"
       image: "mrsarius/yc-social"
       restart: unless-stopped
-      pull_policy: missing
+      pull_policy: never
       build:
         context: "./social-service"
         dockerfile: "Dockerfile"
