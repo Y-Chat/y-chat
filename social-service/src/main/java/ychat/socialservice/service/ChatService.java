@@ -33,16 +33,20 @@ public class ChatService {
     private final UserService userService;
     private final ChatMemberRepository chatMemberRepo;
     private final DirectChatRepository directChatRepo;
+
+    private final GroupRepository groupRepo;
     private final DirectChatMemberRepository directChatMemberRepo;
 
     public ChatService(@NonNull UserService userService,
                        @NonNull DirectChatRepository directChatRepo,
                        @NonNull ChatMemberRepository chatMemberRepo,
-                       @NonNull DirectChatMemberRepository directChatMemberRepo) {
+                       @NonNull DirectChatMemberRepository directChatMemberRepo,
+                       @NonNull GroupRepository groupRepo) {
         this.userService = userService;
         this.directChatRepo = directChatRepo;
         this.chatMemberRepo = chatMemberRepo;
         this.directChatMemberRepo = directChatMemberRepo;
+        this.groupRepo = groupRepo;
     }
 
     public ChatMember findChatMemberByIdsOrThrow(UUID userId, UUID chatId) {
@@ -61,7 +65,7 @@ public class ChatService {
         ChatMember chatMember = findChatMemberByIdsOrThrow(userId, chatId);
         User user = chatMember.getUser();
         Chat chat = chatMember.getChat();
-        return DTOConverter.convertToDTO(chat, user);
+        return DTOConverter.convertToDTO(chat, user, groupRepo, directChatRepo);
     }
 
     public Page<ChatDTO> getAllChats(@NotNull UUID userId, @NotNull Pageable pageable) {
@@ -73,7 +77,7 @@ public class ChatService {
         }
         User user = userService.findUserByIdOrThrow(userId);
         Page<ChatMember> chatMembers = chatMemberRepo.findAllByUserId(userId, pageable);
-        return chatMembers.map(chatMember -> DTOConverter.convertToDTO(chatMember.getChat(), user));
+        return chatMembers.map(chatMember -> DTOConverter.convertToDTO(chatMember.getChat(), user, groupRepo, directChatRepo));
     }
 
     @Transactional

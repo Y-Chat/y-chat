@@ -138,7 +138,7 @@ class GroupControllerIntegrationTest {
     @Test
     @WithMockUser(username = username1)
     void AddGroupMember_Ok_ReturnGroupMember() throws Exception {
-        mockMvc.perform(post("/groups/{groupId}/member", group.getId())
+        mockMvc.perform(post("/groups/{groupId}/members", group.getId())
             .param("userId", user3.getId().toString()))
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))

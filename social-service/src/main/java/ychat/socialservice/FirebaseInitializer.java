@@ -41,16 +41,4 @@ public class FirebaseInitializer {
             FirebaseApp.initializeApp(firebaseOptionBuilder.build());
         }
     }
-
-    /*
-    For local testing:
-    private void initializeFirebaseApp() throws IOException {
-        if (FirebaseApp.getApps() == null || FirebaseApp.getApps().isEmpty()) {
-            var firebaseOptionBuilder = FirebaseOptions.builder();
-            firebaseOptionBuilder.setCredentials(new EmulatorCredentials())
-                    .setProjectId("y-chat-e5132");
-            FirebaseApp.initializeApp(firebaseOptionBuilder.build());
-        }
-    }
-     */
 }

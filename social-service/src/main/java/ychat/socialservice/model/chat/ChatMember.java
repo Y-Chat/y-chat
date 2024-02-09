@@ -17,16 +17,19 @@ public abstract class ChatMember extends TimestampEntity {
     @EmbeddedId
     protected ChatMemberId chatMemberId;
 
+    @Getter
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
     @JoinColumn
     private User user;
 
+    @Getter
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("chatId")
     @JoinColumn
     private Chat chat;
 
+    @Getter
     @Enumerated(EnumType.STRING)
     private ChatStatus chatStatus;
 
@@ -38,18 +41,6 @@ public abstract class ChatMember extends TimestampEntity {
         this.user = user;
         this.chat = chat;
         this.chatStatus = ChatStatus.ACTIVE;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Chat getChat() {
-        return chat;
-    }
-
-    public ChatStatus getChatStatus() {
-        return chatStatus;
     }
 
     public void setChatStatus(ChatStatus chatStatus) {

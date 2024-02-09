@@ -1,7 +1,6 @@
 package ychat.socialservice.service;
 
 import com.google.firebase.auth.FirebaseAuthException;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
@@ -60,7 +59,7 @@ public class GroupService {
     // Group start ---------------------------------------------------------------------------------
     public GroupDTO getGroup(@NotNull UUID groupId, @NotNull UUID requestUserId) {
         GroupMember groupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
-        Group group = groupMember.getGroup();
+        Group group = groupMember.getGroupFixed(groupRepo);
         return DTOConverter.convertToDTO(group);
     }
 
@@ -80,7 +79,7 @@ public class GroupService {
     // Profiles start ------------------------------------------------------------------------------
     public GroupProfileDTO getGroupProfile(@NotNull UUID groupId, @NotNull UUID requestUserId) {
         GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
-        Group group = requestGroupMember.getGroup();
+        Group group = requestGroupMember.getGroupFixed(groupRepo);
         return DTOConverter.convertToDTO(group.getGroupProfile());
     }
 
@@ -102,7 +101,7 @@ public class GroupService {
                 requestUserId + " is not a admin of " + groupId + "."
             );
         }
-        Group group = groupMember.getGroup();
+        Group group = groupMember.getGroupFixed(groupRepo);
         GroupProfile groupProfile = group.getGroupProfile();
         groupProfile.setGroupName(groupProfileDTO.groupName());
         if (groupProfileDTO.removeProfilePictureId() != null
@@ -120,12 +119,9 @@ public class GroupService {
     public ChatMemberDTO addGroupMember(@NotNull UUID groupId, @NotNull UUID userId,
                                         @NotNull UUID requestUserId) {
         GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
-        if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN) {
-            throw new IllegalUserInputException(
-                requestUserId + " is not an admin of " + groupId + "."
-            );
-        }
-        Group group = requestGroupMember.getGroup();
+        if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
+            throw new IllegalUserInputException(requestUserId + " is not an admin of " + groupId + ".");
+        Group group = requestGroupMember.getGroupFixed(groupRepo);
         User user = userService.findUserByIdOrThrow(userId);
         if (group.isMember(user)) {
             throw new IllegalUserInputException(
@@ -140,21 +136,18 @@ public class GroupService {
     public ChatMemberDTO[] addGroupMembers(@NotNull UUID groupId, @NotNull String[] emails,
                                         @NotNull UUID requestUserId) throws FirebaseAuthException {
         GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
-        if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN) {
-            throw new IllegalUserInputException(
-                requestUserId + " is not an admin of " + groupId + "."
-            );
-        }
-        Group group = requestGroupMember.getGroup();
+        if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
+            throw new IllegalUserInputException(requestUserId + " is not an admin of " + groupId + ".");
+        Group group = groupRepo.findById(requestGroupMember.getChat().getId()).get();
         List<ChatMemberDTO> groupMembers = new ArrayList<>();
         for(String email: emails) {
-            try {
-                User user = userService.getUserIdByEmail(email);
-                if (group.isMember(user)) {
-                    continue;
-                }
-                groupMembers.add(DTOConverter.convertToDTO(group.addGroupMember(user)));
-            } catch (EntityNotFoundException ignored) {}
+            UUID userId = userService.getUserIdByEmail(email);
+            if(userId == null) continue;
+            User user = userService.findUserByIdOrThrow(userId);
+            if (group.isMember(user)) {
+               continue;
+            }
+            groupMembers.add(DTOConverter.convertToDTO(group.addGroupMember(user)));
         }
         return groupMembers.toArray(new ChatMemberDTO[]{});
     }
@@ -165,7 +158,7 @@ public class GroupService {
         GroupMember requestGroupMember = findGroupMemberByIdsOrThrow(requestUserId, groupId);
         if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
             throw new IllegalUserInputException(userId + " is not a admin of " + groupId + ".");
-        Group group = requestGroupMember.getGroup();
+        Group group = requestGroupMember.getGroupFixed(groupRepo);
         User user = userService.findUserByIdOrThrow(userId);
         if (!group.isMember(user)) {
             throw new IllegalUserInputException(
@@ -199,7 +192,7 @@ public class GroupService {
         if (requestGroupMember.getGroupRole() != GroupRole.GROUP_ADMIN)
             throw new IllegalUserInputException(userId + " is not a admin of " + groupId + ".");
         GroupMember groupMember = findGroupMemberByIdsOrThrow(userId, groupId);
-        if (groupRole != GroupRole.GROUP_ADMIN && groupMember.getGroup().getNumberOfAdmins() == 1
+        if (groupRole != GroupRole.GROUP_ADMIN && groupMember.getGroupFixed(groupRepo).getNumberOfAdmins() == 1
             && userId == requestUserId) {
             throw new IllegalUserInputException(
                 requestUserId + " cannot demote yourself, when you are the last admin of "

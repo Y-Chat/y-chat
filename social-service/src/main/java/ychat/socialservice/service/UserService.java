@@ -78,10 +78,11 @@ public class UserService {
         return DTOConverter.convertToDTO(user);
     }
 
-    public User getUserIdByEmail(@NotNull @Email String email) throws FirebaseAuthException {
+    public UUID getUserIdByEmail(@NotNull @Email String email) throws FirebaseAuthException {
         UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(email);
-        UUID userId = UUID.nameUUIDFromBytes(userRecord.getUid().getBytes());
-        return findUserByIdOrThrow(userId);
+        var userUUID = UUID.nameUUIDFromBytes(userRecord.getUid().getBytes());
+        var user = userRepo.findById(userUUID);
+        return user.map(User::getId).orElse(null);
     }
 
     @Transactional

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ychat.socialservice.model.chat.DirectChatMember;
+import ychat.socialservice.model.group.Group;
 import ychat.socialservice.model.group.GroupMember;
 import ychat.socialservice.repository.ChatMemberRepository;
 import ychat.socialservice.model.chat.ChatMember;
