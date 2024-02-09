@@ -23,12 +23,19 @@ public class GroupMember extends ChatMember {
         this.groupRole = GroupRole.GROUP_MEMBER;
     }
 
-    // How has this ever worked???
+    /**
+     * Does not work in production at the moment. Since we use automatic DDL generation in
+     * production, I think the problem is that it creates a foreign key to chat instead of group
+     * which disable the option to cast it to group even though we now that it is one.
+     * <p>
+     * In general, Hibernate forces the key to be in the superclass to have polymorphic queries.
+     * It still works with a predefined schema since we must initialize GroupMember with a Group
+     * and cannot change it afterwards.
+     */
     public Group getGroup() {
         return (Group) getChat();
     }
 
-    // Workaround for broken data model
     public Group getGroupFixed(GroupRepository groupRepository) {
         var chat = getChat();
         var group = groupRepository.findById(chat.getId());
