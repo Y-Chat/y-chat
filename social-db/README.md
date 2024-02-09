@@ -34,23 +34,3 @@
 1. Open pgAdmin
 2. Navigate to `social-db-group` -> `social-db` -> `Databases` -> `social-db` -> `Schemas`
 3. Right click on `public` and click `ERD For Schema`
-
-## Deployment
-### Kubernetes
-Run the `social-db-deploy.zsh` script relative to the Y-Chat root directory on your cluster.
-
-### Docker Compose
-1. Change to the Y-Chat root directory
-2. Start Docker Compose with the `social-db-compose.yml` file:
-```shell
-docker-compose -f "social-db-compose.yml" up -d
-```
-3. Verify that everything started correctly:
-```shell
-docker-compose -f "social-db-compose.yml" ps
-```
-4. Connect to pgAdmin via `localhost:55050` and enter the following credentials (it may take some
-   time until all containers are properly booted and initialized):
-- Username: `ychat@ychat.com`
-- Password: `ychatformerlyknownas`
-5. Connect to the `social-db` with the password `ychatformerlyknownas`
