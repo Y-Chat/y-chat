@@ -38,7 +38,7 @@ Not implemented optional feature:
 
 ## Documentation
 
-![ComponentDiagram](https://github.com/Y-Chat/y-chat/assets/50946590/4c80076d-9bde-4fd6-aece-8b473efa2b11)
+![ComponentDiagram](https://github.com/Y-Chat/y-chat/assets/50946590/d9af5948-4ce9-4d01-987b-01813adc7b2e)
 
 ### How to run
 #### Prerequisites
