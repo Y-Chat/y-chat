@@ -1,4 +1,16 @@
 ############## notification service database ##############
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: notification-mongodb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
 
 apiVersion: v1
 kind: Secret
@@ -53,6 +65,13 @@ spec:
                 secretKeyRef:
                   name: notification-mongo-secret
                   key: mongo-password
+          volumeMounts:
+            - name: notification-mongodb-pvc
+              mountPath: /data/db
+      volumes:
+        - name: notification-mongodb-pvc
+          persistentVolumeClaim:
+            claimName: notification-mongodb-pvc
 
 ---
 

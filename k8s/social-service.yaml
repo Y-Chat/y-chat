@@ -1,4 +1,16 @@
 ############## social service database ##############
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: social-postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
 
 apiVersion: v1
 kind: Secret
@@ -43,6 +55,8 @@ spec:
           ports:
             - containerPort: 5432
           env:
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/social/"
             - name: TZ
               value: "UTC"
             - name: POSTGRES_DB
@@ -59,6 +73,13 @@ spec:
                 secretKeyRef:
                   name: social-pg-secret
                   key: pg-password
+          volumeMounts:
+            - name: social-postgres-pvc
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: social-postgres-pvc
+          persistentVolumeClaim:
+            claimName: social-postgres-pvc
 
 ---
 

@@ -1,4 +1,16 @@
 ############## calling service database ##############
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: calling-mongodb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
 
 apiVersion: v1
 kind: Secret
@@ -53,6 +65,13 @@ spec:
                 secretKeyRef:
                   name: calling-mongo-secret
                   key: mongo-password
+          volumeMounts:
+            - name: calling-mongodb-pvc
+              mountPath: /data/db
+      volumes:
+        - name: calling-mongodb-pvc
+          persistentVolumeClaim:
+            claimName: calling-mongodb-pvc
 
 ---
 
