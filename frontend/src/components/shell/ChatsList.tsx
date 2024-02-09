@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ActionIcon, Center, rem, Stack, Text, TextInput,} from '@mantine/core';
 import {IconMessageOff, IconSearch, IconX} from '@tabler/icons-react';
 import {useChatsStore} from "../../state/chatsStore";
@@ -15,7 +15,6 @@ export function ChatsList({toggleNav}: ContactListProps) {
     const [search, setSearch] = useState('');
     const chats = useChatsStore((state) => state.chats);
     const fetchChats = useChatsStore(state => state.fetchChats);
-    const [sortedChats, setSortedChats] = useState<Chat[]>(chats);
 
     function fetchChatsForFirstTime() {
         const existingChatIds: { [id: string] : boolean; } = {};
@@ -34,13 +33,13 @@ export function ChatsList({toggleNav}: ContactListProps) {
         fetchChatsForFirstTime();
     }, []);
 
-    function filterData() {
+    const sortedChats = useMemo(() => {
         const query = search.toLowerCase().trim();
         const filtered = chats.filter((item) => {
                 return item.name.toLowerCase().includes(query);
             }
         );
-        const sorted = filtered.sort((a, b) => {
+        return filtered.sort((a, b) => {
             if (!b.date && !a.date) {
                 return 0;
             }
@@ -55,12 +54,7 @@ export function ChatsList({toggleNav}: ContactListProps) {
 
             return b.date.getTime() - a.date.getTime();
         });
-        setSortedChats(sorted);
-    }
-
-    useEffect(() => {
-        filterData();
-    }, [search, chats]);
+    }, [search, chats])
 
     const rows = sortedChats.map(chat => {
         return (
