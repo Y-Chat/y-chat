@@ -87,7 +87,7 @@ export default function ChatCall() {
                             endCall();
                         }}
                     >
-                        <IconPhoneOff stroke={1.5}/>
+                        <IconPhoneOff color={"red"} stroke={1.5}/>
                     </ActionIcon>
                     <ActionIcon
                         size={"xl"}
