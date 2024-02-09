@@ -1,13 +1,6 @@
-import {Flex, Group, Stack} from "@mantine/core";
+import {ActionIcon, Flex, Group} from "@mantine/core";
 import React, {useEffect, useMemo, useState} from "react";
-import {
-    IconCameraRotate,
-    IconMicrophone,
-    IconMicrophoneOff,
-    IconPhoneOff
-} from "@tabler/icons-react";
-import {useOutletContext} from "react-router-dom";
-import {ShellOutletContext} from "../shell/ShellOutletContext";
+import {IconCameraRotate, IconMicrophone, IconMicrophoneOff, IconPhoneOff} from "@tabler/icons-react";
 import {useCallingStore} from "../../state/callingStore";
 
 export default function ChatCall() {
@@ -21,7 +14,7 @@ export default function ChatCall() {
 
     useEffect(() => {
         let timeout: NodeJS.Timeout | undefined = undefined;
-        if(signaling?.callState === "PENDING") {
+        if (signaling?.callState === "PENDING") {
             timeout = setTimeout(() => {
                 audio.volume = 0.1
                 audio.loop = true;
@@ -45,19 +38,17 @@ export default function ChatCall() {
         const remoteStream = signaling?.remoteStream;
         const webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
         const remoteVideo = document.getElementById("remoteVideo") as HTMLVideoElement | null;
-        if(localStream && webcamVideo) {
+        if (localStream && webcamVideo) {
             try {
                 webcamVideo.srcObject = localStream;
-            }
-            catch (err){
+            } catch (err) {
                 console.error(err)
             }
         }
-        if(remoteStream && remoteVideo) {
+        if (remoteStream && remoteVideo) {
             try {
                 remoteVideo.srcObject = remoteStream;
-            }
-            catch (err) {
+            } catch (err) {
                 console.error(err)
             }
         }
@@ -68,7 +59,7 @@ export default function ChatCall() {
     }, [setMicState, microphoneOn]);
 
     return (
-        <div style={{width: "100vw", height: "100%"}}>
+        <div style={{width: "100vw", height: "100%", position: "fixed"}}>
             <div style={{position: "absolute", width: "100vw", height: "100%"}}>
                 <Flex style={{height: "100vh", width: "100vw"}} justify={"center"}>
                     <video id={"remoteVideo"} autoPlay playsInline style={{height: "100%", maxWidth: "100vw"}}/>
@@ -76,55 +67,44 @@ export default function ChatCall() {
             </div>
             <div style={{position: "absolute", bottom: "5%", width: "100%"}}>
                 <Group justify={"center"} gap={"2%"}>
-                    <IconCameraRotate
-                        size={"9vh"}
-                        color={"black"}
-                        style={{
-                            backgroundColor: "white",
-                            padding: "10px",
-                            borderRadius: 100
-                        }}
+                    <ActionIcon
+                        size={"xl"}
+                        radius={"xl"}
+                        variant={"light"}
+                        color="dimmed"
                         onClick={() => {
-                            switchCamera()
+                            switchCamera();
                         }}
-                    />
-                    <IconPhoneOff
-                        size={"9vh"}
-                        color={"white"}
-                        style={{
-                            backgroundColor: "red",
-                            padding: "8px",
-                            borderRadius: 100
-                        }}
+                    >
+                        <IconCameraRotate stroke={1.5}/>
+                    </ActionIcon>
+                    <ActionIcon
+                        size={"xl"}
+                        radius={"xl"}
+                        variant={"light"}
+                        color="dimmed"
                         onClick={() => {
-                            endCall().then((x) => {
+                            endCall();
+                        }}
+                    >
+                        <IconPhoneOff stroke={1.5}/>
+                    </ActionIcon>
+                    <ActionIcon
+                        size={"xl"}
+                        radius={"xl"}
+                        variant={"light"}
+                        color="dimmed"
+                        onClick={() => {
+                            setMicrophoneOn((prev) => !prev)
+                        }}
+                    >
+                        {microphoneOn ?
+                            <IconMicrophone stroke={1.5}/>
+                            :
+                            <IconMicrophoneOff stroke={1.5}/>
+                        }
 
-                            })
-                        }}
-                    />
-                    {microphoneOn ? <IconMicrophoneOff
-                        size={"9vh"}
-                        color={"black"}
-                        style={{
-                            backgroundColor: "white",
-                            padding: "10px",
-                            borderRadius: 100
-                        }}
-                        onClick={() => {
-                            setMicrophoneOn((prev) => !prev)
-                        }}
-                    /> : <IconMicrophone
-                        size={"9vh"}
-                        color={"black"}
-                        style={{
-                            backgroundColor: "white",
-                            padding: "10px",
-                            borderRadius: 100
-                        }}
-                        onClick={() => {
-                            setMicrophoneOn((prev) => !prev)
-                        }}
-                    />}
+                    </ActionIcon>
                 </Group>
             </div>
             <div style={{position: "absolute", top: "3vh", right: "3vh"}}>
