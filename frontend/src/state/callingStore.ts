@@ -5,6 +5,7 @@ import {Notifications} from "@mantine/notifications";
 import {MessagePayload} from "firebase/messaging";
 import {callIdToCallNotificationId} from "../notifications/notifications";
 import adapter from "webrtc-adapter"
+import { Notification } from "../firebase/messaging";
 
 const servers = {
     iceServers: [
@@ -49,13 +50,15 @@ interface CallState {
 
 interface CallingState {
     signaling: CallState | null,
+    localCachedIceCandidates: RTCIceCandidate[],
+    remoteCachedIceCandidates: {[callId: string]: RTCIceCandidate[]},
     facingMode: "user" | "environment",
     startCall: (calleeId: string) => Promise<void>,
     acceptCall: (callId: string, offerSdp: string, offerType: string) => Promise<void>,
     denyCall: (callId: string) => Promise<void>,
     endCall: () => Promise<void>,
     switchCamera: () => Promise<void>,
-    handleNotifications: (payload: MessagePayload) => void,
+    handleNotifications: (payload: Notification) => void,
     setMicState: (micState: boolean) => void;
 }
 
@@ -65,6 +68,8 @@ console.log("WebRTC Adapter detected browser: " + adapter.browserDetails.browser
 export const useCallingStore = create<CallingState>((set,get) => ({
     signaling: null,
     facingMode: "user",
+    localCachedIceCandidates: [],
+    remoteCachedIceCandidates: {},
     switchCamera: async () => {
         const signaling = get().signaling;
         if(!signaling) return;
@@ -75,6 +80,12 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                 const sender = signaling.peerConnection.getSenders().find((s) => s.track?.kind === videoTrack.kind);
                 console.log("Found sender, replacing track", sender)
                 sender?.replaceTrack(videoTrack)
+                set((state) => ({...state, facingMode: newFacingMode, signaling: state.signaling ? {...state.signaling, localStream: stream} : null}))
+                signaling.localStream = stream;
+                const webcamVideo = document.getElementById("webcamVideo") as HTMLVideoElement | null;
+                if(webcamVideo) {
+                    webcamVideo.srcObject = stream;
+                }
             })
             .catch((x) => {
                 console.error(x)
@@ -127,6 +138,8 @@ export const useCallingStore = create<CallingState>((set,get) => ({
             peerConnection.addTrack(track, localStream)
         })
 
+        peerConnection.createDataChannel("callData", { negotiated: true, id: 100, ordered: false });
+
         peerConnection.ontrack = (event) => {
             console.log("ontrack")
             event.streams[0].getTracks().forEach((track) => {
@@ -145,9 +158,6 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         peerConnection.oniceconnectionstatechange = (event) => {
             console.log("oniceconnectionstatechange", peerConnection.iceConnectionState)
         }
-        peerConnection.onsignalingstatechange = (event) => {
-            console.log("onsignalingstatechange", peerConnection.signalingState)
-        }
         peerConnection.onicegatheringstatechange = (event) => {
             console.log("onicegatheringstatechange", peerConnection.iceGatheringState)
         }
@@ -155,8 +165,20 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         peerConnection.onicecandidate = (event) => {
             console.log("onicecandidate", event)
             const signaling = get().signaling;
-            if(!event.candidate || !signaling) return;
-            api.postNewSignalingCandidate({postNewSignalingCandidateRequest: {
+            if(!event.candidate) return;
+            if(!signaling) {
+                set((state) => {
+                    if(!event.candidate) return state;
+                    let oldCachedIceCandidates = state.localCachedIceCandidates;
+                    console.log("writing local cached ice candidate:", event.candidate)
+                    oldCachedIceCandidates = [...oldCachedIceCandidates, event.candidate]
+                    return {
+                        ...state,
+                        localCachedIceCandidates: oldCachedIceCandidates
+                    };
+                })
+            } else {
+                api.postNewSignalingCandidate({postNewSignalingCandidateRequest: {
                     callId: signaling.callId,
                     candidate: {
                         candidate: event.candidate.candidate,
@@ -164,7 +186,8 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                         sdpMLineIndex: event.candidate.sdpMLineIndex ?? undefined,
                         usernameFragment: event.candidate.usernameFragment ?? undefined
                     }
-                }})
+                }}).catch((err) => console.error(err))
+            }
         }
 
         const offerDescription = await peerConnection.createOffer();
@@ -176,14 +199,47 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         };
         console.log("created offer", offer)
 
-        // TODO Change to chatId instead of calleeId (blocked by social service)
         const call = await api.createCall({createCallRequest: {
             calleeId: calleeId,
             offer: offer
-        }}).catch((err) => {
+        }}).then((call) => {
+
+            set((state) => {
+                console.log("reading local cached ice candidates: " , state.localCachedIceCandidates)
+                state.localCachedIceCandidates.forEach((candidate) => {
+                    api.postNewSignalingCandidate({postNewSignalingCandidateRequest: {
+                            callId: call.id,
+                            candidate: {
+                                candidate: candidate.candidate,
+                                sdpMid: candidate.sdpMid ?? undefined,
+                                sdpMLineIndex: candidate.sdpMLineIndex ?? undefined,
+                                usernameFragment: candidate.usernameFragment ?? undefined
+                            }
+                        }}).catch((err) => console.error(err))
+                })
+                return {...state, localCachedIceCandidates: []};
+            })
+
+            return call;
+        }).catch((err) => {
             console.error(err)
             return null;
         });
+
+        peerConnection.onsignalingstatechange = (event) => {
+            console.log("onsignalingstatechange", peerConnection.signalingState)
+            if(peerConnection.signalingState === "stable" && call) {
+                set((state) => {
+                    console.log("reading remote cached ice candidates: " , state.remoteCachedIceCandidates)
+                    state.remoteCachedIceCandidates[call?.id]?.forEach((candidate) => {
+                        state.signaling?.peerConnection.addIceCandidate(candidate).catch((err) => console.error(err))
+                    })
+                    const cachedIceCandidates = state.remoteCachedIceCandidates;
+                    delete cachedIceCandidates[call?.id];
+                    return {...state, remoteCachedIceCandidates: cachedIceCandidates};
+                })
+            }
+        }
 
         if(call) {
             set({signaling: {
@@ -196,6 +252,11 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                 remoteVideo: remoteVideo
             }})
         }
+        const audio = new Audio("/start_call.mp3")
+        audio.volume = 0.1
+        audio.play().catch(() => {
+            console.error("can't start notification audio autoplay, because it's being blocked by the browser")
+        })
     },
     acceptCall: async (callId: string, offerSdp: string, offerType: string) => {
         const oldSignaling = get().signaling;
@@ -225,6 +286,8 @@ export const useCallingStore = create<CallingState>((set,get) => ({
             peerConnection.addTrack(track, localStream)
         })
 
+        peerConnection.createDataChannel("callData", { negotiated: true, id: 100, ordered: false });
+
         peerConnection.ontrack = (event) => {
             console.log("ontrack")
             event.streams[0].getTracks().forEach((track) => {
@@ -240,6 +303,18 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         }
         peerConnection.onsignalingstatechange = (event) => {
             console.log("onsignalingstatechange", peerConnection.signalingState)
+            if(peerConnection.signalingState === "stable" && callId) {
+                set((state) => {
+                    console.log("reading cached remote ice candidates: " , state.remoteCachedIceCandidates[callId])
+                    state.remoteCachedIceCandidates[callId]?.forEach((candidate) => {
+                        peerConnection.addIceCandidate(candidate).catch((err) => console.error(err))
+                        console.log("added remote ice candidate")
+                    })
+                    const cachedIceCandidates = state.remoteCachedIceCandidates;
+                    delete cachedIceCandidates[callId];
+                    return {...state, remoteCachedIceCandidates: cachedIceCandidates};
+                })
+            }
         }
         peerConnection.onicegatheringstatechange = (event) => {
             console.log("onicegatheringstatechange", peerConnection.iceGatheringState)
@@ -256,7 +331,7 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                     sdpMLineIndex: event.candidate.sdpMLineIndex ?? undefined,
                     usernameFragment: event.candidate.usernameFragment ?? undefined
                 }
-            }})
+            }}).catch((err) => console.error(err))
         }
 
         const offer: RTCSessionDescriptionInit = {
@@ -293,18 +368,12 @@ export const useCallingStore = create<CallingState>((set,get) => ({
                 webcamVideo: webcamVideo,
                 remoteVideo: remoteVideo
         }})
-        }).catch((err) => console.error(err))
-
-        api.getSignalingCandidates({callId: callId}).then((candidates) => {
-            candidates.forEach((candidate) => {
-                const iceCandidate = new RTCIceCandidate({
-                    candidate: candidate.candidate,
-                    sdpMid: candidate.sdpMid,
-                    sdpMLineIndex: candidate.sdpMLineIndex,
-                    usernameFragment: candidate.usernameFragment
-                })
-                peerConnection.addIceCandidate(iceCandidate)
-            })
+        }).catch((err) => console.error(err)).then(() => {
+            return api.getSignalingCandidates({callId: callId})
+        }).then((candidates) => {
+            if(peerConnection && peerConnection.remoteDescription !== null) {
+                candidates.forEach((candidate) => peerConnection.addIceCandidate(candidate))
+            }
         }).catch((err) => console.error(err))
     },
     denyCall: async (callId) => {
@@ -321,67 +390,66 @@ export const useCallingStore = create<CallingState>((set,get) => ({
         signaling.peerConnection.close()
         signaling.localStream.getTracks().forEach((x) => x.stop())
         set({signaling: null})
+        const audio = new Audio("/call_end.mp3")
+        audio.volume = 0.1
+        audio.play().catch(() => {
+            console.error("can't start notification audio autoplay, because it's being blocked by the browser")
+        })
     },
     handleNotifications: (payload) => {
-        if(!payload.data || !("type" in payload.data)) return;
-        const type = payload.data["type"]
-
-        if(type === "SIGNALING_NEW_ANSWER") {
-            const callId = payload.data["call-id"];
-            const calleeId = payload.data["callee-id"];
-            const answerSdp = payload.data["answer-sdp"];
-            const answerType = payload.data["answer-type"];
+        if(payload.type === "SIGNALING_NEW_ANSWER") {
+            if(!payload || !payload.callId || !payload.calleeId || !payload.answerSdp || !payload.answerType) return;
             console.log("Got new SIGNALING_NEW_ANSWER")
 
             const signaling = get().signaling;
             if(!signaling || signaling.callState !== "PENDING") return;
 
             const answerDescription = new RTCSessionDescription({
-                type: answerType as RTCSdpType,
-                sdp: answerSdp
+                type: payload.answerType as RTCSdpType,
+                sdp: payload.answerSdp
             });
-            signaling.peerConnection.setRemoteDescription(answerDescription)
-
-            set((state) => ({
-                ...state,
-                signaling: state.signaling ? {
-                    ...state.signaling,
-                    callState: "ONGOING"
-                } : null,
-            }))
-
-            api.getSignalingCandidates({callId: callId}).then((candidates) => {
-                candidates.forEach((candidate) => {
-                    const iceCandidate = new RTCIceCandidate({
-                        candidate: candidate.candidate,
-                        sdpMid: candidate.sdpMid,
-                        sdpMLineIndex: candidate.sdpMLineIndex,
-                        usernameFragment: candidate.usernameFragment
-                    })
-                    get().signaling?.peerConnection?.addIceCandidate(iceCandidate)
-                })
+            signaling.peerConnection.setRemoteDescription(answerDescription).then((x) => {
+                set((state) => ({
+                    ...state,
+                    signaling: state.signaling ? {
+                        ...state.signaling,
+                        callState: "ONGOING"
+                    } : null,
+                }))
             }).catch((err) => console.error(err))
-        } else if(type === "SIGNALING_NEW_CANDIDATE") {
-            const callId = payload.data["call-id"];
-            const candidate = payload.data["candidate-candidate"];
-            const sdpMid = payload.data["candidate-sdp-mid"];
-            const usernameFragment = payload.data["candidate-username-fragment"];
-            const sdpMLineIndex = payload.data["candidate-sdp-m-line-index"];
+        } else if(payload.type === "SIGNALING_NEW_CANDIDATE") {
+            console.log("received candidate")
+            if(!payload || !payload.candidateCandidate || !payload.candidateSdpMid || !payload.candidateSdpMLineIndex || !payload.candidateUsernameFragment || !payload.callId) return;
             console.log("Got new SIGNALING_NEW_CANDIDATE")
 
-            const signaling = get().signaling;
-            if(!signaling) return;
             const iceCandidate = new RTCIceCandidate({
-                candidate: candidate,
-                sdpMid: sdpMid,
-                sdpMLineIndex: Number.parseInt(sdpMLineIndex),
-                usernameFragment: usernameFragment
+                candidate: payload.candidateCandidate,
+                sdpMid: payload.candidateSdpMid,
+                sdpMLineIndex: Number.parseInt(payload.candidateSdpMLineIndex),
+                usernameFragment: payload.candidateUsernameFragment
             })
-            signaling.peerConnection.addIceCandidate(iceCandidate)
-        } else if(type === "CALL_ENDED") {
-            const callId = payload.data["call-id"];
-            Notifications.hide(callIdToCallNotificationId(callId))
-            if(!get().signaling || get().signaling?.callId !== callId) return;
+
+            const signaling = get().signaling;
+            if(!signaling || !signaling.peerConnection.remoteDescription) {
+                set((state) => {
+                    const callId = payload.callId;
+                    if(!callId) return state;
+                    const oldCachedIceCandidates = state.remoteCachedIceCandidates;
+                    console.log("writing remote cached ice candidate:", callId, iceCandidate)
+                    oldCachedIceCandidates[callId] = [...(callId in oldCachedIceCandidates ? oldCachedIceCandidates[callId] : []), iceCandidate]
+                    return {
+                        ...state,
+                        remoteCachedIceCandidates: oldCachedIceCandidates
+                    };
+                })
+                return;
+            }
+            signaling.peerConnection.addIceCandidate(iceCandidate).catch((err) => console.error(err))
+            console.log("added remote ice candidate")
+        } else if(payload.type === "CALL_ENDED") {
+            if(!payload || !payload.callId) return;
+            Notifications.hide(callIdToCallNotificationId(payload.callId))
+            if(!get().signaling || get().signaling?.callId !== payload.callId) return;
             get().endCall()
         }
     }

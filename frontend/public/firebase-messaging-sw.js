@@ -21,14 +21,48 @@ firebase.initializeApp({
 // messages.
 const messaging = firebase.messaging();
 
+let newMessageCounter = 0;
+
+async function checkClientIsVisible() {
+    const windowClients = await clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+    });
+
+    for (var i = 0; i < windowClients.length; i++) {
+        if (windowClients[i].visibilityState === "visible") {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+let newestUrl = null;
+
 messaging.onBackgroundMessage((payload) => {
-    if (!payload.data || !payload.data["chat-id"]) {
+    if (!payload.data || !("type" in payload.data)) {
         return;
     }
-    const notificationTitle = payload.notification.title;
-    const notificationOptions = {
-        body: payload.notification.body,
-        icon: payload.notification.image
-    };
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    const type = payload.data["type"]
+    if(type !== "NEW_MESSAGE") {
+        return;
+    }
+    newMessageCounter += 1;
+    newestUrl = `/chat/${payload.data["chatId"]}`;
+    self.registration.showNotification("New Message", {
+        body: `You have ${newMessageCounter} new message${newMessageCounter > 1 ? "s" : ""}`,
+        tag: "YChat - New Message",
+        icon: "https://y-chat.net/logo192.png",
+        renotify: true,
+    });
 });
+
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    newMessageCounter = 0;
+    if(newestUrl === null) return;
+    event.waitUntil(
+        clients.openWindow(newestUrl)
+    );
+})

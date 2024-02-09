@@ -8,7 +8,7 @@ import {
     Container,
     Divider,
     Group,
-    Input,
+    Input, Overlay,
     rem,
     SimpleGrid,
     Stack,
@@ -29,6 +29,9 @@ import {ShellOutletContext} from "../shell/ShellOutletContext";
 import {useSettingsStore} from "../../state/settingsStore";
 import {showErrorNotification} from "../../notifications/notifications";
 import {useImagesStore} from "../../state/imagesStore";
+import {unsubscribeNotifications} from "../../firebase/messaging";
+import { getMessaging, deleteToken } from "firebase/messaging";
+import firebaseApp from "../../firebase/firebaseApp";
 
 export function AccountMain() {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -213,21 +216,24 @@ export function AccountMain() {
                         radius="md"
                     />
                     <Divider m='xs'/>
-                    <Input.Wrapper
-                        size="md"
-                        label="Your Balance"
-                    >
-                        <Center>
-                            <Text size="md" c={theme.primaryColor}>{user?.balance}€</Text>
-                        </Center>
-                    </Input.Wrapper>
-                    <SimpleGrid cols={3} verticalSpacing="sm">
-                        {["+5€", "+10€", "+50€"].map(e =>
-                            <Card key={e} withBorder>
-                                <Center>{e}</Center>
-                            </Card>
-                        )}
-                    </SimpleGrid>
+                    <Stack style={{position: "relative"}}>
+                        <Overlay opacity={0.75}/>
+                        <Input.Wrapper
+                            size="md"
+                            label="Your Balance"
+                        >
+                            <Center>
+                                <Text size="md" c={theme.primaryColor}>{user?.balance}€</Text>
+                            </Center>
+                        </Input.Wrapper>
+                        <SimpleGrid cols={3} verticalSpacing="sm">
+                            {["+5€", "+10€", "+50€"].map(e =>
+                                <Card key={e} withBorder>
+                                    <Center>{e}</Center>
+                                </Card>
+                            )}
+                        </SimpleGrid>
+                    </Stack>
                     <Divider m='xs'/>
                     <Input.Wrapper
                         size="md"
@@ -241,6 +247,7 @@ export function AccountMain() {
                                 fullWidth
                                 swatches={[
                                     "gray", "yellow", "lime", "violet", "red", "blue", "indigo"
+                                    //"#808080", "#ffff00", "#00ff00", "#ee82ee", "#ff0000", "#0000ff", "#4b0082"
                                 ]}
                             />
                         </Center>
@@ -256,6 +263,9 @@ export function AccountMain() {
                                 setLogoutLoading(false);
                                 setUser(null);
                                 localStorage.clear();
+                                const messaging = getMessaging(firebaseApp)
+                                deleteToken(messaging)
+                                unsubscribeNotifications()
                                 navigate("/");
                             }).catch((err) => {
                                 setLogoutLoading(false);

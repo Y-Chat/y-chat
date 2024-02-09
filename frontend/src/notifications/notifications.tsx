@@ -1,8 +1,10 @@
 import {Notifications} from "@mantine/notifications";
 import {IconExclamationCircle, IconPhone, IconPhoneOff, IconCircleCheck} from "@tabler/icons-react";
-import {ActionIcon, Group, rem, Text} from "@mantine/core";
+import { rem} from "@mantine/core";
 import React from "react";
 import IncomingCallNotification from "../components/notifications/IncomingCallNotification";
+import GeneralNotification from "../components/notifications/GeneralNotification";
+import {NavigateFunction} from "react-router-dom";
 
 function codeToError(errorCode: string): string {
     const errorMap = new Map<string, string>([
@@ -23,11 +25,14 @@ export function showErrorNotification(errorCode: string, title: string = "Error"
     });
 }
 
-export function showNotification(message: string, title: string = "Notification") {
+export function showNotification(message: string, title: string = "Notification", options?: {action?: {link?: string, text?: string, callback?: () => void}, sound?: string, autoClose?: boolean}) {
+    const id = title + (Math.random()*10000000)
     Notifications.show({
+        id: id,
         withBorder: true,
         title: title,
-        message: message,
+        message: <GeneralNotification notificationId={id} message={message} action={options?.action ? {link: options.action.link, text: options.action.text, callback: options.action.callback} : undefined} audioPath={options?.sound}/>,
+        autoClose: options ? options.autoClose : false
     });
 }
 
@@ -54,4 +59,10 @@ export function showCallNotification(callId: string, callerId: string, offerSdp:
 
 export function callIdToCallNotificationId(callId: string) {
     return `callNotification-callId-${callId}`;
+}
+
+export let notificationNavigate: NavigateFunction | undefined = undefined;
+
+export function setNotificationNavigate(navigate: NavigateFunction) {
+    notificationNavigate = navigate;
 }

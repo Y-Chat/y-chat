@@ -3,6 +3,7 @@ package com.ychat.ychat.controllers;
 import com.openapi.gen.media.api.DataApi;
 import com.openapi.gen.media.dto.GetMedia200Response;
 import com.ychat.ychat.FirebaseInitializer;
+import com.ychat.ychat.SecurityConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +20,12 @@ public class DataController implements DataApi {
 
     @Override
     public ResponseEntity<GetMedia200Response> getMedia(String objectName) {
+        var requesterId = SecurityConfig.getRequesterUUID();
         if (objectName.startsWith("/")) {
             objectName = objectName.substring(1);
         }
 
-        String url = firebaseInitializer.generateSignedUrl(objectName);
+        String url = firebaseInitializer.generateSignedUrl(objectName, requesterId);
         return ResponseEntity.ok(new GetMedia200Response(url));
     }
 }

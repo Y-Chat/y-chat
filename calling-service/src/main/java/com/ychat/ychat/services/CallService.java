@@ -7,6 +7,7 @@ import com.ychat.ychat.repositories.CallMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -26,6 +27,7 @@ public class CallService {
         this.notificationServiceConnector = notificationServiceConnector;
     }
 
+    @Transactional
     public Call createCall(CreateCallRequest callRequest, UUID requesterId) {
         com.ychat.ychat.models.Call call = new com.ychat.ychat.models.Call(
                 UUID.randomUUID(),
@@ -51,6 +53,7 @@ public class CallService {
         return call.toOpenAPI();
     }
 
+    @Transactional
     public ResponseEntity<Void> answerCall(AnswerCallRequest answerCallRequest, UUID requesterId) {
         var call = callMessageRepository.findById(answerCallRequest.getCallId());
         if(call.isEmpty()) return ResponseEntity.status(404).build();
@@ -89,6 +92,7 @@ public class CallService {
         return ResponseEntity.ok().build();
     }
 
+    @Transactional
     public ResponseEntity<Void> postNewSignalingCandidate(PostNewSignalingCandidateRequest postNewSignalingCandidateRequest, UUID requesterId) {
         var call = callMessageRepository.findById(postNewSignalingCandidateRequest.getCallId());
         if(call.isEmpty()) return ResponseEntity.status(404).build();
@@ -100,18 +104,24 @@ public class CallService {
         candidate.setSdpMLineIndex(postNewSignalingCandidateRequest.getCandidate().getSdpMLineIndex().doubleValue());
         candidate.setUsernameFragment(postNewSignalingCandidateRequest.getCandidate().getUsernameFragment());
 
+        System.out.println("Received new candidate from UUID " + requesterId + " " + candidate.getCandidate());
+
+        var alreadyExisted = false;
+
         if(call.get().getCallerId().equals(requesterId)) {
             var offerCandidates = call.get().getOfferCandidates();
+            alreadyExisted = offerCandidates.contains(candidate);
             offerCandidates.add(candidate);
             call.get().setOfferCandidates(offerCandidates);
         } else {
             var answerCandidates = call.get().getAnswerCandidates();
+            alreadyExisted = answerCandidates.contains(candidate);
             answerCandidates.add(candidate);
             call.get().setAnswerCandidates(answerCandidates);
         }
         callMessageRepository.save(call.get());
 
-        if(call.get().getCallState().equals(com.ychat.ychat.models.Call.CallState.ONGOING)) {
+        if(!alreadyExisted) {
             Notification notification = new Notification();
             AnonymousSchema27 signalingNewCandidate = new AnonymousSchema27();
             signalingNewCandidate.setCallId(call.get().getId().toString());
@@ -122,6 +132,8 @@ public class CallService {
             signalingNewCandidate.setCandidate(candidate.toAsyncAPI());
             notification.setSignalingNewCandidate(signalingNewCandidate);
             notificationServiceConnector.onNotification(random.nextInt(), notification);
+        } else {
+            System.out.println("Candidate already existed");
         }
 
         return ResponseEntity.ok().build();

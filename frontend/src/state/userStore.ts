@@ -2,10 +2,22 @@ import {create} from 'zustand'
 import {User} from "../model/User";
 import {persist, PersistStorage} from 'zustand/middleware'
 import superjson from "superjson";
+import {UserDTO} from "../api-wrapper";
 
 interface AppState {
     user: User | null,
     setUser: (user: User | null) => void,
+}
+
+export function transformUser(user: UserDTO, firebaseEmail: string): User {
+    return {
+        id: user.id,
+        firstName: user.userProfileDTO.firstName,
+        lastName: user.userProfileDTO.lastName,
+        email: firebaseEmail,
+        profilePictureId: user.userProfileDTO.profilePictureId || null,
+        balance: 0
+    }
 }
 
 const local: PersistStorage<AppState> = {

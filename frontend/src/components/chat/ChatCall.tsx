@@ -12,19 +12,33 @@ import {useCallingStore} from "../../state/callingStore";
 
 export default function ChatCall() {
     const [microphoneOn, setMicrophoneOn] = useState(true);
-    const { setCollapseHeader } = useOutletContext<ShellOutletContext>();
 
     const endCall = useCallingStore((state) => state.endCall);
     const signaling = useCallingStore((state) => state.signaling);
     const setMicState = useCallingStore((state) => state.setMicState);
     const switchCamera = useCallingStore((state) => state.switchCamera);
+    const audio = useMemo(() => new Audio("/dialing.mp3"), []);
 
     useEffect(() => {
-        setCollapseHeader(true)
-        return () => {
-            setCollapseHeader(false)
+        let timeout: NodeJS.Timeout | undefined = undefined;
+        if(signaling?.callState === "PENDING") {
+            timeout = setTimeout(() => {
+                audio.volume = 0.1
+                audio.loop = true;
+                audio.play().catch(() => {
+                    console.error("can't start notification audio autoplay, because it's being blocked by the browser")
+                })
+            }, 3500)
+        } else {
+            audio.pause()
+            clearTimeout(timeout)
         }
-    }, []);
+
+        return () => {
+            audio.pause()
+            clearTimeout(timeout)
+        }
+    }, [audio, signaling]);
 
     useEffect(() => {
         const localStream = signaling?.localStream;

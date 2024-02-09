@@ -34,11 +34,14 @@ export function IconBar({toggleNav}: IconBarProps) {
                         c={"white"}
                         variant={"transparent"}
                     >
-                        <IconArchive/>
+                        <ActionIcon disabled>
+                            <IconArchive/>
+                        </ActionIcon>
                     </ActionIcon>
                     <ActionIcon
-                        c={"white"}
+                        //c={"gray"}
                         variant={"transparent"}
+                        disabled
                     >
                         <IconUserCancel/>
                     </ActionIcon>

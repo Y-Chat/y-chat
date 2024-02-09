@@ -17,22 +17,21 @@ export function ChatsList({toggleNav}: ContactListProps) {
     const fetchChats = useChatsStore(state => state.fetchChats);
     const [sortedChats, setSortedChats] = useState<Chat[]>(chats);
 
-    function refreshChatsAndMessagesOnce() {
+    function fetchChatsForFirstTime() {
+        const existingChatIds: { [id: string] : boolean; } = {};
+        chats.forEach((x) => existingChatIds[x.id] = true)
+
         fetchChats().then(() => {
-            useChatsStore.getState().chats
-                .forEach(c => useMessagesStore.getState()
-                    .fetchMoreMessagesByChat(c.id, "FUTURE", true));
+            useChatsStore
+                .getState()
+                .chats
+                .filter((x) => !(x.id in existingChatIds))
+                .forEach(c => useMessagesStore.getState().fetchMoreMessagesByChat(c.id, "FUTURE", true));
         })
     }
 
     useEffect(() => {
-        // refresh chats once on startup, plus when we go from background to foreground afterwards
-        document.addEventListener('visibilitychange', (e) => {
-            if (!document.hidden) {
-                refreshChatsAndMessagesOnce();
-            }
-        });
-        refreshChatsAndMessagesOnce();
+        fetchChatsForFirstTime();
     }, []);
 
     function filterData() {
