@@ -40,17 +40,3 @@
 - Each part of the model has a builder class to decouple the tests from the domain model and make
   state management in tests easier
 - For brevity, we left out the unit tests for the controller layer and the DTO converter
-
-## Deployment
-### Local Deployment
-1. Change to the Y-Chat root directory
-2. Start Docker Compose with the `social-db-compose.yml` and `social-service-compose` files:
-```shell
-docker-compose -f "social-db-compose.yml" "social-service-compose.yml" up -d
-```
-3. Verify that everything started correctly:
-```shell
-docker-compose -f "social-db-compose.yml" "social-service-compose.yml" ps
-```
-4. Access the endpoints at `localhost:38080`
-5. The connection instructions for the DB can be found in the `social-db` readme
