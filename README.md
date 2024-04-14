@@ -1,9 +1,19 @@
 # Y-Chat
+## Screenshots
+<img src="https://github.com/Y-Chat/y-chat/assets/44849439/b6869aec-f0c9-4ad8-a188-afff38fe8412" height="350">
+<img src="https://github.com/Y-Chat/y-chat/assets/44849439/ceddd885-3276-47db-8c29-c6c6bbe50fee" height="350">
+<img src="https://github.com/Y-Chat/y-chat/assets/44849439/690459f3-8fd1-4cdd-bdde-e3564ec19ba7" height="350">
+
+Login View (Mobile), Welcome View (Mobile), Chat View (Desktop)
 ## Context
 Y-Chat is a messanger app and emerged from a university project as part of the course "Large Scale Software Architectures" at the Technical University of Munich.<br />
 The objective of this project was to plan, develop, and implement the architecture of an application from scratch with a special focus on high scalability.<br />
 
 ## Production Environment
+```diff
+- The production servers are not available anymore!
+```
+
 The deployed production environment is available at [y-chat.net](https://y-chat.net)<br />
 Feel free to sign up  & test the app there!<br />
 
@@ -15,9 +25,9 @@ Feel free to sign up  & test the app there!<br />
 [Deployment](#Deployment)<br />
 
 ## Main Responsibilities
-- Ben Riegel: Frontend, Kafka Service, Payment Service, Deployment, Media Service, Auth Service
-- Benedikt Strobel: Message Service, API Gateway, Notification Service & Frontend, Calling Service & Frontend
-- Niklas Mamtschur: Social Service
+- Ben: Frontend, Kafka Service, Payment Service, Deployment, Media Service, Auth Service
+- Benedikt: Message Service, API Gateway, Notification Service & Frontend, Calling Service & Frontend
+- Niklas: Social Service
 
 ## Features
 
